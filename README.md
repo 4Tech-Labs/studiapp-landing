@@ -24,7 +24,7 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 | Páginas legales (hoy son stubs con `noindex`) | `src/pages/*.astro` |
 | Imagen de fondo del hero | `src/assets/hero-2560.webp` (Astro genera AVIF/WebP/JPG en 5 anchos) |
 | Animación del logo | `public/lottie/robot.json` |
-| Imagen para compartir en redes (1200×630) | `public/og.png` |
+| Imagen para compartir en redes (1200×630) | `public/og.jpg` (se captura de la página `/og` con Chrome headless, ver `src/pages/og.astro`) |
 | Logo estático y favicons | `scripts/logo-src.png` (frame 0 del Lottie rasterizado a 3×) → `node scripts/make-icons.mjs` regenera `public/logo.webp`, `favicon.ico`, `favicon-96.png` y `apple-touch-icon.png` |
 | Cabeceras de caché y seguridad | `public/_headers` |
 
