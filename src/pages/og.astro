@@ -13,7 +13,7 @@ import { SITE } from '../data/site';
 <Base title={`Imagen para compartir | ${SITE.name}`} noindex>
   <div class="og">
     <div class="bg" aria-hidden="true">
-      <Picture src={heroSrc} formats={['webp']} widths={[1280]} sizes="1200px" alt="" loading="eager" />
+      <Picture src={heroSrc} formats={['webp']} fallbackFormat="jpg" widths={[1280]} sizes="1200px" alt="" loading="eager" />
       <div class="veil"></div>
     </div>
     <div class="content">
