@@ -1,0 +1,57 @@
+---
+import Base from './Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/site';
+
+interface Props {
+  title: string;
+  noindex?: boolean;
+}
+const { title, noindex = true } = Astro.props;
+---
+
+<Base title={`${title} | ${SITE.name}`} noindex={noindex}>
+  <Nav />
+  <main>
+    <article class="legal">
+      <h1>{title}</h1>
+      <slot />
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .legal {
+    margin: 0 auto;
+    max-width: 720px;
+    padding: clamp(110px, 14vh, 150px) clamp(16px, 3vw, 24px) clamp(48px, 6vw, 80px);
+    line-height: 1.65;
+    color: hsl(210 10% 30%);
+  }
+  .legal h1 {
+    margin: 0 0 24px;
+    font-family: var(--font-inter-tight);
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .legal :global(h2) {
+    margin: 32px 0 8px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .legal :global(p) {
+    margin: 0 0 14px;
+  }
+  .legal :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

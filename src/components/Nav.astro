@@ -1,0 +1,152 @@
+---
+import LottieLogo from './LottieLogo.astro';
+import { SITE } from '../data/site';
+---
+
+<!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se encoge (equivale a scrollY > 60). -->
+<div class="nav-sentinel" aria-hidden="true" data-nav-sentinel></div>
+<header>
+  <nav aria-label="Principal" class="nav" data-nav>
+    <a href="#inicio" aria-label={`${SITE.name}, inicio`} class="brand"><LottieLogo width={22} height={31} />{SITE.name}</a>
+    <span aria-hidden="true" class="sep"></span>
+    <div class="links">
+      <a href="#caracteristicas" class="link">Características</a>
+      <a href="#agenda" class="cta"><span aria-hidden="true" class="shine"></span>Contacto</a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .nav-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 60px;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 2vw, 24px);
+    height: 66px;
+    padding: 16px clamp(20px, 2.4vw, 28px) 0 clamp(16px, 2vw, 22px);
+    max-width: calc(100% - 48px);
+    background: hsl(0 0% 100%);
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+    transition:
+      top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      border-radius 0.35s ease,
+      box-shadow 0.35s ease,
+      background 0.35s ease;
+  }
+  .nav[data-scrolled] {
+    top: 22px;
+    height: 50px;
+    padding-top: 0;
+    background: hsl(0 0% 100% / 0.82);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+    border-radius: 24px;
+    box-shadow:
+      0 10px 30px -12px rgba(0, 0, 0, 0.18),
+      0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-outfit);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .sep {
+    width: 1px;
+    height: 16px;
+    background: hsl(0 0% 88%);
+    flex-shrink: 0;
+  }
+  .links {
+    display: flex;
+    align-items: center;
+    gap: clamp(14px, 2.2vw, 28px);
+  }
+  .link {
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(210 14% 32%);
+    white-space: nowrap;
+    padding: 12px 0;
+  }
+  .link:hover {
+    color: var(--ink);
+  }
+  .cta {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 18px;
+    border-radius: 9999px;
+    color: hsl(0 0% 100%);
+    background: var(--accent-grad);
+    box-shadow: var(--accent-shadow);
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: filter 0.2s ease;
+  }
+  .cta:hover {
+    color: hsl(0 0% 100%);
+    filter: brightness(0.92);
+  }
+  .shine {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 46%;
+    height: 100%;
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.26) 50%, rgba(255, 255, 255, 0) 100%);
+    animation: ctaShine 5s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @media (max-width: 639px) {
+    .nav {
+      gap: 12px;
+      padding-left: 14px;
+      padding-right: 14px;
+      max-width: calc(100% - 24px);
+    }
+    .sep,
+    .link {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-nav]');
+  const sentinel = document.querySelector<HTMLElement>('[data-nav-sentinel]');
+  if (nav && sentinel) {
+    new IntersectionObserver(([entry]) => nav.toggleAttribute('data-scrolled', !entry.isIntersecting)).observe(sentinel);
+  }
+</script>

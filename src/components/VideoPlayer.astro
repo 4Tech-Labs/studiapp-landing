@@ -1,0 +1,352 @@
+---
+/**
+ * Reproductor de video (portado de VideoPlayer.dc.html).
+ * - Con webm/mp4: <video preload="none"> + controles propios (play/pausa, progreso accesible, tiempo, mute).
+ * - Solo poster: imagen estática.
+ * - Sin nada: placeholder rayado del diseño.
+ * Los archivos nunca se descargan hasta que se reproduce; el hero con `autoplay` arranca tras `load` + idle.
+ */
+interface Props {
+  id?: string;
+  label: string;
+  webm?: string;
+  mp4?: string;
+  poster?: string;
+  autoplay?: boolean;
+  loop?: boolean;
+  class?: string;
+}
+const { id, label, webm = '', mp4 = '', poster = '', autoplay = false, loop = true, class: className } = Astro.props;
+const hasSrc = Boolean(webm || mp4);
+const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
+---
+
+<div class:list={['vp', className]} id={id} data-video-player data-state={state} data-autoplay={autoplay ? '1' : '0'}>
+  {
+    hasSrc ? (
+      <>
+        <video class="vp-video" poster={poster || undefined} playsinline preload="none" loop={loop} muted aria-label={`Video: ${label}`}>
+          {webm && <source src={webm} type="video/webm" />}
+          {mp4 && <source src={mp4} type="video/mp4" />}
+        </video>
+        <button type="button" class="vp-big" aria-label="Reproducir" data-toggle>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="#0040a3"><polygon points="7 4 20 12 7 20" /></svg>
+        </button>
+        <div class="vp-bar">
+          <button type="button" class="vp-btn" aria-label="Reproducir" data-toggle data-play-btn>
+            <svg class="ic-play" width="12" height="12" viewBox="0 0 24 24" fill="#fff"><polygon points="7 4 20 12 7 20" /></svg>
+            <svg class="ic-pause" width="12" height="12" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4.5" height="16" rx="1.4" /><rect x="13.5" y="4" width="4.5" height="16" rx="1.4" /></svg>
+          </button>
+          <div class="vp-track" role="slider" tabindex="0" aria-label="Progreso del video" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="0:00 / 0:00" data-track>
+            <div class="vp-fill" data-fill></div>
+          </div>
+          <span class="vp-time" data-time>0:00 / 0:00</span>
+          <button type="button" class="vp-mute" aria-label="Activar sonido" aria-pressed="true" data-mute>mudo</button>
+        </div>
+        <div class="vp-empty" hidden data-error-box>
+          <span class="vp-tag">vídeo · {label}</span>
+          <span class="vp-hint">no se pudo cargar el video</span>
+        </div>
+      </>
+    ) : state === 'poster' ? (
+      <img class="vp-poster" src={poster} alt={`Vista previa: ${label}`} loading="lazy" decoding="async" />
+    ) : (
+      <div class="vp-empty">
+        <span class="vp-tag">vídeo · {label}</span>
+        <span class="vp-hint">próximamente</span>
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .vp {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    background: hsl(220 24% 96%);
+    font-family: var(--font-inter);
+  }
+  .vp-video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: pointer;
+  }
+  .vp-big {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px;
+    height: 72px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.8);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.9),
+      0 12px 28px -12px rgba(0, 25, 70, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+  .vp-big svg {
+    display: block;
+    margin-left: 3px;
+  }
+  .vp-big:hover {
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  .vp-big:active {
+    transform: translate(-50%, -50%) scale(0.94);
+  }
+  .vp[data-playing='1'] .vp-big {
+    display: none;
+  }
+  .vp-bar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: clamp(8px, 2vw, 12px);
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+    backdrop-filter: blur(16px) saturate(1.8);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.9),
+      0 10px 22px -14px rgba(0, 25, 70, 0.45);
+  }
+  .vp-btn {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 100px;
+    background: var(--accent-grad);
+    box-shadow: var(--accent-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.34, 1.45, 0.64, 1);
+  }
+  .vp-btn:hover {
+    transform: scale(1.08);
+  }
+  .vp-btn:active {
+    transform: scale(0.92);
+  }
+  .vp-btn svg {
+    display: block;
+  }
+  .ic-play {
+    margin-left: 2px;
+  }
+  .vp:not([data-playing='1']) .ic-pause,
+  .vp[data-playing='1'] .ic-play {
+    display: none;
+  }
+  .vp-track {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 8px;
+    border-radius: 100px;
+    background: rgba(0, 64, 163, 0.14);
+    box-shadow: inset 0 1px 2px rgba(0, 30, 80, 0.12);
+    cursor: pointer;
+  }
+  .vp-fill {
+    height: 100%;
+    width: 0;
+    border-radius: 100px;
+    background: linear-gradient(180deg, #3d7fd9 0%, #0040a3 100%);
+    box-shadow: 0 2px 6px -2px rgba(0, 64, 163, 0.6);
+    transition: width 0.12s linear;
+  }
+  .vp-time {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: hsl(216 12% 34%);
+    font-variant-numeric: tabular-nums;
+  }
+  .vp-mute {
+    flex: none;
+    border: 0;
+    border-radius: 100px;
+    padding: 0 11px;
+    min-height: 36px;
+    background: rgba(0, 64, 163, 0.08);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(216 12% 34%);
+    cursor: pointer;
+    transition:
+      background 0.18s ease,
+      color 0.18s ease;
+  }
+  .vp-mute:hover {
+    background: rgba(0, 64, 163, 0.16);
+  }
+  .vp-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: repeating-linear-gradient(135deg, hsl(0 0% 100%) 0 10px, hsl(220 24% 96%) 10px 20px);
+  }
+  .vp-empty[hidden] {
+    display: none;
+  }
+  .vp-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: hsl(216 10% 45%);
+    background: hsl(0 0% 100%);
+    border: 1px solid rgba(0, 64, 163, 0.1);
+    border-radius: 9999px;
+    padding: 6px 12px;
+    box-shadow: 0 8px 18px -14px rgba(0, 64, 163, 0.45);
+  }
+  .vp-hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    color: hsl(216 10% 45%);
+  }
+  .vp-poster {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .vp[data-state='error'] .vp-video,
+  .vp[data-state='error'] .vp-bar,
+  .vp[data-state='error'] .vp-big {
+    display: none;
+  }
+</style>
+
+<script>
+  const fmt = (s: number) => {
+    if (!Number.isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const r = Math.floor(s % 60);
+    return `${m}:${r < 10 ? '0' : ''}${r}`;
+  };
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+  const idle = (cb: () => void) =>
+    'requestIdleCallback' in window ? window.requestIdleCallback(cb, { timeout: 2000 }) : setTimeout(cb, 200);
+
+  function setup(root: HTMLElement) {
+    const video = root.querySelector<HTMLVideoElement>('video');
+    const track = root.querySelector<HTMLElement>('[data-track]');
+    const fill = root.querySelector<HTMLElement>('[data-fill]');
+    const time = root.querySelector<HTMLElement>('[data-time]');
+    const mute = root.querySelector<HTMLButtonElement>('[data-mute]');
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-play-btn]');
+    const errorBox = root.querySelector<HTMLElement>('[data-error-box]');
+    if (!video || !track || !fill || !time || !mute || !playBtn) return;
+
+    video.muted = true; // el atributo no siempre se refleja en la propiedad; fijarlo garantiza el autoplay.
+
+    const toggle = () => {
+      if (video.paused) video.play().catch(() => {});
+      else video.pause();
+    };
+    const paint = () => {
+      const playing = !video.paused && !video.ended;
+      root.dataset.playing = playing ? '1' : '0';
+      playBtn.setAttribute('aria-label', playing ? 'Pausar' : 'Reproducir');
+      const d = video.duration || 0;
+      const t = video.currentTime || 0;
+      const pct = d ? Math.min(100, (t / d) * 100) : 0;
+      fill.style.width = `${pct}%`;
+      const label = `${fmt(t)} / ${fmt(d)}`;
+      track.setAttribute('aria-valuenow', String(Math.round(pct)));
+      track.setAttribute('aria-valuetext', label);
+      time.textContent = label;
+      mute.textContent = video.muted ? 'mudo' : 'sonido';
+      mute.setAttribute('aria-pressed', String(video.muted));
+      mute.setAttribute('aria-label', video.muted ? 'Activar sonido' : 'Silenciar');
+    };
+
+    root.querySelectorAll('[data-toggle]').forEach((b) => b.addEventListener('click', toggle));
+    video.addEventListener('click', toggle);
+    mute.addEventListener('click', () => {
+      video.muted = !video.muted;
+      paint();
+    });
+    track.addEventListener('click', (e) => {
+      if (!video.duration) return;
+      const r = track.getBoundingClientRect();
+      video.currentTime = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * video.duration;
+    });
+    track.addEventListener('keydown', (e) => {
+      if (!video.duration) return;
+      const step = { ArrowRight: 5, ArrowLeft: -5, Home: -Infinity, End: Infinity }[e.key];
+      if (step === undefined) return;
+      e.preventDefault();
+      video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + step));
+    });
+    for (const ev of ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'volumechange']) video.addEventListener(ev, paint);
+    // Los errores de <source> no burbujean pero sí pasan por la fase de captura. Solo es error real si no quedó ninguna fuente válida.
+    video.addEventListener(
+      'error',
+      () => {
+        setTimeout(() => {
+          if (video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+            root.dataset.state = 'error';
+            errorBox?.removeAttribute('hidden');
+          }
+        }, 0);
+      },
+      true,
+    );
+    root.addEventListener('player:play-from-start', () => {
+      video.muted = false;
+      try {
+        video.currentTime = 0;
+      } catch {
+        /* sin metadatos aún */
+      }
+      video.play().catch(() => {});
+      paint();
+    });
+    root.addEventListener('player:pause', () => video.pause());
+    paint();
+
+    if (root.dataset.autoplay === '1' && !reduce && !saveData) {
+      const go = () => video.play().catch(() => {});
+      if (document.readyState === 'complete') idle(go);
+      else window.addEventListener('load', () => idle(go), { once: true });
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-video-player][data-state="ready"]').forEach(setup);
+</script>

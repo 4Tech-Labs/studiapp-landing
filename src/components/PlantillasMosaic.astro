@@ -1,0 +1,519 @@
+---
+/**
+ * Mosaico inclinado de plantillas (portado de plantillas-mosaic.jsx).
+ * Las tarjetas «skeleton» se generan en build con los mismos datos del original; el script solo clona
+ * las tarjetas para cerrar el bucle infinito y mueve cada columna con requestAnimationFrame.
+ */
+interface Pal {
+  p: string;
+  m: string;
+  s: string;
+  tint: string;
+}
+const PALS: Record<string, Pal> = {
+  demo: { p: '#0a3d8f', m: '#1557b0', s: '#0a7a6e', tint: '#e8eef7' },
+  brand: { p: '#0040a3', m: '#1155cc', s: '#1e6ae1', tint: '#e6eefb' },
+  teal: { p: '#0a7a6e', m: '#12a37f', s: '#0d8f6a', tint: '#e3f4ef' },
+  amber: { p: '#a2530f', m: '#d9822b', s: '#c26a14', tint: '#fdefdf' },
+  violet: { p: '#4b32ad', m: '#7a5de6', s: '#5b3fc4', tint: '#eeeafd' },
+  crimson: { p: '#9c1f36', m: '#d1495b', s: '#b32a44', tint: '#fce9ec' },
+  slate: { p: '#2f3a4a', m: '#5f7196', s: '#3f4d63', tint: '#eceff5' },
+  moss: { p: '#3f6212', m: '#6f9c1f', s: '#527a16', tint: '#eff5e2' },
+  plum: { p: '#7a1f5c', m: '#b23f8c', s: '#93286e', tint: '#fbe8f4' },
+  cobalt: { p: '#123a6b', m: '#2f6fb8', s: '#1b558f', tint: '#e7effa' },
+};
+const W9 = 'rgba(255,255,255,.9)';
+const W92 = 'rgba(255,255,255,.92)';
+const px = (w: string | number) => (typeof w === 'number' ? `${w}px` : w);
+
+/** Barras «skeleton»: una sola = barra suelta; varias = columna. */
+const tb = (ws: Array<string | number>, c?: string, h?: number) => {
+  const bar = (w: string | number) => `<i class="b" style="width:${px(w)}${c ? `;background:${c}` : ''}${h ? `;height:${h}px` : ''}"></i>`;
+  return ws.length === 1 ? bar(ws[0]!) : `<div class="bs">${ws.map(bar).join('')}</div>`;
+};
+const box = (w: string, inner: string) => `<div class="bx"><div class="bxh">${tb([w], W92)}</div><div class="bxb">${inner}</div></div>`;
+const miniTable = (cols: number[], rows: number, headFull = false) => {
+  const last = cols.length - 1;
+  const head = `<div class="mth${headFull ? ' full' : ''}">${cols
+    .map((f, i) => `<div class="c${i < last ? ' br' : ''}" style="flex:${f}">${tb(['74%'], headFull ? W9 : 'var(--p)')}</div>`)
+    .join('')}</div>`;
+  const body = Array.from(
+    { length: rows },
+    (_, r) =>
+      `<div class="r${r % 2 ? ' alt' : ''}${r < rows - 1 ? ' bb' : ''}">${cols
+        .map((f, i) => `<div class="c${i < last ? ' br2' : ''}" style="flex:${f}">${tb(i === 0 ? ['68%'] : ['94%', '62%'])}</div>`)
+        .join('')}</div>`,
+  ).join('');
+  return `<div class="mt">${head}${body}</div>`;
+};
+
+const anual = () =>
+  [
+    `<div class="ang">${[0, 1, 2, 3].map((i) => `<div class="anc${i < 3 ? ' br' : ''}"><div class="anh">${tb(['70%'], 'var(--p)')}</div><div class="anb">${tb(['56%'])}</div></div>`).join('')}</div>`,
+    box('40%', tb(['96%', '88%', '52%'])),
+    `<div class="rule"><span class="rl"></span>${tb([58], '#1a1a2e')}<span class="rl"></span></div>`,
+    `<div class="bx"><div class="sec ss"><i class="dot"></i>${tb([46], W92)}</div>${miniTable([15, 26, 30, 24], 5)}</div>`,
+    `<div class="bx nz"><div class="sec sp">${tb([42], W92)}</div>${miniTable([15, 26, 30, 24], 4)}</div>`,
+  ].join('');
+
+const periodica = () =>
+  [
+    `<div class="peg">${[0, 1, 2, 3].map(() => `<div class="bx"><div class="bxh sm">${tb(['56%'], W9)}</div><div class="bxb sm">${tb(['74%'])}</div></div>`).join('')}</div>`,
+    `<div class="rule"><span class="chip">${tb([44], W92)}</span><span class="rl rl2"></span></div>`,
+    box('34%', tb(['94%', '84%', '90%', '44%'])),
+    miniTable([26, 34, 24], 4, true),
+    `<div class="bx"><div class="peh">${['var(--p)', 'var(--s)', 'var(--m)', '#8fa3c4']
+      .map((c, i) => `<div class="c${i < 3 ? ' brw' : ''}" style="flex:${i === 0 ? 1.4 : 1};background:${c}">${tb(['68%'], W9)}</div>`)
+      .join('')}</div>${[0, 1, 2]
+      .map((r) => `<div class="r bt${r % 2 ? ' alt' : ''}">${[1.4, 1, 1, 1].map((f, i) => `<div class="c${i < 3 ? ' br2' : ''}" style="flex:${f}">${tb(['86%', '50%'])}</div>`).join('')}</div>`)
+      .join('')}</div>`,
+  ].join('');
+
+const semanal = () =>
+  [
+    `<div class="set">${tb([54, 34], 'var(--p)')}<span class="grow"></span>${tb([40])}</div>`,
+    `<div class="bx"><div class="seh"><div class="c brw" style="flex:.7">${tb(['62%'], W9)}</div>${[0, 1, 2, 3, 4]
+      .map((d) => `<div class="c${d < 4 ? ' brw' : ''}" style="flex:1">${tb(['72%'], W9)}</div>`)
+      .join('')}</div>${[0, 1, 2, 3, 4, 5]
+      .map(
+        (r) =>
+          `<div class="r bt${r % 2 ? ' alt' : ''}"><div class="c br2 lab${r % 2 ? ' alt' : ''}" style="flex:.7">${tb(['70%'], '#9fadc4')}</div>${[0, 1, 2, 3, 4]
+            .map((d) => `<div class="c${d < 4 ? ' br2' : ''}" style="flex:1">${(r + d) % 3 === 0 ? '<i class="ev"></i>' : tb(['84%', '46%'])}</div>`)
+            .join('')}</div>`,
+      )
+      .join('')}</div>`,
+    box('30%', tb(['92%', '80%', '40%'])),
+    `<div class="bx nz"><div class="sec ss">${tb([46], W92)}</div>${miniTable([24, 40, 22], 3)}</div>`,
+  ].join('');
+
+const FLAVORS = { anual, periodica, semanal };
+interface Card {
+  title: string;
+  sub: string;
+  flavor: keyof typeof FLAVORS;
+  pal: string;
+  h: number;
+}
+const card = ({ pal, title, sub, flavor, h }: Card) => {
+  const P = PALS[pal]!;
+  return `<div class="card" style="--p:${P.p};--m:${P.m};--s:${P.s};--tint:${P.tint};height:${h}px"><div class="cin"><div class="ch"><span class="logo"><i></i></span><div><div class="ttl">${title}</div><div class="sub">${sub}</div></div></div><div class="cb">${FLAVORS[flavor]()}</div><div class="cf">${tb([62], 'rgba(255,255,255,.32)', 2.5)}${tb([28], 'rgba(255,255,255,.32)', 2.5)}</div></div></div>`;
+};
+
+const A = { title: 'Planeación anual', sub: 'Annual planning', flavor: 'anual' as const };
+const P2 = { title: 'Planeación periódica', sub: 'Periodic planning', flavor: 'periodica' as const };
+const S = { title: 'Planeación semanal', sub: 'Weekly planning', flavor: 'semanal' as const };
+const COLS: Array<{ speed: number; phase: number; cards: Card[] }> = [
+  { speed: 30, phase: 580, cards: [{ ...A, pal: 'demo', h: 412 }, { ...S, pal: 'amber', h: 396 }, { ...P2, pal: 'slate', h: 404 }] },
+  { speed: 22, phase: 830, cards: [{ ...P2, pal: 'brand', h: 406 }, { ...A, pal: 'crimson', h: 418 }, { ...S, pal: 'moss', h: 392 }] },
+  { speed: 36, phase: 710, cards: [{ ...S, pal: 'teal', h: 400 }, { ...P2, pal: 'violet', h: 410 }, { ...A, pal: 'cobalt', h: 404 }] },
+  { speed: 26, phase: 960, cards: [{ ...A, pal: 'plum', h: 398 }, { ...S, pal: 'cobalt', h: 414 }, { ...P2, pal: 'teal', h: 396 }] },
+  { speed: 33, phase: 750, cards: [{ ...P2, pal: 'amber', h: 404 }, { ...S, pal: 'demo', h: 400 }, { ...A, pal: 'violet', h: 410 }] },
+];
+---
+
+<div class="mosaic" data-mosaic aria-hidden="true">
+  <div class="stage" data-stage>
+    <div class="grid" data-grid>
+      {
+        COLS.map((col) => (
+          <div class="col">
+            <div class="track" data-col data-speed={col.speed} data-phase={col.phase} set:html={col.cards.map(card).join('')}></div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <div class="fade fl"></div>
+  <div class="fade ft"></div>
+  <div class="fade fb"></div>
+</div>
+
+<!-- Global con prefijo .mosaic: el marcado de las tarjetas viene de set:html y no recibe el scope de Astro. -->
+<style is:global>
+  .mosaic {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #f8fafc;
+  }
+  .mosaic .stage {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1200px;
+    height: 820px;
+    transform: translate(-50%, -50%) scale(0.5);
+    transform-origin: 50% 50%;
+  }
+  .mosaic .grid {
+    position: absolute;
+    left: -60px;
+    top: -260px;
+    width: 1590px;
+    height: 1340px;
+    display: flex;
+    gap: 22px;
+    transform-origin: 40% 50%;
+    transform: rotate(-9deg) scale(1.07);
+    opacity: 0;
+    transition:
+      opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+  .mosaic .grid[data-on] {
+    opacity: 1;
+    transform: rotate(-9deg) scale(1);
+  }
+  .mosaic .col {
+    width: 296px;
+    flex: 0 0 auto;
+  }
+  .mosaic .track {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    will-change: transform;
+  }
+  .mosaic .fade {
+    position: absolute;
+    pointer-events: none;
+  }
+  .mosaic .fl {
+    inset: 0;
+    background: linear-gradient(90deg, #f8fafc 0%, transparent 28%);
+  }
+  .mosaic .ft {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 22%;
+    background: linear-gradient(180deg, #f8fafc 0%, transparent 100%);
+  }
+  .mosaic .fb {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 24%;
+    background: linear-gradient(0deg, #f8fafc 0%, transparent 100%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mosaic .grid {
+      transition: none;
+      opacity: 1;
+      transform: rotate(-9deg);
+    }
+  }
+
+  /* Tarjetas */
+  .mosaic .card {
+    position: relative;
+    contain: layout style;
+  }
+  .mosaic .cin {
+    height: 100%;
+    background: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow:
+      0 1px 2px rgba(16, 24, 40, 0.06),
+      0 16px 40px rgba(16, 24, 40, 0.11);
+  }
+  .mosaic .ch {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 10px;
+    background: linear-gradient(135deg, var(--p) 0%, var(--m) 60%, var(--s) 100%);
+  }
+  .mosaic .logo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+  }
+  .mosaic .logo i {
+    display: block;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--m);
+  }
+  .mosaic .ttl {
+    font: 700 10px var(--font-inter-tight);
+    color: #fff;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .mosaic .sub {
+    font: italic 500 7.5px var(--font-inter-tight);
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 1px;
+  }
+  .mosaic .cb {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 9px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    overflow: hidden;
+  }
+  .mosaic .cf {
+    background: #1a1a2e;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .mosaic .b {
+    display: block;
+    height: 3.5px;
+    border-radius: 9px;
+    background: #b4c0d3;
+  }
+  .mosaic .bs {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .mosaic .bx {
+    border: 1px solid #d3dbe8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mosaic .bxh {
+    background: linear-gradient(90deg, var(--p), var(--m));
+    padding: 4px 7px;
+  }
+  .mosaic .bxh.sm {
+    padding: 3px 6px;
+  }
+  .mosaic .bxb {
+    padding: 6px 7px;
+    background: #fafbfe;
+  }
+  .mosaic .bxb.sm {
+    padding: 4px 6px;
+    background: transparent;
+  }
+  .mosaic .mt {
+    border: 1px solid #d3dbe8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mosaic .mth {
+    display: flex;
+    background: var(--tint);
+    border-bottom: 1.5px solid var(--p);
+  }
+  .mosaic .mth.full {
+    background: linear-gradient(90deg, var(--p), var(--m));
+    border-bottom: none;
+  }
+  .mosaic .mth .c,
+  .mosaic .peh .c,
+  .mosaic .seh .c {
+    padding: 4px 5px;
+  }
+  .mosaic .r {
+    display: flex;
+    background: #fff;
+  }
+  .mosaic .r.alt {
+    background: #fafbfe;
+  }
+  .mosaic .r.bb {
+    border-bottom: 1px solid #eef2f8;
+  }
+  .mosaic .r.bt {
+    border-top: 1px solid #eef2f8;
+  }
+  .mosaic .r .c {
+    padding: 5px;
+  }
+  .mosaic .br {
+    border-right: 1px solid #c8d4e8;
+  }
+  .mosaic .mth.full .br {
+    border-right-color: rgba(255, 255, 255, 0.3);
+  }
+  .mosaic .br2 {
+    border-right: 1px solid #eef2f8;
+  }
+  .mosaic .brw {
+    border-right: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .mosaic .ang {
+    display: flex;
+    border: 1px solid #d3dbe8;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .mosaic .anc {
+    flex: 1;
+  }
+  .mosaic .anc.br {
+    border-right: 1px solid #d3dbe8;
+  }
+  .mosaic .anh {
+    background: var(--tint);
+    border-bottom: 1.5px solid var(--p);
+    padding: 3px 5px;
+  }
+  .mosaic .anb {
+    padding: 4px 5px;
+    background: #fafbfe;
+  }
+  .mosaic .rule {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .mosaic .rl {
+    flex: 1;
+    height: 1.5px;
+    background: var(--p);
+    opacity: 0.2;
+  }
+  .mosaic .rl2 {
+    opacity: 0.18;
+  }
+  .mosaic .sec {
+    padding: 5px 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mosaic .ss {
+    background: var(--s);
+  }
+  .mosaic .sp {
+    background: var(--p);
+  }
+  .mosaic .dot {
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .mosaic .nz {
+    flex: 0 0 auto;
+  }
+  .mosaic .peg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .mosaic .chip {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--p), var(--m));
+  }
+  .mosaic .peh {
+    display: flex;
+  }
+  .mosaic .set {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: var(--tint);
+    border-radius: 3px;
+  }
+  .mosaic .grow {
+    flex: 1;
+  }
+  .mosaic .seh {
+    display: flex;
+    background: linear-gradient(90deg, var(--p), var(--m));
+  }
+  .mosaic .lab {
+    background: #fbfcfe;
+  }
+  .mosaic .lab.alt {
+    background: #f4f7fc;
+  }
+  .mosaic .ev {
+    display: block;
+    height: 9px;
+    border-radius: 2px;
+    background: var(--tint);
+    border: 1px solid color-mix(in srgb, var(--m) 33%, transparent);
+  }
+</style>
+
+<script>
+  const host = document.querySelector<HTMLElement>('[data-mosaic]');
+  const stage = host?.querySelector<HTMLElement>('[data-stage]');
+  const grid = host?.querySelector<HTMLElement>('[data-grid]');
+  if (host && stage && grid) {
+    const SW = 1200;
+    const SH = 820;
+    const GAP = 22;
+    // Banda visible del escenario en coordenadas de la columna (820 px + inclinación) ≈ 1070 px; con margen.
+    const SPAN = 1250;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Cierra el bucle: clona las tarjetas de cada columna hasta cubrir tile + SPAN.
+    // Las alturas se leen del estilo inline (height:NNNpx) y los clones entran en un fragmento: cero reflows forzados.
+    const cols = Array.from(host.querySelectorAll<HTMLElement>('[data-col]')).map((el) => {
+      const cards = Array.from(el.children) as HTMLElement[];
+      const heights = cards.map((c) => parseFloat(c.style.height) || 0);
+      const tile = heights.reduce((a, h) => a + h + GAP, 0);
+      const frag = document.createDocumentFragment();
+      let filled = tile;
+      let i = 0;
+      while (filled < tile + SPAN && cards.length) {
+        const k = i % cards.length;
+        frag.appendChild(cards[k]!.cloneNode(true));
+        filled += heights[k]! + GAP;
+        i++;
+      }
+      el.appendChild(frag);
+      return { el, speed: Number(el.dataset.speed), phase: Number(el.dataset.phase), tile };
+    });
+
+    // Escenario fijo 1200×820 escalado para cubrir el contenedor.
+    const fit = () => {
+      const r = host.getBoundingClientRect();
+      if (r.width && r.height) stage.style.transform = `translate(-50%,-50%) scale(${Math.max(r.width / SW, r.height / SH)})`;
+    };
+    fit();
+    new ResizeObserver(fit).observe(host);
+
+    let active = true; // visible en viewport
+    new IntersectionObserver((entries) => {
+      active = entries.some((e) => e.isIntersecting);
+    }).observe(host);
+
+    requestAnimationFrame(() => grid.setAttribute('data-on', ''));
+
+    if (reduce) {
+      for (const c of cols) c.el.style.transform = `translate3d(0,${(-(c.phase % c.tile)).toFixed(2)}px,0)`;
+    } else {
+      let T = 0;
+      let last = performance.now();
+      const tick = (now: number) => {
+        requestAnimationFrame(tick);
+        const dt = (now - last) / 1000;
+        last = now;
+        if (!active || document.hidden) return; // pausa fuera de pantalla / pestaña oculta
+        T += Math.min(dt, 0.1);
+        for (const c of cols) {
+          const y = -((((T * c.speed + c.phase) % c.tile) + c.tile) % c.tile);
+          c.el.style.transform = `translate3d(0,${y.toFixed(2)}px,0)`;
+        }
+      };
+      requestAnimationFrame(tick);
+    }
+  }
+</script>

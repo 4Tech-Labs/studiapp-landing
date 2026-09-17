@@ -1,0 +1,9 @@
+---
+// Página legal pendiente de contenido. Lleva noindex hasta que exista el texto definitivo.
+import Legal from '../layouts/Legal.astro';
+import { SITE } from '../data/site';
+---
+
+<Legal title="Tratamiento de datos">
+  <p>Este documento está en preparación. Si tienes preguntas sobre este tema, escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+</Legal>

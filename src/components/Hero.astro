@@ -1,0 +1,261 @@
+---
+import { Picture } from 'astro:assets';
+import heroSrc from '../assets/hero-2560.webp';
+import VideoPlayer from './VideoPlayer.astro';
+import HeroMock from './HeroMock.astro';
+import { HERO } from '../data/site';
+
+const isVideo = HERO.media === 'video';
+---
+
+<div id="inicio" class="hero" data-screen-label="Hero">
+  <div aria-hidden="true" class="hero-bg">
+    <Picture
+      src={heroSrc}
+      formats={['avif', 'webp']}
+      fallbackFormat="jpg"
+      widths={[640, 960, 1280, 1920, 2560]}
+      sizes="100vw"
+      alt=""
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+    <div class="veil"></div>
+  </div>
+
+  <section aria-labelledby="hero-titulo" class="body">
+    <div class="inner">
+      <h1 id="hero-titulo">
+        Planea un año escolar en <span class="accent">minutos<svg aria-hidden="true" viewBox="0 0 200 20" preserveAspectRatio="none" class="underline"><path d="M4 12 C 60 5, 140 5, 196 12" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" opacity="0.85"></path></svg></span>
+      </h1>
+
+      <p class="lead">Genera planeaciones anuales, periódicas y semanales con IA, en las plantillas que ya usa tu colegio y con el contexto de tu institución.</p>
+
+      <div class="ctas">
+        <a href="#agenda" class="btn-dark">Agenda una reunión</a>
+        {
+          isVideo && (
+            <button type="button" aria-label="Reproducir video" class="btn-play" data-hero-play>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="hsl(210 14% 17%)" stroke="hsl(210 14% 17%)" stroke-width="2" stroke-linejoin="round">
+                <polygon points="6 3 20 12 6 21 6 3" />
+              </svg>
+            </button>
+          )
+        }
+      </div>
+
+      <div class="media" data-hero-media>
+        <div class="glass">
+          {
+            isVideo ? (
+              <div class="frame">
+                <VideoPlayer label="demo" webm={HERO.video.webm} mp4={HERO.video.mp4} poster={HERO.video.poster} autoplay={HERO.autoplay} loop />
+              </div>
+            ) : (
+              <HeroMock />
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: calc(100svh - clamp(20px, 3vw, 32px));
+    display: flex;
+    flex-direction: column;
+    background: hsl(0 0% 100%);
+    overflow: hidden;
+    border-radius: var(--radius);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--sky);
+    pointer-events: none;
+  }
+  .hero-bg :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    opacity: 0.55;
+  }
+  .veil {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 55% 50% at 50% 38%, hsl(0 0% 100% / 0.6) 0%, hsl(0 0% 100% / 0.25) 55%, transparent 100%);
+  }
+  .body {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: clamp(86px, 10vh, 116px) clamp(16px, 3vw, 24px) clamp(40px, 6vw, 80px);
+    min-height: 0;
+  }
+  .inner {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-inter-tight);
+    font-weight: 500;
+    font-size: clamp(2.75rem, 6.4vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    max-width: 640px;
+    text-wrap: balance;
+    animation: fadeUp16 0.6s ease-out 0.1s both;
+  }
+  .accent {
+    position: relative;
+    display: inline-block;
+    color: var(--accent);
+  }
+  .underline {
+    position: absolute;
+    left: -2%;
+    width: 104%;
+    bottom: -0.14em;
+    height: 0.2em;
+    overflow: visible;
+    display: block;
+  }
+  .lead {
+    margin: 16px 0 0;
+    text-align: center;
+    font-size: clamp(16px, 1.4vw, 18px);
+    color: var(--ink-2);
+    max-width: 650px;
+    line-height: 1.625;
+    text-wrap: pretty;
+    animation: fadeUp16 0.6s ease-out 0.2s both;
+  }
+  .ctas {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp16 0.6s ease-out 0.3s both;
+  }
+  .btn-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0 24px;
+    height: 44px;
+    font-size: 14px;
+    font-weight: 500;
+    background: var(--ink);
+    color: hsl(0 0% 100%);
+    white-space: nowrap;
+    transition: background 0.2s ease;
+  }
+  .btn-dark:hover {
+    background: hsl(210 14% 17% / 0.9);
+    color: hsl(0 0% 100%);
+  }
+  .btn-play {
+    height: 44px;
+    width: 44px;
+    border-radius: 9999px;
+    border: 0;
+    background: hsl(0 0% 100%);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .btn-play:hover {
+    background: hsl(0 0% 100% / 0.8);
+  }
+  .media {
+    margin-top: 32px;
+    width: 100%;
+    max-width: 1024px;
+    animation: fadeUp30 0.8s ease-out 0.5s both;
+  }
+  .glass {
+    position: relative;
+    border-radius: 20px;
+    overflow: hidden;
+    padding: clamp(12px, 1.2vw, 16px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.1) 45%, rgba(255, 255, 255, 0.2) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    -webkit-backdrop-filter: blur(14px) saturate(1.5);
+    backdrop-filter: blur(14px) saturate(1.5);
+    box-shadow:
+      0 25px 80px -12px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(255, 255, 255, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 0 24px rgba(255, 255, 255, 0.18);
+  }
+  .glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 40%);
+    -webkit-mask:
+      linear-gradient(#000, #000) content-box,
+      linear-gradient(#000, #000);
+    mask:
+      linear-gradient(#000, #000) content-box,
+      linear-gradient(#000, #000);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    padding: 1px;
+  }
+  .frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: hsl(220 24% 96%);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+</style>
+
+<script>
+  // Botón «Reproducir video»: reinicia el demo con sonido y lo centra en pantalla si no está completo en el viewport.
+  const btn = document.querySelector<HTMLButtonElement>('[data-hero-play]');
+  const media = document.querySelector<HTMLElement>('[data-hero-media]');
+  btn?.addEventListener('click', () => {
+    if (!media) return;
+    media.querySelector('[data-video-player]')?.dispatchEvent(new CustomEvent('player:play-from-start'));
+    const r = media.getBoundingClientRect();
+    const vh = window.innerHeight;
+    if (r.top >= 0 && r.bottom <= vh) return;
+    window.scrollTo({ top: r.top + window.scrollY - Math.max(16, (vh - r.height) / 2), behavior: 'smooth' });
+  });
+</script>

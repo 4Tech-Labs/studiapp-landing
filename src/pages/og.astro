@@ -1,0 +1,114 @@
+---
+/**
+ * Composición de 1200×630 para la imagen Open Graph (public/og.png).
+ * No aparece en el sitemap y lleva noindex. Se captura con Chrome headless:
+ *   chrome --headless=new --screenshot=public/og.png --window-size=1200,630 --hide-scrollbars http://127.0.0.1:4321/og
+ */
+import Base from '../layouts/Base.astro';
+import { Picture } from 'astro:assets';
+import heroSrc from '../assets/hero-2560.webp';
+import { SITE } from '../data/site';
+---
+
+<Base title={`Imagen para compartir | ${SITE.name}`} noindex>
+  <div class="og">
+    <div class="bg" aria-hidden="true">
+      <Picture src={heroSrc} formats={['webp']} widths={[1280]} sizes="1200px" alt="" loading="eager" />
+      <div class="veil"></div>
+    </div>
+    <div class="content">
+      <div class="brand"><img src="/logo.webp" width="34" height="48" alt="" />{SITE.name}</div>
+      <h1>Planea un año escolar en <span>minutos</span></h1>
+      <p>Planeaciones anuales, periódicas y semanales con IA, en las plantillas que ya usa tu colegio.</p>
+      <div class="cta">Agenda una reunión</div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  :global(body) {
+    padding: 0;
+    overflow: hidden;
+  }
+  .og {
+    position: fixed;
+    inset: 0;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: var(--sky);
+    font-family: var(--font-inter);
+    color: var(--ink);
+  }
+  .bg {
+    position: absolute;
+    inset: 0;
+  }
+  .bg :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    opacity: 0.55;
+  }
+  .veil {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 60% at 50% 45%, hsl(0 0% 100% / 0.75) 0%, hsl(0 0% 100% / 0.3) 55%, transparent 100%);
+  }
+  .content {
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 120px;
+    gap: 22px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-outfit);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-inter-tight);
+    font-weight: 500;
+    font-size: 78px;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    max-width: 900px;
+  }
+  h1 span {
+    color: var(--accent);
+  }
+  p {
+    margin: 0;
+    font-size: 26px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    max-width: 820px;
+    text-wrap: pretty;
+  }
+  .cta {
+    margin-top: 6px;
+    display: inline-flex;
+    align-items: center;
+    height: 56px;
+    padding: 0 30px;
+    border-radius: 9999px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 19px;
+    font-weight: 500;
+  }
+</style>
