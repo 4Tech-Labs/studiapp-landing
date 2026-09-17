@@ -74,6 +74,12 @@ npm run build && npm run preview
 npx lighthouse http://127.0.0.1:4321 --preset=desktop --view
 ```
 
+Cada push a `main` dispara un build en Cloudflare (Workers Builds, conectado el 17-sep-2026) que publica en 1 a 2 minutos. Para saber qué commit está en producción:
+
+```bash
+curl https://studiapp-landing.studiapp-landing.workers.dev/version.txt
+```
+
 Tras el deploy, revisar en <https://pagespeed.web.dev> y comprobar cabeceras:
 
 ```bash
