@@ -49,7 +49,7 @@ Mientras no haya archivos, el hero y las pestañas muestran el placeholder del d
 2. Subir el repo a GitHub (`gh repo create studiapp-landing --private --source=. --push`).
 3. En Cloudflare: **Workers & Pages → Create → Workers → Import a repository** → elegir el repo. Preset *Astro*: build `npm run build`, deploy `npx wrangler deploy`. Cada push a `main` publica; las ramas generan URLs de preview.
    - Alternativa sin Git: `npx wrangler login` y luego `npm run deploy`.
-4. El sitio queda en `https://studiapp-landing.<cuenta>.workers.dev`.
+4. El sitio queda en `https://studiapp-landing.<cuenta>.workers.dev`. URL actual (cuenta fourtechlabs): <https://studiapp-landing.studiapp-landing.workers.dev>
 
 ### Dominio
 
