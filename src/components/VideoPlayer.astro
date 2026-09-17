@@ -41,7 +41,14 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
             <div class="vp-fill" data-fill></div>
           </div>
           <span class="vp-time" data-time>0:00 / 0:00</span>
-          <button type="button" class="vp-mute" aria-label="Activar sonido" aria-pressed="true" data-mute>mudo</button>
+          <button type="button" class="vp-icon" aria-label="Activar sonido" aria-pressed="true" data-mute>
+            <svg class="ic-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" fill="currentColor" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" /></svg>
+            <svg class="ic-sound" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z" fill="currentColor" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5.5a9.5 9.5 0 0 1 0 13" /></svg>
+          </button>
+          <button type="button" class="vp-icon" aria-label="Ver en pantalla completa" data-fullscreen>
+            <svg class="ic-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5" /><path d="M16 3h5v5" /><path d="M3 16v5h5" /><path d="M21 16v5h-5" /></svg>
+            <svg class="ic-compress" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h5V3" /><path d="M21 8h-5V3" /><path d="M3 16h5v5" /><path d="M21 16h-5v5" /></svg>
+          </button>
         </div>
         <div class="vp-empty" hidden data-error-box>
           <span class="vp-tag">vídeo · {label}</span>
@@ -128,6 +135,27 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     box-shadow:
       inset 0 1px 1px rgba(255, 255, 255, 0.9),
       0 10px 22px -14px rgba(0, 25, 70, 0.45);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease,
+      visibility 0s linear 0s;
+  }
+  /* Reproduciendo y sin actividad: la barra se oculta (salvo con el ratón encima o foco de teclado dentro). */
+  .vp[data-idle='1'] .vp-bar:not(:hover):not(:focus-within) {
+    opacity: 0;
+    transform: translateY(8px);
+    visibility: hidden;
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease,
+      visibility 0s linear 0.35s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .vp-bar,
+    .vp[data-idle='1'] .vp-bar:not(:hover):not(:focus-within) {
+      transition: none;
+      transform: none;
+    }
   }
   .vp-btn {
     flex: none;
@@ -186,26 +214,47 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     color: hsl(216 12% 34%);
     font-variant-numeric: tabular-nums;
   }
-  .vp-mute {
+  .vp-icon {
     flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
     border: 0;
     border-radius: 100px;
-    padding: 0 11px;
-    min-height: 36px;
     background: rgba(0, 64, 163, 0.08);
-    font-family: var(--mono);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     color: hsl(216 12% 34%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition:
       background 0.18s ease,
       color 0.18s ease;
   }
-  .vp-mute:hover {
+  .vp-icon:hover {
     background: rgba(0, 64, 163, 0.16);
+    color: var(--accent);
+  }
+  .vp-icon svg {
+    display: block;
+  }
+  .vp:not([data-muted='1']) .ic-muted,
+  .vp[data-muted='1'] .ic-sound,
+  .vp:not([data-fullscreen='1']) .ic-compress,
+  .vp[data-fullscreen='1'] .ic-expand {
+    display: none;
+  }
+  /* En pantalla completa el video se ve entero (sin recorte) sobre fondo negro y la barra se separa de los bordes. */
+  .vp:fullscreen {
+    background: #000;
+  }
+  .vp:fullscreen .vp-video {
+    object-fit: contain;
+  }
+  .vp:fullscreen .vp-bar {
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
   }
   .vp-empty {
     position: absolute;
@@ -270,8 +319,9 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     const time = root.querySelector<HTMLElement>('[data-time]');
     const mute = root.querySelector<HTMLButtonElement>('[data-mute]');
     const playBtn = root.querySelector<HTMLButtonElement>('[data-play-btn]');
+    const fsBtn = root.querySelector<HTMLButtonElement>('[data-fullscreen]');
     const errorBox = root.querySelector<HTMLElement>('[data-error-box]');
-    if (!video || !track || !fill || !time || !mute || !playBtn) return;
+    if (!video || !track || !fill || !time || !mute || !playBtn || !fsBtn) return;
 
     video.muted = true; // el atributo no siempre se refleja en la propiedad; fijarlo garantiza el autoplay.
 
@@ -291,9 +341,25 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       track.setAttribute('aria-valuenow', String(Math.round(pct)));
       track.setAttribute('aria-valuetext', label);
       time.textContent = label;
-      mute.textContent = video.muted ? 'mudo' : 'sonido';
+      root.dataset.muted = video.muted ? '1' : '0';
       mute.setAttribute('aria-pressed', String(video.muted));
       mute.setAttribute('aria-label', video.muted ? 'Activar sonido' : 'Silenciar');
+      const fs = document.fullscreenElement === root;
+      root.dataset.fullscreen = fs ? '1' : '0';
+      fsBtn.setAttribute('aria-label', fs ? 'Salir de pantalla completa' : 'Ver en pantalla completa');
+    };
+
+    // Pantalla completa sobre el contenedor (conserva los controles propios). iOS Safari solo permite la del <video>.
+    const iosVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+    const toggleFullscreen = () => {
+      if (document.fullscreenElement === root) {
+        document.exitFullscreen().catch(() => {});
+      } else if (root.requestFullscreen) {
+        root.requestFullscreen().catch(() => {});
+      } else if (iosVideo.webkitEnterFullscreen) {
+        if (video.paused) video.play().catch(() => {});
+        iosVideo.webkitEnterFullscreen();
+      }
     };
 
     root.querySelectorAll('[data-toggle]').forEach((b) => b.addEventListener('click', toggle));
@@ -302,6 +368,26 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       video.muted = !video.muted;
       paint();
     });
+    fsBtn.addEventListener('click', toggleFullscreen);
+    video.addEventListener('dblclick', toggleFullscreen);
+    document.addEventListener('fullscreenchange', paint);
+
+    // Auto-ocultar la barra: tras IDLE_MS sin actividad mientras reproduce. Cualquier movimiento, toque o tecla la muestra de nuevo.
+    const IDLE_MS = 2500;
+    let idleTimer: ReturnType<typeof setTimeout> | undefined;
+    const showBar = () => {
+      root.dataset.idle = '0';
+      clearTimeout(idleTimer);
+      if (!video.paused && !video.ended) idleTimer = setTimeout(() => (root.dataset.idle = '1'), IDLE_MS);
+    };
+    for (const ev of ['pointermove', 'pointerdown', 'keydown']) root.addEventListener(ev, showBar);
+    root.addEventListener('focusin', showBar);
+    root.addEventListener('pointerleave', () => {
+      clearTimeout(idleTimer);
+      if (!video.paused && !video.ended) root.dataset.idle = '1';
+    });
+    video.addEventListener('play', showBar);
+    for (const ev of ['pause', 'ended']) video.addEventListener(ev, showBar);
     track.addEventListener('click', (e) => {
       if (!video.duration) return;
       const r = track.getBoundingClientRect();

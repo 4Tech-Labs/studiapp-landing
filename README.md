@@ -32,6 +32,8 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 
 Los videos **no van en el repo**: se comprimen y se suben a Cloudflare R2 (10 GB gratis, sin costo de egreso, soporta reproducción por rangos).
 
+> Estado actual: R2 no está habilitado en la cuenta, así que el video del hero (`mXfWQiBKKGs` de YouTube, descargado con yt-dlp y comprimido con el script de abajo) se sirve como asset estático desde `public/videos/hero-v1.mp4` (5,2 MB; el límite por asset en Workers es 25 MiB). `public/_headers` le da caché inmutable, así que un video nuevo debe subirse como `hero-v2`. Cuando se habilite R2, basta mover los archivos y cambiar las URLs en `HERO`.
+
 1. Comprimir (usa el ffmpeg del paquete `ffmpeg-static`, no hay que instalar nada):
    ```bash
    node scripts/encode-video.mjs "C:/ruta/al/demo.mov" media hero

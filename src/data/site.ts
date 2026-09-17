@@ -37,7 +37,7 @@ export interface VideoSources {
 export const HERO: { media: 'video' | 'mock'; autoplay: boolean; video: VideoSources } = {
   media: 'video',
   autoplay: true,
-  video: { webm: '', mp4: '', poster: '' },
+  video: { webm: '', mp4: '/videos/hero-v1.mp4', poster: '/videos/hero-v1-poster.webp' },
 };
 
 export const FEATURES_DEFAULT_TAB = 0;

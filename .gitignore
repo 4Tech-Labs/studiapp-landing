@@ -10,3 +10,4 @@ dist/
 Thumbs.db
 media/
 public/version.txt
+.gstack/
