@@ -2,6 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "studiapp-landing",
   "compatibility_date": "2026-09-01",
+  // Dominio propio (zona en Cloudflare). Wrangler crea los registros DNS y el certificado al desplegar.
+  "routes": [
+    { "pattern": "4techlabs.com", "custom_domain": true },
+    { "pattern": "www.4techlabs.com", "custom_domain": true }
+  ],
   // Worker de solo assets estáticos: los requests a estáticos son gratis e ilimitados en el plan Free.
   "assets": {
     "directory": "./dist",

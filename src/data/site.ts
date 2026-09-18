@@ -1,13 +1,13 @@
 /** Datos centrales del sitio. Dominio, correo, redes y videos se cambian aquí y en ningún otro lugar. */
 export const SITE = {
-  url: 'https://studiapp-landing.studiapp-landing.workers.dev', // TODO: dominio propio, sin barra final (studiapp.co no está disponible: lo usa otra empresa)
+  url: 'https://4techlabs.com', // dominio corporativo (Cloudflare Registrar, 18-sep-2026), sin barra final
   name: 'StudIApp',
   title: 'Planea el año escolar con IA en minutos | StudIApp',
   description:
     'Planea el año escolar en minutos con IA. Planeaciones en las plantillas de tu colegio, con contexto institucional, DUA y PIAR. Agenda una reunión.',
   lang: 'es',
   locale: 'es_CO',
-  email: 'fourtechlabs@gmail.com', // Contacto y canal para datos personales. TODO: correo con dominio propio (ver README)
+  email: 'hola@4techlabs.com', // reenviado a fourtechlabs@gmail.com con Cloudflare Email Routing
   themeColor: '#0040a3',
   ogImage: '/og.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
