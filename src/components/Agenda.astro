@@ -16,6 +16,7 @@ const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una re
       </a>
       <a href="#caracteristicas" class="btn-ghost">Ver características</a>
     </div>
+    <p class="note">Al escribirnos, tratamos tus datos según nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos</a>.</p>
   </div>
 </section>
 
@@ -128,6 +129,22 @@ const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una re
   .btn-ghost:hover {
     border-color: hsl(0 0% 100% / 0.7);
     background: hsl(0 0% 100% / 0.06);
+    color: hsl(0 0% 100%);
+  }
+  .note {
+    margin: 24px 0 0;
+    max-width: 440px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: hsl(222 24% 70%);
+    text-wrap: balance;
+  }
+  .note a {
+    color: hsl(222 100% 88%);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .note a:hover {
     color: hsl(0 0% 100%);
   }
 </style>

@@ -2,21 +2,63 @@
 import Base from './Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import EffectiveDate from '../components/legal/EffectiveDate.astro';
 import { SITE } from '../data/site';
+import { effectiveDate, type TocItem } from '../lib/legal';
 
 interface Props {
   title: string;
-  noindex?: boolean;
+  /** Resumen para buscadores y para la vista previa al compartir el enlace. */
+  description: string;
+  /** Índice de secciones. Vacío en los documentos cortos. */
+  toc?: TocItem[];
 }
-const { title, noindex = true } = Astro.props;
+
+const { title, description, toc = [] } = Astro.props;
 ---
 
-<Base title={`${title} | ${SITE.name}`} noindex={noindex}>
+<!-- Sin fecha de vigencia el texto no está completo: noindex hasta que se defina (ver LEGAL en src/data/site.ts). -->
+<Base title={`${title} | ${SITE.name}`} description={description} noindex={!effectiveDate}>
   <Nav />
   <main>
     <article class="legal">
-      <h1>{title}</h1>
-      <slot />
+      <header class="head">
+        <p class="kicker">Legal</p>
+        <h1>{title}</h1>
+        <p class="date">Vigente desde: <EffectiveDate /></p>
+      </header>
+
+      {
+        Astro.slots.has('intro') && (
+          <div class="lead">
+            <slot name="intro" />
+          </div>
+        )
+      }
+
+      {
+        toc.length > 0 && (
+          <nav class="toc" aria-labelledby="toc-titulo">
+            <p id="toc-titulo" class="toc-title">
+              Contenido
+            </p>
+            <ol>
+              {toc.map((s) => (
+                <li>
+                  <a href={`#${s.id}`}>
+                    <span class="n">{s.n}.</span>
+                    <span>{s.title}</span>
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )
+      }
+
+      <div class="body">
+        <slot />
+      </div>
     </article>
   </main>
   <Footer />
@@ -25,33 +67,193 @@ const { title, noindex = true } = Astro.props;
 <style>
   .legal {
     margin: 0 auto;
-    max-width: 720px;
-    padding: clamp(110px, 14vh, 150px) clamp(16px, 3vw, 24px) clamp(48px, 6vw, 80px);
-    line-height: 1.65;
+    max-width: 760px;
+    padding: clamp(112px, 14vh, 152px) clamp(16px, 3vw, 24px) clamp(56px, 8vw, 96px);
+    font-size: 16px;
+    line-height: 1.7;
     color: hsl(210 10% 30%);
   }
-  .legal h1 {
-    margin: 0 0 24px;
+
+  .head {
+    text-align: center;
+    padding-bottom: clamp(28px, 4vw, 40px);
+    border-bottom: 1px solid var(--line);
+  }
+  .kicker {
+    margin: 0 0 16px;
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  h1 {
+    margin: 0 auto;
+    max-width: 640px;
     font-family: var(--font-inter-tight);
     font-weight: 500;
-    font-size: clamp(2rem, 4vw, 3rem);
-    line-height: 1.05;
+    font-size: clamp(2.125rem, 5vw, 3.25rem);
+    line-height: 1.06;
     letter-spacing: -0.025em;
     color: var(--ink);
     text-wrap: balance;
   }
-  .legal :global(h2) {
-    margin: 32px 0 8px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--ink);
+  .date {
+    margin: 22px 0 0;
+    font-size: 14px;
+    color: var(--ink-2);
   }
+
+  .lead {
+    margin-top: clamp(28px, 4vw, 40px);
+    font-size: 1.0625rem;
+    color: hsl(210 12% 26%);
+  }
+  .lead :global(p) {
+    margin: 0;
+  }
+
+  .toc {
+    margin-top: clamp(28px, 4vw, 40px);
+    padding: clamp(18px, 3vw, 24px) clamp(20px, 3vw, 28px);
+    background: hsl(222 100% 98%);
+    border: 1px solid hsl(222 60% 91%);
+    border-radius: 16px;
+  }
+  .toc-title {
+    margin: 0 0 12px;
+    font-family: var(--font-outfit);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(222 30% 48%);
+  }
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    columns: 2 250px;
+    column-gap: 32px;
+  }
+  .toc li {
+    break-inside: avoid;
+  }
+  .toc a {
+    display: flex;
+    gap: 10px;
+    padding: 4px 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: hsl(210 14% 24%);
+    text-decoration: none;
+  }
+  .toc a:hover {
+    color: var(--accent);
+  }
+  .toc .n {
+    flex: none;
+    min-width: 2em;
+    white-space: nowrap;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .body {
+    margin-top: clamp(40px, 6vw, 56px);
+  }
+
+  /* El contenido llega por slot desde cada página, por eso estos estilos son globales dentro de .legal. */
   .legal :global(p) {
     margin: 0 0 14px;
+  }
+  .legal :global(ul),
+  .legal :global(ol) {
+    margin: 0 0 16px;
+    padding-left: 1.5em;
+  }
+  .legal :global(li) {
+    margin-bottom: 8px;
+    padding-left: 4px;
+  }
+  .legal :global(li::marker) {
+    color: var(--accent);
+  }
+  .legal :global(ol.alpha) {
+    list-style-type: lower-alpha;
+  }
+  .legal :global(strong) {
+    font-weight: 600;
+    color: var(--ink);
   }
   .legal :global(a) {
     color: var(--accent);
     text-decoration: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+  .legal :global(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+  .legal :global(.toc a) {
+    text-decoration: none;
+  }
+  .legal :global(dl.defs) {
+    margin: 0 0 16px;
+  }
+  .legal :global(dl.defs dt) {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .legal :global(dl.defs dd) {
+    margin: 2px 0 14px;
+  }
+  .legal :global(.table-wrap) {
+    margin: 4px 0 18px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .legal :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .legal :global(th),
+  .legal :global(td) {
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .legal :global(thead th) {
+    background: hsl(222 100% 98%);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .legal :global(tbody tr) {
+    border-top: 1px solid var(--line);
+  }
+
+  @media print {
+    :global(body) {
+      padding: 0;
+    }
+    :global(body > header),
+    :global(body > .nav-sentinel),
+    :global(body > footer) {
+      display: none;
+    }
+    .legal {
+      max-width: none;
+      padding: 0;
+      color: #000;
+    }
+    .toc {
+      break-inside: avoid;
+    }
   }
 </style>

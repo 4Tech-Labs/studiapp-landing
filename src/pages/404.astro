@@ -1,8 +1,46 @@
 ---
-import Legal from '../layouts/Legal.astro';
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../data/site';
 ---
 
-<Legal title="Página no encontrada">
-  <p>La dirección que abriste no existe o cambió de lugar.</p>
-  <p><a href="/">Volver al inicio</a></p>
-</Legal>
+<Base title={`Página no encontrada | ${SITE.name}`} noindex>
+  <Nav />
+  <main class="notfound">
+    <h1>Página no encontrada</h1>
+    <p>La dirección que abriste no existe o cambió de lugar.</p>
+    <p><a href="/">Volver al inicio</a></p>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .notfound {
+    margin: 0 auto;
+    max-width: 560px;
+    min-height: 60vh;
+    padding: clamp(112px, 14vh, 152px) clamp(16px, 3vw, 24px) clamp(56px, 8vw, 96px);
+    text-align: center;
+    line-height: 1.7;
+    color: hsl(210 10% 30%);
+  }
+  h1 {
+    margin: 0 0 16px;
+    font-family: var(--font-inter-tight);
+    font-weight: 500;
+    font-size: clamp(2.125rem, 5vw, 3.25rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  p {
+    margin: 0 0 14px;
+  }
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+</style>

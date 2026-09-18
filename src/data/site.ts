@@ -1,13 +1,13 @@
 /** Datos centrales del sitio. Dominio, correo, redes y videos se cambian aquí y en ningún otro lugar. */
 export const SITE = {
-  url: 'https://studiapp.co', // TODO: dominio definitivo, sin barra final
+  url: 'https://studiapp-landing.studiapp-landing.workers.dev', // TODO: dominio propio, sin barra final (studiapp.co no está disponible: lo usa otra empresa)
   name: 'StudIApp',
   title: 'Planea el año escolar con IA en minutos | StudIApp',
   description:
     'Planea el año escolar en minutos con IA. Planeaciones en las plantillas de tu colegio, con contexto institucional, DUA y PIAR. Agenda una reunión.',
   lang: 'es',
   locale: 'es_CO',
-  email: 'hola@studiapp.co', // TODO: correo definitivo (Cloudflare Email Routing lo reenvía a Gmail gratis)
+  email: 'fourtechlabs@gmail.com', // Contacto y canal para datos personales. TODO: correo con dominio propio (ver README)
   themeColor: '#0040a3',
   ogImage: '/og.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
@@ -32,7 +32,7 @@ export interface VideoSources {
  * Hero. `media: 'video'` usa HERO.video; mientras no haya archivos se muestra el placeholder del diseño.
  * Con solo `poster` (sin webm/mp4) se muestra la imagen estática. `media: 'mock'` muestra la maqueta del panel.
  * Ejemplo con R2:
- *   video: { webm: 'https://media.studiapp.co/videos/hero-v1.webm', mp4: 'https://media.studiapp.co/videos/hero-v1.mp4', poster: 'https://media.studiapp.co/videos/hero-v1-poster.webp' }
+ *   video: { webm: 'https://media.<dominio>/videos/hero-v1.webm', mp4: 'https://media.<dominio>/videos/hero-v1.mp4', poster: 'https://media.<dominio>/videos/hero-v1-poster.webp' }
  */
 export const HERO: { media: 'video' | 'mock'; autoplay: boolean; video: VideoSources } = {
   media: 'video',
@@ -128,3 +128,22 @@ export const LEGAL_LINKS = [
   { href: '/tratamiento-de-datos', label: 'Tratamiento de datos' },
   { href: '/politica-de-cookies', label: 'Política de cookies' },
 ];
+
+/** Empresa responsable del sitio y del tratamiento de datos personales. Se muestra en las páginas legales. */
+export const COMPANY = {
+  legalName: '4TECH LABS S.A.S.',
+  domicile: 'Cali, Valle del Cauca, Colombia',
+  address: 'Cl. 34 #96-79, Cali',
+  phone: '+57 320 551 8633',
+};
+
+/** Parámetros compartidos por las cuatro páginas legales. */
+export const LEGAL = {
+  /**
+   * Fecha de entrada en vigencia (AAAA-MM-DD): el día en que se publican. Se cambia también al publicar una versión nueva.
+   * Vacía = las páginas muestran "[fecha por definir]", llevan noindex y no entran al sitemap.
+   */
+  effectiveDate: '', // TODO: fecha de publicación
+  /** Meses que se conservan los datos de contacto desde la última comunicación. */
+  retentionMonths: 24,
+};

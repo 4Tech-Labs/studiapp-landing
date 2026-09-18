@@ -1,9 +1,100 @@
 ---
-// Página legal pendiente de contenido. Lleva noindex hasta que exista el texto definitivo.
 import Legal from '../layouts/Legal.astro';
-import { SITE } from '../data/site';
+import LegalSection from '../components/legal/LegalSection.astro';
+import SectionRef from '../components/legal/SectionRef.astro';
+import CompanyDetails from '../components/legal/CompanyDetails.astro';
+import { COMPANY } from '../data/site';
+import { toc } from '../lib/legal';
+
+// Términos de uso del sitio informativo. Cuentas, pagos, propiedad de las planeaciones y uso de la IA irán en los
+// términos de la plataforma. La limitación de responsabilidad deja a salvo el dolo y la culpa grave (arts. 1522 y 63
+// del Código Civil) y el texto no habla de "marca registrada" mientras no haya registro (art. 154 de la Decisión 486).
+const t = toc([
+  ['el-sitio', 'Qué encontrarás en el sitio'],
+  ['contactarnos', 'Contactarnos no crea obligaciones'],
+  ['propiedad-intelectual', 'Propiedad intelectual'],
+  ['uso-adecuado', 'Uso adecuado del sitio'],
+  ['responsabilidad', 'Disponibilidad y responsabilidad'],
+  ['enlaces', 'Enlaces a otros sitios'],
+  ['datos-personales', 'Datos personales'],
+  ['cambios', 'Cambios a estos términos'],
+  ['ley-aplicable', 'Ley aplicable'],
+  ['operador', 'Quién opera el sitio'],
+]);
 ---
 
-<Legal title="Términos y condiciones">
-  <p>Este documento está en preparación. Si tienes preguntas sobre este tema, escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+<Legal title="Términos y condiciones" description="Condiciones de uso del sitio web de StudIApp: contenido, propiedad intelectual, responsabilidad y ley aplicable." toc={t.items}>
+  <p slot="intro">
+    Estos términos regulan el uso de este sitio web, en el que presentamos StudIApp, una plataforma que ayuda a las instituciones educativas a crear sus planeaciones con inteligencia artificial. El sitio es operado por la empresa que desarrolla StudIApp (“StudIApp” o “nosotros”); encontrarás sus datos en la <SectionRef to={t.get('operador')} />. Al usar el sitio aceptas estos términos. Si no estás de acuerdo con ellos, te pedimos no usarlo.
+  </p>
+
+  <LegalSection {...t.get('el-sitio')}>
+    <p>El sitio tiene un fin informativo: presentar StudIApp y facilitar que las instituciones interesadas nos contacten. Su uso es gratuito y no requiere registro.</p>
+    <p>
+      Procuramos que la información esté completa y actualizada, pero el producto evoluciona y sus funciones pueden cambiar. Los videos e imágenes muestran el funcionamiento de StudIApp y pueden no corresponder a su versión más reciente. Las características, el alcance, el precio y las demás condiciones del servicio para cada institución son los que se acuerden por escrito en el contrato respectivo.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('contactarnos')}>
+    <p>
+      Escribirnos o agendar una reunión no te obliga a contratar, ni a nosotros a prestarte el servicio. La relación comercial con cada institución se rige por el contrato que firmemos con ella.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('propiedad-intelectual')}>
+    <p>
+      Los textos, el diseño, el logotipo, las animaciones, las imágenes, los videos y el código de este sitio son nuestros o se usan con autorización de sus titulares, y están protegidos por las normas de derecho de autor y de propiedad industrial.
+    </p>
+    <p>
+      Puedes navegar el sitio y compartir sus enlaces. Salvo los usos que la ley permita, no puedes reproducir, distribuir, modificar ni explotar comercialmente su contenido sin nuestra autorización previa y por escrito.
+    </p>
+    <p>
+      El nombre StudIApp y su logotipo identifican nuestro producto. No puedes usarlos sin nuestra autorización previa y por escrito, ni de una forma que pueda confundir a otros sobre el origen de un producto o servicio.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('uso-adecuado')}>
+    <p>Al usar el sitio te comprometes a no:</p>
+    <ul>
+      <li>Intentar acceder sin autorización a sus sistemas, alterarlos o afectar su funcionamiento.</li>
+      <li>Introducir virus, código malicioso o volúmenes de tráfico que busquen saturarlo.</li>
+      <li>Usarlo para actividades contrarias a la ley.</li>
+    </ul>
+  </LegalSection>
+
+  <LegalSection {...t.get('responsabilidad')}>
+    <p>
+      Hacemos lo posible por mantener el sitio disponible y seguro, pero puede tener interrupciones por mantenimiento o por causas fuera de nuestro control. La información del sitio es general y no reemplaza el análisis que cada institución haga de sus propias necesidades.
+    </p>
+    <p>
+      En la medida en que la ley lo permita, no respondemos por daños derivados de interrupciones del sitio ni de decisiones tomadas con base en su información general, salvo que se deban a dolo o culpa grave de nuestra parte.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('enlaces')}>
+    <p>
+      Si el sitio incluye enlaces a páginas de terceros, como redes sociales, lo hace solo como referencia. No controlamos su contenido ni sus prácticas de privacidad, así que te recomendamos revisar sus propios términos.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('datos-personales')}>
+    <p>
+      El tratamiento de tus datos personales se rige por nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos personales</a>, nuestra <a href="/politica-de-privacidad">Política de privacidad</a> y nuestra <a href="/politica-de-cookies">Política de cookies</a>.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('cambios')}>
+    <p>Podemos actualizar estos términos. Publicaremos cada nueva versión en esta página con su fecha. Los cambios aplican desde su publicación y no afectan situaciones anteriores.</p>
+  </LegalSection>
+
+  <LegalSection {...t.get('ley-aplicable')}>
+    <p>
+      Estos términos se rigen por las leyes de la República de Colombia, y cualquier controversia será conocida por los jueces competentes de Colombia. Esto no afecta los derechos que te reconozca la ley de tu país y que no puedan renunciarse.
+    </p>
+  </LegalSection>
+
+  <LegalSection {...t.get('operador')}>
+    <p>Este sitio es operado por {COMPANY.legalName}, la empresa que desarrolla StudIApp.</p>
+    <CompanyDetails address />
+  </LegalSection>
 </Legal>

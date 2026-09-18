@@ -1,0 +1,5 @@
+---
+import { effectiveDate } from '../../lib/legal';
+---
+
+{effectiveDate ? <time datetime={effectiveDate.iso}>{effectiveDate.text}</time> : '[fecha por definir]'}

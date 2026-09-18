@@ -1,9 +1,48 @@
 ---
-// Página legal pendiente de contenido. Lleva noindex hasta que exista el texto definitivo.
 import Legal from '../layouts/Legal.astro';
-import { SITE } from '../data/site';
+import LegalSection from '../components/legal/LegalSection.astro';
+import { SITE, COMPANY } from '../data/site';
+
+// Verificado en producción y en el código: el sitio no instala cookies ni usa almacenamiento del navegador.
+// Cloudflare solo instala cookies si se activan funciones como Bot Fight Mode o si muestra una verificación de seguridad.
+// Si se agrega analítica, un chat o un video incrustado de terceros, este texto deja de ser cierto.
+const mail = `mailto:${SITE.email}`;
 ---
 
-<Legal title="Política de cookies">
-  <p>Este documento está en preparación. Si tienes preguntas sobre este tema, escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+<Legal title="Política de cookies" description="El sitio de StudIApp no usa cookies ni herramientas de seguimiento. Aquí explicamos por qué y cuál es la única excepción de seguridad.">
+  <p slot="intro">Aquí explicamos qué son las cookies, por qué este sitio no las usa y cuál es la única excepción.</p>
+
+  <LegalSection id="que-son" title="Qué son las cookies">
+    <p>
+      Las cookies son pequeños archivos que un sitio web guarda en tu navegador para recordar información sobre tu visita. Se usan, por ejemplo, para mantener una sesión iniciada, medir cuántas personas visitan una página o mostrar publicidad personalizada.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="no-usamos-cookies" title="No usamos cookies">
+    <p>
+      Este sitio no instala cookies en tu navegador, ni propias ni de terceros, con una única excepción de seguridad que explicamos más abajo. Tampoco usamos tecnologías similares, como el almacenamiento local del navegador, píxeles de seguimiento o técnicas para identificar tu dispositivo.
+    </p>
+    <p>
+      No integramos herramientas de analítica, redes sociales ni publicidad, y las fuentes, imágenes y videos se cargan desde este mismo sitio. Por eso ninguna de esas plataformas puede instalar cookies a través de él.
+    </p>
+    <p>Por la misma razón no verás un aviso para aceptar cookies: no hay nada que aceptar.</p>
+  </LegalSection>
+
+  <LegalSection id="excepcion-de-seguridad" title="La excepción de seguridad">
+    <p>
+      Si nuestro proveedor de alojamiento, Cloudflare, detecta tráfico sospechoso, puede mostrarte una verificación de seguridad antes de dejarte entrar. Si la superas, tu navegador guarda cookies técnicas temporales que confirman que ya pasaste esa verificación, para no pedírtela de nuevo. Cloudflare las considera estrictamente necesarias para proteger el sitio, y nosotros no las usamos para identificarte ni para seguir tu actividad.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="cambios" title="Si esto cambia">
+    <p>
+      Si en el futuro decidimos usar cookies, actualizaremos esta política antes de hacerlo. Y antes de instalar cualquier cookie que no sea estrictamente necesaria, te pediremos tu consentimiento.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="mas-informacion" title="Más información">
+    <p>
+      Para saber cómo tratamos tus datos personales, consulta nuestra <a href="/politica-de-privacidad">Política de privacidad</a> y nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos personales</a>. Esta política es de {COMPANY.legalName}, la empresa que desarrolla StudIApp. Si tienes preguntas, escríbenos a <a href={mail}>{SITE.email}</a>.
+    </p>
+  </LegalSection>
 </Legal>

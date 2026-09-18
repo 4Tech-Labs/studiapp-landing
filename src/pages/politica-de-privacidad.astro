@@ -1,9 +1,76 @@
 ---
-// Página legal pendiente de contenido. Lleva noindex hasta que exista el texto definitivo.
 import Legal from '../layouts/Legal.astro';
-import { SITE } from '../data/site';
+import LegalSection from '../components/legal/LegalSection.astro';
+import CompanyDetails from '../components/legal/CompanyDetails.astro';
+import { SITE, COMPANY, LEGAL } from '../data/site';
+
+// Funciona como aviso de privacidad: art. 2.2.2.25.3.3 del Decreto 1074 de 2015 (responsable y contacto, tratamiento y
+// finalidad, derechos, y cómo consultar la política de tratamiento y sus cambios). Debe coincidir con tratamiento-de-datos.
+const mail = `mailto:${SITE.email}`;
 ---
 
-<Legal title="Política de privacidad">
-  <p>Este documento está en preparación. Si tienes preguntas sobre este tema, escríbenos a <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+<Legal title="Política de privacidad" description="Resumen de cómo StudIApp trata tus datos personales cuando visitas el sitio o nos escribes, y cómo ejercer tus derechos.">
+  <p slot="intro">
+    Esta página resume cómo tratamos tus datos personales cuando visitas este sitio web o nos escribes, y funciona como nuestro aviso de privacidad. Los detalles completos están en la <a href="/tratamiento-de-datos">Política de tratamiento de datos personales</a>. Si hubiera alguna diferencia entre ambos textos, prevalece la política.
+  </p>
+
+  <LegalSection id="que-datos" title="Qué datos tratamos">
+    <ul>
+      <li><strong>Si nos escribes:</strong> tu nombre, tu correo electrónico y lo que decidas incluir en tu mensaje, como tu cargo, tu institución o tu teléfono.</li>
+      <li><strong>Si visitas el sitio:</strong> los datos técnicos que tu navegador envía al cargar cualquier página web, como tu dirección IP y el tipo de navegador.</li>
+    </ul>
+    <p>Te pedimos no enviarnos información de estudiantes ni datos sensibles, como datos de salud: no los necesitamos para atenderte.</p>
+  </LegalSection>
+
+  <LegalSection id="para-que" title="Para qué los usamos">
+    <ul>
+      <li>Para responder tu mensaje, coordinar la reunión que nos pidas y hacer seguimiento a tu solicitud.</li>
+      <li>Para mostrarte el sitio y protegerlo frente a ataques.</li>
+    </ul>
+  </LegalSection>
+
+  <LegalSection id="lo-que-no-hacemos" title="Lo que no hacemos">
+    <ul>
+      <li>No usamos cookies ni herramientas de analítica o seguimiento (ver <a href="/politica-de-cookies">Política de cookies</a>).</li>
+      <li>No vendemos, alquilamos ni cedemos tus datos.</li>
+      <li>No te enviamos boletines ni publicidad sin tu autorización expresa.</li>
+      <li>No recolectamos de forma intencional datos de menores de edad.</li>
+    </ul>
+  </LegalSection>
+
+  <LegalSection id="con-quien" title="Con quién los compartimos">
+    <p>
+      Con dos proveedores tecnológicos: Cloudflare, que aloja y protege el sitio, y Google, que presta nuestro servicio de correo (Gmail). Ambos están en Estados Unidos, un país que la Superintendencia de Industria y Comercio reconoce con un nivel adecuado de protección de datos. Fuera de eso, solo los entregaríamos a una autoridad que los solicite en ejercicio de sus funciones legales.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="conservacion" title="Cuánto tiempo los conservamos">
+    <p>
+      Los datos de contacto, como máximo {LEGAL.retentionMonths} meses desde nuestra última comunicación, salvo que iniciemos una relación contractual o la ley nos obligue a conservarlos por más tiempo.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="derechos" title="Tus derechos">
+    <p>
+      Puedes conocer, actualizar, rectificar y suprimir tus datos; revocar tu autorización o pedir prueba de ella; y saber cómo los hemos usado. Ejercer estos derechos es gratis.
+    </p>
+    <p>
+      Escríbenos a <a href={mail}>{SITE.email}</a>. Respondemos las consultas en un plazo de 10 días hábiles y los reclamos en uno de 15, en los términos de la Ley 1581 de 2012; el procedimiento completo está en la <a href="/tratamiento-de-datos#ejercer-derechos">Política de tratamiento de datos personales</a>. Si no quedas satisfecho con nuestra respuesta, puedes presentar una queja ante la Superintendencia de Industria y Comercio.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="fuera-de-colombia" title="Si estás fuera de Colombia">
+    <p>Aplicamos la ley colombiana a todos los datos que tratamos. Si la ley de tu país te reconoce derechos adicionales, puedes ejercerlos por el mismo canal.</p>
+  </LegalSection>
+
+  <LegalSection id="cambios" title="Cambios">
+    <p>
+      Si cambiamos la forma en que tratamos tus datos, actualizaremos esta página y la <a href="/tratamiento-de-datos">Política de tratamiento de datos personales</a> con la nueva fecha. Si el cambio es sustancial, lo comunicaremos por correo, antes de aplicarlo, a las personas cuyos datos conservemos.
+    </p>
+  </LegalSection>
+
+  <LegalSection id="responsable" title="Quién es el responsable">
+    <p>StudIApp es un producto de {COMPANY.legalName}, responsable del tratamiento de tus datos.</p>
+    <CompanyDetails />
+  </LegalSection>
 </Legal>
