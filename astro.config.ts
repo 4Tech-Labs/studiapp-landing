@@ -1,6 +1,6 @@
 import { defineConfig, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import { SITE } from './src/data/site';
+import { SITE, LEGAL, LEGAL_LINKS } from './src/data/site';
 
 export default defineConfig({
   site: SITE.url,
@@ -56,8 +56,12 @@ export default defineConfig({
   ],
   integrations: [
     sitemap({
-      // /og solo existe para generar la imagen Open Graph
-      filter: (page) => !/\/og(\.html)?$/.test(page),
+      // /og solo existe para generar la imagen Open Graph. Las páginas legales entran cuando tienen fecha de vigencia (antes llevan noindex).
+      filter: (page) => {
+        const path = new URL(page).pathname.replace(/\.html$/, '');
+        if (path === '/og') return false;
+        return Boolean(LEGAL.effectiveDate) || !LEGAL_LINKS.some((l) => l.href === path);
+      },
       // URLs públicas sin .html (ver build.format)
       serialize: (item) => {
         item.url = item.url.replace(/\/index\.html$/, '/').replace(/\.html$/, '');

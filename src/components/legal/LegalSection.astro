@@ -1,0 +1,56 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  /** "3" en el nivel principal (h2) o "3.1" en una subsección (h3). Sin número: h2 sin numerar. */
+  n?: string;
+}
+
+const { id, title, n } = Astro.props;
+const isSub = n?.includes('.') ?? false;
+const Heading = isSub ? 'h3' : 'h2';
+const label = isSub ? n : `${n}.`;
+---
+
+<section id={id} class:list={['section', { sub: isSub }]}>
+  <Heading>{n ? <><span class="n">{label}</span> {title}</> : title}</Heading>
+  <slot />
+</section>
+
+<style>
+  .section {
+    /* Deja libre el alto de la nav fija al saltar a la sección desde el índice o una referencia. */
+    scroll-margin-top: 100px;
+  }
+  .section:not(.sub) + .section:not(.sub) {
+    margin-top: clamp(40px, 5vw, 52px);
+  }
+  .sub {
+    margin-top: 28px;
+  }
+  h2 + .sub {
+    margin-top: 16px;
+  }
+  h2 {
+    margin: 0 0 14px;
+    font-family: var(--font-inter-tight);
+    font-size: clamp(1.25rem, 2.4vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  h3 {
+    margin: 0 0 10px;
+    font-family: var(--font-inter-tight);
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .n {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

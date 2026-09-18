@@ -21,7 +21,7 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 | Redes sociales (vacío = no se muestra el icono) | `src/data/site.ts` → `SOCIAL` |
 | Hero: modo `video`/`mock`, autoplay, URLs del video y poster | `src/data/site.ts` → `HERO` |
 | Textos y videos de las 5 pestañas de Características | `src/data/site.ts` → `FEATURES` |
-| Páginas legales (hoy son stubs con `noindex`) | `src/pages/*.astro` |
+| Textos legales (términos, privacidad, tratamiento de datos, cookies) | `src/pages/*.astro`. Empresa, fecha de vigencia y plazo de conservación: `src/data/site.ts` → `COMPANY` y `LEGAL`. Mientras `LEGAL.effectiveDate` esté vacía, las cuatro páginas llevan `noindex` y no entran al sitemap |
 | Imagen de fondo del hero | `src/assets/hero-2560.webp` (Astro genera AVIF/WebP/JPG en 5 anchos) |
 | Animación del logo | `public/lottie/robot.json` |
 | Imagen para compartir en redes (1200×630) | `public/og.jpg` (se captura de la página `/og` con Chrome headless, ver `src/pages/og.astro`) |
@@ -55,18 +55,24 @@ Mientras no haya archivos, el hero y las pestañas muestran el placeholder del d
 
 ### Dominio
 
-- Recomendado: comprar `studiapp.co` en **Cloudflare Registrar** (Domain Registration → Register Domains). Precio al costo (USD 30/año en sep-2026, igual al renovar) y todo queda en el mismo panel.
-- Conectar: Workers & Pages → studiapp-landing → Settings → Domains & Routes → Add → Custom domain → `studiapp.co` (y `www.studiapp.co`).
+- `studiapp.co` no está disponible: lo usa otra empresa de tecnología educativa (verificado el 17-sep-2026). Hay que elegir otro dominio.
+- Recomendado: comprarlo en **Cloudflare Registrar** (Domain Registration → Register Domains). Precio al costo, igual al renovar, y todo queda en el mismo panel.
+- Conectar: Workers & Pages → studiapp-landing → Settings → Domains & Routes → Add → Custom domain → `<dominio>` (y `www.<dominio>`).
 - Cambiar `SITE.url` y `SITE.email` en `src/data/site.ts`, rebuild y deploy.
 
-### Correo `hola@` gratis
+### Correo con dominio propio
 
-Cloudflare → dominio → **Email → Email Routing** → crear la dirección `hola@studiapp.co` y reenviarla a un Gmail. Sin costo.
+Hoy el contacto es `fourtechlabs@gmail.com` (`SITE.email`). Con dominio propio hay dos opciones:
+
+- **Google Workspace** (de pago): el correo queda cubierto por el acuerdo de tratamiento de datos de Google. Es lo recomendado para las políticas legales.
+- **Cloudflare Email Routing** (gratis): Cloudflare → dominio → **Email → Email Routing** → crear `hola@<dominio>` y reenviarla a un Gmail.
+
+Al cambiarlo, actualizar `SITE.email` y la sección de proveedores de `src/pages/tratamiento-de-datos.astro` y `src/pages/politica-de-privacidad.astro`.
 
 ### Bucket de videos (R2)
 
 1. R2 Object Storage → Create bucket → `studiapp-media`.
-2. Bucket → Settings → Public access → **Custom domains → Connect domain** → `media.studiapp.co` (el dominio debe estar en Cloudflare). Con esto los videos pasan por la CDN y se cachean.
+2. Bucket → Settings → Public access → **Custom domains → Connect domain** → `media.<dominio>` (el dominio debe estar en Cloudflare). Con esto los videos pasan por la CDN y se cachean.
 3. Subir los archivos en `videos/` (ver sección Videos).
 
 ## Verificación de rendimiento
@@ -85,8 +91,8 @@ curl https://studiapp-landing.studiapp-landing.workers.dev/version.txt
 Tras el deploy, revisar en <https://pagespeed.web.dev> y comprobar cabeceras:
 
 ```bash
-curl -I https://studiapp.co/_astro/<archivo>.woff2   # cache-control: immutable, content-encoding: br
-curl -I -H "Range: bytes=0-99" https://media.studiapp.co/videos/hero-v1.mp4   # HTTP 206
+curl -I https://<dominio>/_astro/<archivo>.woff2   # cache-control: immutable, content-encoding: br
+curl -I -H "Range: bytes=0-99" https://media.<dominio>/videos/hero-v1.mp4   # HTTP 206
 ```
 
 ## Origen

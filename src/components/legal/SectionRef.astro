@@ -1,0 +1,11 @@
+---
+import type { LegalSectionItem } from '../../lib/legal';
+
+interface Props {
+  to: LegalSectionItem;
+}
+
+const { to } = Astro.props;
+---
+
+<a href={`#${to.id}`}>sección {to.n}</a>
