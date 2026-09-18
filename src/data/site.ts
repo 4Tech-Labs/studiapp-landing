@@ -88,6 +88,40 @@ export const FEATURES: Feature[] = [
   },
 ];
 
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+/** Preguntas frecuentes, en el orden en que se muestran. Vacío = no se muestra la sección ni su enlace en el footer. Con los mismos textos se genera el JSON-LD FAQPage. */
+// TODO: preguntas de ejemplo armadas con el copy actual; reemplazar por las definitivas.
+export const FAQ: FaqItem[] = [
+  {
+    question: '¿StudIApp funciona con las plantillas de mi colegio?',
+    answer: 'Sí. Subes el formato que ya usa tu institución y cada planeación se genera directamente en él, sin cambiar procesos ni volver a capacitar al equipo.',
+  },
+  {
+    question: '¿Qué tipo de planeaciones puedo generar?',
+    answer: 'Planeaciones anuales, periódicas y semanales, todas con el contexto de tu institución y en el mismo formato.',
+  },
+  {
+    question: '¿Cómo tiene en cuenta el contexto de mi institución?',
+    answer: 'El copiloto integra tus referentes institucionales, el currículo del Ministerio de Educación y estándares internacionales para que cada planeación sea coherente con tu propuesta curricular.',
+  },
+  {
+    question: '¿Varios docentes pueden trabajar en la misma planeación?',
+    answer: 'Sí. Los docentes colaboran en una misma planeación, comparten ideas al instante y todo queda guardado de forma organizada.',
+  },
+  {
+    question: '¿Cómo me ayuda con DUA y PIAR?',
+    answer: 'Le das al copiloto el contexto de tu grupo y te ayuda a aplicar DUA y PIAR para adaptar tus clases a cada necesidad, sin trabajo doble.',
+  },
+  {
+    question: '¿Cómo empiezo?',
+    answer: 'Agenda una reunión de 30 minutos y te mostramos cómo funciona con las plantillas de tu colegio.',
+  },
+];
+
 export const LEGAL_LINKS = [
   { href: '/terminos-y-condiciones', label: 'Términos y condiciones' },
   { href: '/politica-de-privacidad', label: 'Política de privacidad' },
