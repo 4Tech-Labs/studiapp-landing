@@ -93,7 +93,7 @@ export interface FaqItem {
   answer: string;
 }
 
-/** Preguntas frecuentes, en el orden en que se muestran. Con los mismos textos se genera el JSON-LD FAQPage. */
+/** Preguntas frecuentes, en el orden en que se muestran. Vacío = no se muestra la sección ni su enlace en el footer. Con los mismos textos se genera el JSON-LD FAQPage. */
 // TODO: preguntas de ejemplo armadas con el copy actual; reemplazar por las definitivas.
 export const FAQ: FaqItem[] = [
   {

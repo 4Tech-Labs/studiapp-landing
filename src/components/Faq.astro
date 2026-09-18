@@ -2,6 +2,7 @@
 import { FAQ } from '../data/site';
 
 // Acordeón con <details> nativo: abre y cierra sin JavaScript, y la búsqueda del navegador (Ctrl+F) encuentra y abre las respuestas cerradas.
+// Con FAQ vacío no se muestra nada; el footer oculta su enlace con la misma condición.
 
 // Mismo contenido que se ve en la página, para que los buscadores lo lean como FAQPage.
 const jsonLd = {
@@ -13,40 +14,46 @@ const jsonLd = {
     acceptedAnswer: { '@type': 'Answer', text: f.answer },
   })),
 };
+// "<" escapado: un texto con </script> no puede cerrar la etiqueta antes de tiempo.
+const jsonLdHtml = JSON.stringify(jsonLd).replace(/</g, '\\u003c');
 ---
 
-<section id="preguntas-frecuentes" aria-labelledby="faq-titulo" class="faq" data-screen-label="Preguntas frecuentes">
-  <div class="head">
-    <p class="badge">
-      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      Preguntas frecuentes
-    </p>
-    <h2 id="faq-titulo">¿Tienes dudas?</h2>
-    <p class="lead">Encuentra respuestas a las preguntas más comunes.</p>
-  </div>
+{
+  FAQ.length > 0 && (
+    <Fragment>
+      <section id="preguntas-frecuentes" aria-labelledby="faq-titulo" class="faq" data-screen-label="Preguntas frecuentes">
+        <div class="head">
+          <p class="badge">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            Preguntas frecuentes
+          </p>
+          <h2 id="faq-titulo">¿Tienes dudas?</h2>
+          <p class="lead">Encuentra respuestas a las preguntas más comunes.</p>
+        </div>
 
-  <div class="list">
-    {
-      FAQ.map((f) => (
-        <details class="item">
-          <summary class="q">
-            <span class="q-text">{f.question}</span>
-            <span aria-hidden="true" class="icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <line x1="12" y1="5" x2="12" y2="19" class="v" />
-              </svg>
-            </span>
-          </summary>
-          <div class="a">
-            <p>{f.answer}</p>
-          </div>
-        </details>
-      ))
-    }
-  </div>
-</section>
-<script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)}></script>
+        <div class="list">
+          {FAQ.map((f) => (
+            <details class="item">
+              <summary class="q">
+                <span class="q-text">{f.question}</span>
+                <span aria-hidden="true" class="icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <line x1="12" y1="5" x2="12" y2="19" class="v" />
+                  </svg>
+                </span>
+              </summary>
+              <div class="a">
+                <p>{f.answer}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </section>
+      <script type="application/ld+json" is:inline set:html={jsonLdHtml}></script>
+    </Fragment>
+  )
+}
 
 <style>
   .faq {
@@ -128,11 +135,16 @@ const jsonLd = {
     list-style: none;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
   /* Abierta, la respuesta queda más cerca de su pregunta que del borde de la tarjeta. */
   .item[open] .q {
     padding-bottom: 10px;
+  }
+  /* El padding solo se anima donde también se anima la altura; en el resto se vería como un salto aparte al abrir y cerrar. */
+  @supports (interpolate-size: allow-keywords) and selector(::details-content) {
+    .q {
+      transition: padding-bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
   }
   .q::-webkit-details-marker {
     display: none;
@@ -216,6 +228,12 @@ const jsonLd = {
   }
   .item[open]::details-content {
     block-size: auto;
+  }
+  /* La regla de movimiento reducido de global.css (*, ::before, ::after) no alcanza a ::details-content. */
+  @media (prefers-reduced-motion: reduce) {
+    .item::details-content {
+      transition: none;
+    }
   }
   /* Derecha: ancho del icono + separación, para que la respuesta quede alineada con la pregunta. */
   .a {
