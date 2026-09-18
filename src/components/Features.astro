@@ -203,7 +203,7 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center; /* la tarjeta se estira a la altura del video; centrado evita el hueco inferior */
     gap: 14px;
     background: hsl(0 0% 100%);
     border-radius: 24px;
@@ -214,10 +214,10 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
   }
   h3 {
     margin: 0;
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-size: clamp(1.375rem, 2.1vw, 1.75rem);
     font-weight: 500;
-    letter-spacing: -0.025em;
-    line-height: 1.05;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
   .text p {
     margin: 0;
