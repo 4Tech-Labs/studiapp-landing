@@ -21,6 +21,7 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 | Redes sociales (vacío = no se muestra el icono) | `src/data/site.ts` → `SOCIAL` |
 | Hero: modo `video`/`mock`, autoplay, URLs del video y poster | `src/data/site.ts` → `HERO` |
 | Textos y videos de las 5 pestañas de Características | `src/data/site.ts` → `FEATURES` |
+| Preguntas frecuentes (pregunta y respuesta, en orden; vacío = no se muestra la sección) | `src/data/site.ts` → `FAQ` |
 | Páginas legales (hoy son stubs con `noindex`) | `src/pages/*.astro` |
 | Imagen de fondo del hero | `src/assets/hero-2560.webp` (Astro genera AVIF/WebP/JPG en 5 anchos) |
 | Animación del logo | `public/lottie/robot.json` |
