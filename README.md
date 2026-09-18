@@ -99,3 +99,9 @@ curl -I -H "Range: bytes=0-99" https://media.<dominio>/videos/hero-v1.mp4   # HT
 ## Origen
 
 Portado desde el bundle `Nexora Hero.html` (React + Babel en el navegador, 2,3 MB). `scripts/extract-bundle.mjs` extrae sus assets; los componentes originales quedan como referencia en `.extracted/` (ignorado por git).
+
+## Estado actual (18-sep-2026)
+
+- Dominio: `4techlabs.com` y `www.4techlabs.com` conectados al Worker como dominios personalizados (`routes` en `wrangler.jsonc`); la URL `*.workers.dev` sigue activa y el canonical apunta a `https://4techlabs.com`.
+- Correo: Cloudflare Email Routing activo en la zona. `hola@4techlabs.com` y cualquier otro buzón (catch-all) reenvían a `fourtechlabs@gmail.com`.
+- Pendiente: nombre definitivo del producto (StudIApp y EduPlanea chocan con marcas registradas en Colombia; ver historial de la sesión) y radicar la marca en la SIC.

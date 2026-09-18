@@ -7,6 +7,9 @@
     { "pattern": "4techlabs.com", "custom_domain": true },
     { "pattern": "www.4techlabs.com", "custom_domain": true }
   ],
+  // Se mantiene la URL *.workers.dev (enlaces ya compartidos) y las URLs de preview por rama. El canonical apunta al dominio propio.
+  "workers_dev": true,
+  "preview_urls": true,
   // Worker de solo assets estáticos: los requests a estáticos son gratis e ilimitados en el plan Free.
   "assets": {
     "directory": "./dist",
