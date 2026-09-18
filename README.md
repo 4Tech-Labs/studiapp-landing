@@ -52,23 +52,19 @@ Mientras no haya archivos, el hero y las pestañas muestran el placeholder del d
 2. Subir el repo a GitHub (`gh repo create studiapp-landing --private --source=. --push`).
 3. En Cloudflare: **Workers & Pages → Create → Workers → Import a repository** → elegir el repo. Preset *Astro*: build `npm run build`, deploy `npx wrangler deploy`. Cada push a `main` publica; las ramas generan URLs de preview.
    - Alternativa sin Git: `npx wrangler login` y luego `npm run deploy`.
-4. El sitio queda en `https://studiapp-landing.<cuenta>.workers.dev`. URL actual (cuenta fourtechlabs): <https://studiapp-landing.studiapp-landing.workers.dev>
+4. El sitio queda en `https://studiapp-landing.<cuenta>.workers.dev` y, con dominio propio, en <https://4techlabs.com> (la URL <https://studiapp-landing.studiapp-landing.workers.dev> sigue activa).
 
 ### Dominio
 
-- `studiapp.co` no está disponible: lo usa otra empresa de tecnología educativa (verificado el 17-sep-2026). Hay que elegir otro dominio.
-- Recomendado: comprarlo en **Cloudflare Registrar** (Domain Registration → Register Domains). Precio al costo, igual al renovar, y todo queda en el mismo panel.
-- Conectar: Workers & Pages → studiapp-landing → Settings → Domains & Routes → Add → Custom domain → `<dominio>` (y `www.<dominio>`).
-- Cambiar `SITE.url` y `SITE.email` en `src/data/site.ts`, rebuild y deploy.
+- `4techlabs.com` se compró en **Cloudflare Registrar** el 18-sep-2026 (precio al costo, igual al renovar). `studiapp.co` no estaba disponible: lo usa otra empresa de tecnología educativa.
+- Conectado al Worker como dominio personalizado (apex y `www`) mediante `routes` en `wrangler.jsonc`: Wrangler crea los registros DNS y el certificado en cada `deploy`. Para cambiar de dominio basta editar esas dos entradas y `SITE.url` en `src/data/site.ts`.
+- El dominio del producto (pendiente de elegir la marca) se puede añadir como tercer `route` o sustituir al actual; el canonical sale de `SITE.url`.
 
 ### Correo con dominio propio
 
-Hoy el contacto es `fourtechlabs@gmail.com` (`SITE.email`). Con dominio propio hay dos opciones:
+El contacto es `hola@4techlabs.com` (`SITE.email`). Cloudflare Email Routing está activo en la zona: `hola@` y cualquier otro buzón del dominio (regla catch-all) se reenvían a `fourtechlabs@gmail.com`. Se administra en Cloudflare → `4techlabs.com` → Email → Email Routing.
 
-- **Google Workspace** (de pago): el correo queda cubierto por el acuerdo de tratamiento de datos de Google. Es lo recomendado para las políticas legales.
-- **Cloudflare Email Routing** (gratis): Cloudflare → dominio → **Email → Email Routing** → crear `hola@<dominio>` y reenviarla a un Gmail.
-
-Al cambiarlo, actualizar `SITE.email` y la sección de proveedores de `src/pages/tratamiento-de-datos.astro` y `src/pages/politica-de-privacidad.astro`.
+Si más adelante se contrata **Google Workspace** con el dominio, hay que desactivar Email Routing (usa los registros MX del dominio) y actualizar `SITE.email` y la sección de proveedores de `src/pages/tratamiento-de-datos.astro` y `src/pages/politica-de-privacidad.astro`. Para Google for Startups, no activar Workspace de pago antes de la aprobación.
 
 ### Bucket de videos (R2)
 
@@ -86,7 +82,7 @@ npx lighthouse http://127.0.0.1:4321 --preset=desktop --view
 Cada push a `main` dispara un build en Cloudflare (Workers Builds, conectado el 17-sep-2026) que publica en 1 a 2 minutos. Para saber qué commit está en producción:
 
 ```bash
-curl https://studiapp-landing.studiapp-landing.workers.dev/version.txt
+curl https://4techlabs.com/version.txt
 ```
 
 Tras el deploy, revisar en <https://pagespeed.web.dev> y comprobar cabeceras:
