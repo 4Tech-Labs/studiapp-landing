@@ -1,6 +1,6 @@
 ---
 import LottieLogo from './LottieLogo.astro';
-import { SITE, SOCIAL, LEGAL_LINKS, FAQ } from '../data/site';
+import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY } from '../data/site';
 
 const year = new Date().getFullYear();
 const social = [
@@ -46,6 +46,10 @@ const social = [
         <a href="/#caracteristicas">Características</a>
         <a href="/#agenda">Agenda una reunión</a>
         {FAQ.length > 0 && <a href="/#preguntas-frecuentes">Preguntas frecuentes</a>}
+      </nav>
+      <nav aria-labelledby="footer-empresa" class="col">
+        <p id="footer-empresa" class="kicker">Empresa</p>
+        <a href="/#quienes-somos">Quiénes somos</a>
         <a href={`mailto:${SITE.email}`}>Contacto</a>
       </nav>
       <nav aria-labelledby="footer-legal" class="col">
@@ -55,7 +59,7 @@ const social = [
     </div>
   </div>
   <div class="bottom">
-    <span>© {year} {SITE.name}. Todos los derechos reservados.</span>
+    <span>© {year} {COMPANY.legalName} Todos los derechos reservados.</span>
     <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
   </div>
 </footer>

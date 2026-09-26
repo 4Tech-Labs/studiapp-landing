@@ -129,12 +129,15 @@ export const LEGAL_LINKS = [
   { href: '/politica-de-cookies', label: 'Política de cookies' },
 ];
 
-/** Empresa responsable del sitio y del tratamiento de datos personales. Se muestra en las páginas legales. */
+/** Empresa responsable del sitio y del tratamiento de datos personales. Se muestra en Quiénes somos, el footer, las páginas legales y el JSON-LD. */
 export const COMPANY = {
+  name: '4Tech Labs', // nombre comercial; la razón social es legalName
   legalName: '4TECH LABS S.A.S.',
   domicile: 'Cali, Valle del Cauca, Colombia',
   address: 'Cl. 34 #96-79, Cali',
   phone: '+57 320 551 8633',
+  /** La misma dirección por campos, para el JSON-LD (schema.org PostalAddress). Se cambia junto con domicile y address. */
+  postalAddress: { streetAddress: 'Cl. 34 #96-79', addressLocality: 'Cali', addressRegion: 'Valle del Cauca', addressCountry: 'CO' },
 };
 
 /** Parámetros compartidos por las cuatro páginas legales. */

@@ -1,6 +1,6 @@
 ---
 import { Font } from 'astro:assets';
-import { SITE } from '../data/site';
+import { SITE, COMPANY } from '../data/site';
 import '../styles/global.css';
 
 interface Props {
@@ -17,15 +17,19 @@ const ogImage = new URL(SITE.ogImage, SITE.url).href;
 const id = (h: string) => `${SITE.url}/#${h}`;
 
 // Mismo grafo que el original inyectaba por JS, ahora renderizado en build.
+// La organización es la empresa (dueña del dominio); el producto es el SoftwareApplication.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
       '@type': 'Organization',
       '@id': id('organization'),
-      name: SITE.name,
+      name: COMPANY.name,
+      legalName: COMPANY.legalName,
       url: `${SITE.url}/`,
       email: SITE.email,
+      telephone: COMPANY.phone.replace(/\s/g, ''),
+      address: { '@type': 'PostalAddress', ...COMPANY.postalAddress },
       logo: new URL('/apple-touch-icon.png', SITE.url).href,
     },
     {
