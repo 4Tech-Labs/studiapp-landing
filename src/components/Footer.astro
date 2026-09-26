@@ -1,5 +1,7 @@
 ---
+import { Image } from 'astro:assets';
 import LottieLogo from './LottieLogo.astro';
+import companyLogo from '../assets/4techlabs-logo.png';
 import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY } from '../data/site';
 
 const year = new Date().getFullYear();
@@ -28,6 +30,10 @@ const social = [
     <div class="about">
       <a href="/#inicio" aria-label={`${SITE.name}, inicio`} class="brand"><LottieLogo width={24} height={34} />{SITE.name}</a>
       <p>Planeaciones escolares con IA, en las plantillas de tu colegio.</p>
+      <a href="/#quienes-somos" class="maker">
+        <span class="kicker">Un producto de</span>
+        <Image src={companyLogo} alt={COMPANY.name} height={64} densities={[1, 2]} />
+      </a>
       {
         social.length > 0 && (
           <div class="social">
@@ -114,6 +120,25 @@ const social = [
     line-height: 1.6;
     color: hsl(222 20% 40%);
     text-wrap: pretty;
+  }
+  .maker {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .maker :global(img) {
+    display: block;
+    width: auto;
+    height: 64px;
+  }
+  .maker .kicker {
+    transition: color 0.2s ease;
+  }
+  .maker:hover .kicker {
+    color: var(--accent);
   }
   .social {
     display: flex;

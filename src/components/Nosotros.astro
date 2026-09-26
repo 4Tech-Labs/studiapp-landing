@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import companyLogo from '../assets/4techlabs-logo.png';
 import { SITE, COMPANY } from '../data/site';
 
 // Identifica a la empresa detrás del producto: el dominio es el de la empresa y la marca es la del producto.
@@ -19,28 +21,33 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
       </p>
     </div>
 
-    <dl class="facts">
-      <div class="row">
-        <dt>Razón social</dt>
-        <dd>{COMPANY.legalName}</dd>
+    <div class="card">
+      <div class="logo">
+        <Image src={companyLogo} alt={COMPANY.name} height={80} densities={[1, 2]} />
       </div>
-      <div class="row">
-        <dt>Sede</dt>
-        <dd>{COMPANY.domicile}</dd>
-      </div>
-      <div class="row">
-        <dt>Dirección</dt>
-        <dd>{COMPANY.address}</dd>
-      </div>
-      <div class="row">
-        <dt>Correo</dt>
-        <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
-      </div>
-      <div class="row">
-        <dt>Teléfono</dt>
-        <dd><a href={tel}>{COMPANY.phone}</a></dd>
-      </div>
-    </dl>
+      <dl class="facts">
+        <div class="row">
+          <dt>Razón social</dt>
+          <dd>{COMPANY.legalName}</dd>
+        </div>
+        <div class="row">
+          <dt>Sede</dt>
+          <dd>{COMPANY.domicile}</dd>
+        </div>
+        <div class="row">
+          <dt>Dirección</dt>
+          <dd>{COMPANY.address}</dd>
+        </div>
+        <div class="row">
+          <dt>Correo</dt>
+          <dd><a href={`mailto:${SITE.email}`}>{SITE.email}</a></dd>
+        </div>
+        <div class="row">
+          <dt>Teléfono</dt>
+          <dd><a href={tel}>{COMPANY.phone}</a></dd>
+        </div>
+      </dl>
+    </div>
   </div>
 </section>
 
@@ -104,16 +111,27 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
     color: var(--ink);
   }
   /* Tarjeta blanca de las preguntas frecuentes abiertas. */
-  .facts {
+  .card {
     flex: 1 1 min(380px, 100%);
     min-width: 0;
-    margin: 0;
     padding: 6px clamp(20px, 3vw, 32px);
     background: hsl(0 0% 100%);
     border-radius: 20px;
     box-shadow:
       inset 0 0 0 1px hsl(220 28% 91%),
       0 14px 30px -22px rgba(0, 64, 163, 0.45);
+  }
+  .logo {
+    padding: 22px 0 18px;
+    border-bottom: 1px solid hsl(220 28% 93%);
+  }
+  .logo :global(img) {
+    display: block;
+    width: auto;
+    height: 80px;
+  }
+  .facts {
+    margin: 0;
   }
   .row {
     display: grid;
