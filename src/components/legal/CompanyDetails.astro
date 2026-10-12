@@ -15,6 +15,14 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
     <dt>Razón social</dt>
     <dd>{COMPANY.legalName}</dd>
   </div>
+  {
+    COMPANY.taxId && (
+      <div>
+        <dt>NIT</dt>
+        <dd>{COMPANY.taxId}</dd>
+      </div>
+    )
+  }
   <div>
     <dt>Domicilio</dt>
     <dd>{COMPANY.domicile}</dd>

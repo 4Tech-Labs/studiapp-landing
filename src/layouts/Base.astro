@@ -26,6 +26,8 @@ const jsonLd = {
       '@id': id('organization'),
       name: COMPANY.name,
       legalName: COMPANY.legalName,
+      ...(COMPANY.taxId && { taxID: COMPANY.taxId }),
+      ...(COMPANY.foundingDate && { foundingDate: COMPANY.foundingDate }),
       url: `${SITE.url}/`,
       email: SITE.email,
       telephone: COMPANY.phone.replace(/\s/g, ''),

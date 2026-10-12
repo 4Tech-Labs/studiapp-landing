@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import companyLogo from '../assets/4techlabs-logo.png';
 import { SITE, COMPANY } from '../data/site';
+import { foundingDate } from '../lib/legal';
 
 // Identifica a la empresa detrás del producto: el dominio es el de la empresa y la marca es la del producto.
 // Los datos salen de COMPANY, los mismos que usan las páginas legales.
@@ -30,6 +31,22 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
           <dt>Razón social</dt>
           <dd>{COMPANY.legalName}</dd>
         </div>
+        {
+          COMPANY.taxId && (
+            <div class="row">
+              <dt>NIT</dt>
+              <dd>{COMPANY.taxId}</dd>
+            </div>
+          )
+        }
+        {
+          foundingDate && (
+            <div class="row">
+              <dt>Constitución</dt>
+              <dd><time datetime={foundingDate.iso}>{foundingDate.text}</time></dd>
+            </div>
+          )
+        }
         <div class="row">
           <dt>Sede</dt>
           <dd>{COMPANY.domicile}</dd>

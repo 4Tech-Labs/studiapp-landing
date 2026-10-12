@@ -1,4 +1,4 @@
-import { LEGAL } from '../data/site';
+import { COMPANY, LEGAL } from '../data/site';
 
 /** Sección numerada de un documento legal. `n` es "3" en el nivel principal y "3.1" en una subsección. */
 export interface LegalSectionItem {
@@ -44,16 +44,18 @@ export function toc(entries: readonly Entry[]) {
 }
 
 /** Fecha de vigencia de las páginas legales, o null mientras LEGAL.effectiveDate esté vacía. */
-export const effectiveDate = parseEffectiveDate(LEGAL.effectiveDate);
+export const effectiveDate = LEGAL.effectiveDate ? parseIsoDate(LEGAL.effectiveDate, 'LEGAL.effectiveDate') : null;
+if (!effectiveDate) {
+  console.warn('[legal] LEGAL.effectiveDate está vacía (src/data/site.ts): las páginas legales se generan sin fecha de vigencia y con noindex.');
+}
 
-function parseEffectiveDate(iso: string) {
-  if (!iso) {
-    console.warn('[legal] LEGAL.effectiveDate está vacía (src/data/site.ts): las páginas legales se generan sin fecha de vigencia y con noindex.');
-    return null;
-  }
+/** Fecha de constitución de la empresa, o null mientras COMPANY.foundingDate esté vacía. */
+export const foundingDate = COMPANY.foundingDate ? parseIsoDate(COMPANY.foundingDate, 'COMPANY.foundingDate') : null;
+
+function parseIsoDate(iso: string, field: string) {
   const date = new Date(`${iso}T00:00:00Z`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || date.toISOString().slice(0, 10) !== iso) {
-    throw new Error(`LEGAL.effectiveDate debe ser una fecha válida AAAA-MM-DD (recibido: "${iso}")`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== iso) {
+    throw new Error(`${field} debe ser una fecha válida AAAA-MM-DD (recibido: "${iso}")`);
   }
   // En UTC: con la zona de Colombia (UTC-5), la medianoche UTC se mostraría como el día anterior.
   const text = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);

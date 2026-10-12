@@ -133,6 +133,10 @@ export const LEGAL_LINKS = [
 export const COMPANY = {
   name: '4Tech Labs', // nombre comercial; la razón social es legalName
   legalName: '4TECH LABS S.A.S.',
+  /** NIT con dígito de verificación, como en el certificado de la Cámara de Comercio. Vacío = no se muestra. */
+  taxId: '902.004.485-9',
+  /** Fecha de matrícula mercantil (AAAA-MM-DD): la S.A.S. existe desde su inscripción. Vacía = no se muestra. */
+  foundingDate: '2025-10-31',
   domicile: 'Cali, Valle del Cauca, Colombia',
   address: 'Cl. 34 #96-79, Cali',
   phone: '+57 320 551 8633',
