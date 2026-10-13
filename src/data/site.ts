@@ -15,7 +15,7 @@ export const SITE = {
 /** URLs reales de redes. Vacío = el icono no se muestra. */
 export const SOCIAL = {
   instagram: '',
-  linkedin: '',
+  linkedin: 'https://www.linkedin.com/company/4techlabs/',
   youtube: '',
 };
 

@@ -1,6 +1,6 @@
 ---
 import { Font } from 'astro:assets';
-import { SITE, COMPANY } from '../data/site';
+import { SITE, SOCIAL, COMPANY } from '../data/site';
 import '../styles/global.css';
 
 interface Props {
@@ -15,6 +15,8 @@ const cleanPath = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.h
 const canonical = new URL(cleanPath, SITE.url).href;
 const ogImage = new URL(SITE.ogImage, SITE.url).href;
 const id = (h: string) => `${SITE.url}/#${h}`;
+// Perfiles de la empresa en redes: enlazan la organización con su página de LinkedIn, etc.
+const sameAs = Object.values(SOCIAL).filter(Boolean);
 
 // Mismo grafo que el original inyectaba por JS, ahora renderizado en build.
 // La organización es la empresa (dueña del dominio); el producto es el SoftwareApplication.
@@ -33,6 +35,7 @@ const jsonLd = {
       telephone: COMPANY.phone.replace(/\s/g, ''),
       address: { '@type': 'PostalAddress', ...COMPANY.postalAddress },
       logo: new URL('/4techlabs-logo.png', SITE.url).href,
+      ...(sameAs.length > 0 && { sameAs }),
     },
     {
       '@type': 'WebSite',
