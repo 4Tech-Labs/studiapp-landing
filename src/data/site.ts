@@ -144,6 +144,19 @@ export const COMPANY = {
   postalAddress: { streetAddress: 'Cl. 34 #96-79', addressLocality: 'Cali', addressRegion: 'Valle del Cauca', addressCountry: 'CO' },
 };
 
+export interface TeamMember {
+  name: string;
+  role: string;
+  /** URL pública del perfil de LinkedIn. Vacía = el nombre se muestra sin enlace. */
+  linkedin?: string;
+}
+
+/** Equipo que se muestra en Quiénes somos y en el JSON-LD. Google for Startups pide que el sitio describa al equipo o a los fundadores. */
+export const TEAM: TeamMember[] = [
+  { name: 'Kaner Murillo Conrado', role: 'CEO', linkedin: 'https://www.linkedin.com/in/kaner-murillo/' },
+  { name: 'Juan Camilo Dorado Varón', role: 'Cofundador' },
+];
+
 /** Parámetros compartidos por las cuatro páginas legales. */
 export const LEGAL = {
   /**
