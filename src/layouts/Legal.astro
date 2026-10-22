@@ -81,10 +81,10 @@ const { title, description, toc = [] } = Astro.props;
   }
   .kicker {
     margin: 0 0 16px;
-    font-family: var(--font-outfit);
+    font-family: var(--font-inter);
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.16em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--accent);
   }
@@ -123,10 +123,10 @@ const { title, description, toc = [] } = Astro.props;
   }
   .toc-title {
     margin: 0 0 12px;
-    font-family: var(--font-outfit);
+    font-family: var(--font-inter);
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.16em;
+    font-weight: 600;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: hsl(222 30% 48%);
   }
@@ -236,6 +236,42 @@ const { title, description, toc = [] } = Astro.props;
   }
   .legal :global(tbody tr) {
     border-top: 1px solid var(--line);
+  }
+  /* Celulares: cada fila (proveedor · servicio · país) se apila como un bloque; en tres columnas el texto quedaba de una o dos palabras por renglón. */
+  @media (max-width: 559px) {
+    .legal :global(.table-wrap table),
+    .legal :global(.table-wrap tbody),
+    .legal :global(.table-wrap tr),
+    .legal :global(.table-wrap td) {
+      display: block;
+    }
+    .legal :global(.table-wrap thead) {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .legal :global(.table-wrap tbody tr:first-child) {
+      border-top: 0;
+    }
+    .legal :global(.table-wrap tr) {
+      padding: 12px 0;
+    }
+    .legal :global(.table-wrap td) {
+      padding: 2px 16px;
+    }
+    .legal :global(.table-wrap td:first-child) {
+      font-weight: 600;
+      color: var(--ink);
+    }
+    .legal :global(.table-wrap td:nth-child(3)) {
+      font-size: 14px;
+      color: var(--ink-2);
+    }
+    .legal :global(.table-wrap td:nth-child(3))::before {
+      content: 'País: ';
+    }
   }
 
   @media print {

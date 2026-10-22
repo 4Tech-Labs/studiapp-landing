@@ -8,6 +8,8 @@ export const SITE = {
   lang: 'es',
   locale: 'es_CO',
   email: 'hola@4techlabs.com', // reenviado a fourtechlabs@gmail.com con Cloudflare Email Routing
+  /** Agendador de reuniones (enlace recurrente de Notion Calendar). Vacío = el botón de Agenda abre un correo. */
+  bookingUrl: 'https://calendar.notion.com/meet/4techlabs/demo',
   themeColor: '#0040a3',
   ogImage: '/og.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
@@ -16,7 +18,7 @@ export const SITE = {
 export const SOCIAL = {
   instagram: '',
   linkedin: 'https://www.linkedin.com/company/4techlabs/',
-  youtube: '',
+  youtube: 'https://www.youtube.com/@4techlabs',
 };
 
 export interface VideoSources {
@@ -147,14 +149,20 @@ export const COMPANY = {
 export interface TeamMember {
   name: string;
   role: string;
-  /** URL pública del perfil de LinkedIn. Vacía = el nombre se muestra sin enlace. */
+  /** URL pública del perfil de LinkedIn. Vacía = no se muestra el enlace. */
   linkedin?: string;
+  /** Nombre del archivo de la foto en src/assets/team/ (retrato vertical, idealmente 1200 px de alto o más). Vacío = iniciales. */
+  photo?: string;
+  /** Biografía corta (2 a 4 frases) que aparece al pasar el mouse o tocar la tarjeta. Vacía = solo el enlace a LinkedIn. */
+  bio?: string;
 }
 
-/** Equipo que se muestra en Quiénes somos y en el JSON-LD. Google for Startups pide que el sitio describa al equipo o a los fundadores. */
+/** Equipo de la sección Equipo y del JSON-LD. Google for Startups pide que el sitio describa al equipo o a los fundadores. */
 export const TEAM: TeamMember[] = [
-  { name: 'Kaner Murillo Conrado', role: 'CEO', linkedin: 'https://www.linkedin.com/in/kaner-murillo/' },
-  { name: 'Juan Camilo Dorado Varón', role: 'Cofundador' },
+  { name: 'Kaner Murillo Conrado', role: 'Cofundador & CEO', linkedin: 'https://www.linkedin.com/in/kaner-murillo/', photo: 'kaner-murillo.jpg' },
+  { name: 'Robin Quintero', role: 'Cofundador & CISO', linkedin: 'https://www.linkedin.com/in/robin-hafid/', photo: 'robin-quintero.jpg' },
+  { name: 'Juan Camilo Dorado Varón', role: 'Cofundador & CTO', linkedin: 'https://www.linkedin.com/in/camilodorado/' },
+  { name: 'Josue Ruano', role: 'Cofundador & CPO' },
 ];
 
 /** Parámetros compartidos por las cuatro páginas legales. */

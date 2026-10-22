@@ -1,6 +1,8 @@
 ---
 import { SITE } from '../data/site';
 const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una reunión con StudIApp')}`;
+// Con agendador, el botón lo abre en otra pestaña y el correo queda como alternativa en la nota.
+const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel: 'noopener' } : { href: mailto };
 ---
 
 <section id="agenda" aria-labelledby="agenda-titulo" class="agenda" data-screen-label="Agenda una reunión">
@@ -10,13 +12,21 @@ const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una re
     <h2 id="agenda-titulo">Optimiza tu tiempo y enfócate en lo más importante:<br /><span class="serif">tus estudiantes.</span></h2>
     <p class="lead">Menos horas en formatos y planeaciones, más horas en el aula. Te mostramos cómo funciona con las plantillas de tu colegio.</p>
     <div class="ctas">
-      <a href={mailto} class="btn-light">
+      <a {...booking} class="btn-light">
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
       <a href="#caracteristicas" class="btn-ghost">Ver características</a>
     </div>
-    <p class="note">Al escribirnos, tratamos tus datos según nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos</a>.</p>
+    {
+      SITE.bookingUrl ? (
+        <p class="note">
+          ¿Prefieres escribirnos? <a href={mailto}>{SITE.email}</a>. Al agendar o escribirnos, tratamos tus datos según nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos</a>.
+        </p>
+      ) : (
+        <p class="note">Al escribirnos, tratamos tus datos según nuestra <a href="/tratamiento-de-datos">Política de tratamiento de datos</a>.</p>
+      )
+    }
   </div>
 </section>
 
@@ -52,10 +62,10 @@ const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una re
   }
   .kicker {
     margin: 0 0 24px;
-    font-family: var(--font-outfit);
+    font-family: var(--font-inter);
     font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.22em;
+    font-weight: 600;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: hsl(222 24% 78%);
   }

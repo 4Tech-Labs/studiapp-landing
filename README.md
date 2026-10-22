@@ -22,6 +22,7 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 | Hero: modo `video`/`mock`, autoplay, URLs del video y poster | `src/data/site.ts` → `HERO` |
 | Textos y videos de las 5 pestañas de Características | `src/data/site.ts` → `FEATURES` |
 | Preguntas frecuentes (pregunta y respuesta, en orden; vacío = no se muestra la sección) | `src/data/site.ts` → `FAQ` |
+| Equipo (nombre, cargo, LinkedIn, foto, biografía) | `src/data/site.ts` → `TEAM`. Las fotos van en `src/assets/team/` (retrato vertical) y se nombran en `photo`; sin foto se muestran las iniciales. Con más tarjetas de las que caben, la sección pasa a carrusel sola |
 | Texto de "Quiénes somos" | `src/components/Nosotros.astro`. Nombre comercial, razón social, NIT, fecha de constitución, sede, dirección y teléfono: `src/data/site.ts` → `COMPANY` (los usan también el footer, las páginas legales y el JSON-LD) |
 | Textos legales (términos, privacidad, tratamiento de datos, cookies) | `src/pages/*.astro`. Empresa, fecha de vigencia y plazo de conservación: `src/data/site.ts` → `COMPANY` y `LEGAL`. Mientras `LEGAL.effectiveDate` esté vacía, las cuatro páginas llevan `noindex` y no entran al sitemap |
 | Imagen de fondo del hero | `src/assets/hero-2560.webp` (Astro genera AVIF/WebP/JPG en 5 anchos) |

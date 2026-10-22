@@ -75,6 +75,8 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     overflow: hidden;
     background: hsl(220 24% 96%);
     font-family: var(--font-inter);
+    /* Los ajustes compactos dependen del ancho del reproductor, no de la pantalla: el del hero y el de las pestañas miden distinto. */
+    container-type: inline-size;
   }
   .vp-video {
     display: block;
@@ -139,6 +141,10 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       opacity 0.35s ease,
       transform 0.35s ease,
       visibility 0s linear 0s;
+  }
+  /* Antes de la primera reproducción no hay nada que controlar: solo el botón grande. */
+  .vp:not([data-started='1']) .vp-bar {
+    display: none;
   }
   /* Reproduciendo y sin actividad: la barra se oculta (salvo con el ratón encima o foco de teclado dentro). */
   .vp[data-idle='1'] .vp-bar:not(:hover):not(:focus-within) {
@@ -213,6 +219,31 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     letter-spacing: 0.02em;
     color: hsl(216 12% 34%);
     font-variant-numeric: tabular-nums;
+  }
+  /* Sin metadatos la duración es desconocida y se leería "0:00 / 0:00". */
+  .vp:not([data-meta='1']) .vp-time {
+    display: none;
+  }
+  /* Reproductor angosto (celulares): barra compacta pegada al borde, sin el tiempo, y botón central más pequeño. */
+  @container (max-width: 420px) {
+    .vp-bar {
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
+      gap: 8px;
+      padding: 4px 6px;
+    }
+    .vp-time {
+      display: none !important;
+    }
+    .vp-big {
+      width: 56px;
+      height: 56px;
+    }
+    .vp-big svg {
+      width: 22px;
+      height: 22px;
+    }
   }
   .vp-icon {
     flex: none;
@@ -401,6 +432,8 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + step));
     });
     for (const ev of ['play', 'pause', 'ended', 'timeupdate', 'loadedmetadata', 'volumechange']) video.addEventListener(ev, paint);
+    video.addEventListener('play', () => (root.dataset.started = '1'), { once: true });
+    video.addEventListener('loadedmetadata', () => (root.dataset.meta = '1'));
     // Los errores de <source> no burbujean pero sí pasan por la fase de captura. Solo es error real si no quedó ninguna fuente válida.
     video.addEventListener(
       'error',
@@ -425,6 +458,7 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       paint();
     });
     root.addEventListener('player:pause', () => video.pause());
+    if (video.readyState >= HTMLMediaElement.HAVE_METADATA) root.dataset.meta = '1';
     paint();
 
     if (root.dataset.autoplay === '1' && !reduce && !saveData) {

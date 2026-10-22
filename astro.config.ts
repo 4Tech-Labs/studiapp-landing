@@ -37,15 +37,6 @@ export default defineConfig({
     },
     {
       provider: fontProviders.google(),
-      name: 'Outfit',
-      cssVariable: '--font-outfit',
-      weights: ['500 600'],
-      styles: ['normal'],
-      subsets: ['latin'],
-      fallbacks: ['Arial', 'sans-serif'],
-    },
-    {
-      provider: fontProviders.google(),
       name: 'Instrument Serif',
       cssVariable: '--font-instrument-serif',
       weights: [400],

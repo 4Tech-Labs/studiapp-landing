@@ -75,10 +75,10 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
   }
   .kicker {
     margin: 0 0 4px;
-    font-family: var(--font-outfit);
+    font-family: var(--font-inter);
     font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
+    font-weight: 600;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: hsl(222 30% 48%);
   }
@@ -109,6 +109,19 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
   }
   .rail::-webkit-scrollbar {
     display: none;
+  }
+  .rail[data-fade-start],
+  .rail[data-fade-end] {
+    --fade-start: 0px;
+    --fade-end: 0px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+  }
+  .rail[data-fade-start] {
+    --fade-start: 36px;
+  }
+  .rail[data-fade-end] {
+    --fade-end: 36px;
   }
   .tabs {
     position: relative;
@@ -289,8 +302,24 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
       select(d === 'home' ? 0 : d === 'end' ? n - 1 : (active + d + n) % n, true);
     });
 
-    new ResizeObserver(() => measure(false)).observe(list);
-    document.fonts?.ready.then(() => measure(false));
+    // Desvanecido en el borde por el que quedan pestañas ocultas: indica que el riel se desliza.
+    const fades = () => {
+      const max = rail.scrollWidth - rail.clientWidth;
+      rail.toggleAttribute('data-fade-start', max > 1 && rail.scrollLeft > 1);
+      rail.toggleAttribute('data-fade-end', max > 1 && rail.scrollLeft < max - 1);
+    };
+    rail.addEventListener('scroll', fades, { passive: true });
+
+    new ResizeObserver(() => {
+      measure(false);
+      fades();
+    }).observe(list);
+    new ResizeObserver(fades).observe(rail);
+    document.fonts?.ready.then(() => {
+      measure(false);
+      fades();
+    });
     measure(false);
+    fades();
   }
 </script>
