@@ -162,7 +162,6 @@ export const TEAM: TeamMember[] = [
   { name: 'Kaner Murillo Conrado', role: 'Cofundador & CEO', linkedin: 'https://www.linkedin.com/in/kaner-murillo/', photo: 'kaner-murillo.jpg' },
   { name: 'Robin Quintero', role: 'Cofundador & CISO', linkedin: 'https://www.linkedin.com/in/robin-hafid/', photo: 'robin-quintero.jpg' },
   { name: 'Juan Camilo Dorado Varón', role: 'Cofundador & CTO', linkedin: 'https://www.linkedin.com/in/camilodorado/' },
-  { name: 'Josue Ruano', role: 'Cofundador & CPO' },
 ];
 
 /** Parámetros compartidos por las cuatro páginas legales. */
