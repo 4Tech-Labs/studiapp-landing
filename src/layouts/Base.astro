@@ -38,6 +38,7 @@ const jsonLd = {
       logo: new URL('/4techlabs-logo.png', SITE.url).href,
       ...(sameAs.length > 0 && { sameAs }),
       ...(team.length > 0 && { employee: team }),
+      memberOf: { '@type': 'Organization', name: 'NVIDIA Inception Program', url: 'https://www.nvidia.com/en-us/startups/' },
     },
     {
       '@type': 'WebSite',
