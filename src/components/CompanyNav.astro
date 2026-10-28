@@ -5,6 +5,7 @@ import { COMPANY } from '../data/site';
 
 // Nav del sitio de la empresa: logo a la izquierda y enlaces al centro.
 // Al hacer scroll la barra se vuelve un notch de vidrio pegado arriba: el logo pasa a la píldora y Contacto se vuelve botón.
+// En celular la píldora solo muestra Contacto y un botón de menú (hamburguesa) que despliega el resto de enlaces.
 const links = [
   { href: '/#productos', label: 'Productos' },
   { href: '/#equipo', label: 'Equipo' },
@@ -25,8 +26,29 @@ const links = [
       <Image src={logo} alt="" height={22} densities={[1, 2]} loading="eager" />
     </a>
     {links.map((l) => <a href={l.href} class:list={{ 'nav-cta': l.cta }}>{l.label}</a>)}
+    <button type="button" class="menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="cn-menu" data-cn-menu-btn>
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+        <path class="line" d="M7 16 27 16"></path>
+      </svg>
+    </button>
   </nav>
+  <div id="cn-menu" class="menu" data-cn-menu>
+    {
+      links
+        .filter((l) => !l.cta)
+        .map((l) => (
+          <a href={l.href} data-cn-menu-link>
+            {l.label}
+          </a>
+        ))
+    }
+  </div>
 </header>
+<script is:inline>
+  // Celular: la nav es siempre el notch. Se marca aquí, antes de pintar, para que no se vea primero la versión desplegada.
+  if (matchMedia('(max-width: 899px)').matches) document.querySelector('[data-cn]').setAttribute('data-scrolled', '');
+</script>
 
 <style>
   /* Coreografía al condensarse (al bajar), en tres tiempos:
@@ -191,6 +213,103 @@ const links = [
     filter: brightness(1.12);
   }
 
+  /* Botón de menú (solo celular), adaptado de un diseño de Uiverse: las líneas de arriba y abajo son un solo trazo
+     que, al abrir, se recorre (stroke-dashoffset) mientras el ícono gira -45° y forma una X. */
+  .menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    margin-left: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: none;
+    color: hsl(232 30% 12%);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .menu-btn svg {
+    height: 26px;
+    transition: transform 0.6s var(--ease);
+  }
+  .menu-btn .line {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+    transition:
+      stroke-dasharray 0.6s var(--ease),
+      stroke-dashoffset 0.6s var(--ease);
+  }
+  .menu-btn .line-top-bottom {
+    stroke-dasharray: 12 63;
+  }
+  .cn[data-open] .menu-btn svg {
+    transform: rotate(-45deg);
+  }
+  .cn[data-open] .menu-btn .line-top-bottom {
+    stroke-dasharray: 20 300;
+    stroke-dashoffset: -32.42;
+  }
+  .menu-btn:hover {
+    background: hsl(232 40% 50% / 0.07);
+  }
+
+  /* Panel del menú: tarjeta de vidrio bajo la píldora; entra con opacidad y transform (sin layout). */
+  .menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    width: min(320px, calc(100vw - 2 * var(--gap) - 20px));
+    display: none;
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.86) 0%, hsl(220 60% 98% / 0.8) 100%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.8);
+    backdrop-filter: blur(18px) saturate(1.8);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.95),
+      0 0 0 1px hsl(232 30% 40% / 0.06),
+      0 24px 48px -20px hsl(232 50% 30% / 0.35);
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.97);
+    transform-origin: top center;
+    visibility: hidden;
+    transition:
+      opacity 0.2s var(--ease),
+      transform 0.25s var(--ease),
+      visibility 0s linear 0.25s;
+  }
+  .cn[data-open] .menu {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    visibility: visible;
+    transition:
+      opacity 0.25s var(--ease),
+      transform 0.4s var(--spring),
+      visibility 0s linear 0s;
+  }
+  .menu a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 500;
+    color: hsl(232 24% 18%);
+    transition: background 0.2s ease;
+  }
+  .menu a:hover,
+  .menu a:focus-visible {
+    color: hsl(232 30% 10%);
+    background: hsl(232 40% 50% / 0.07);
+  }
+
   /* Destello que recorre el borde del botón: un arco de luz (::before) y su halo difuso (::after).
      Solo se ve en el notch; el ángulo se anima como propiedad registrada, sin repintar el resto de la barra. */
   .nav-cta::before,
@@ -275,12 +394,10 @@ const links = [
   }
 
   /* ---------- Estado condensado (notch) ---------- */
-  @media (min-width: 900px) {
-    .cn[data-scrolled] {
-      /* Sube hasta el borde de la ventana con transform (se compone en la GPU; top obligaría a recalcular el layout). */
-      transform: translateY(calc(-1 * var(--top)));
-      transition: transform 0.55s var(--ease-out);
-    }
+  .cn[data-scrolled] {
+    /* Sube hasta el borde de la ventana con transform (se compone en la GPU; top obligaría a recalcular el layout). */
+    transform: translateY(calc(-1 * var(--top)));
+    transition: transform 0.55s var(--ease-out);
   }
   /* 1. El logo grande se encoge hacia la píldora y se desvanece. */
   .cn[data-scrolled] .brand {
@@ -388,40 +505,60 @@ const links = [
     }
   }
 
-  /* Tablet y celular: solo el logo; al condensarse, la barra entera pasa a ser la píldora. */
+  /* Tablet y celular: siempre en notch (lo fija el script), compacto, con el logo, Contacto y el botón de menú; el resto de enlaces va en el panel.
+     Todo mide 30 px de alto y comparte el mismo eje vertical; el botón Contacto es más chico que en escritorio. */
   @media (max-width: 899px) {
     .cn {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      top: calc(var(--gap) + 8px);
+      --top: calc(var(--gap) + 8px);
       left: calc(var(--gap) + 10px);
       right: calc(var(--gap) + 10px);
-      height: 44px;
-      padding: 0 16px;
-      border-radius: 9999px;
-      border: 1px solid transparent;
-      transition:
-        background 0.35s var(--ease),
-        border-color 0.35s var(--ease),
-        box-shadow 0.35s var(--ease);
+      height: 46px;
+    }
+    .brand :global(img) {
+      height: 28px;
     }
     .links {
+      gap: 4px;
+      padding: 4px;
+    }
+    .links a:not(.pill-logo, .nav-cta) {
       display: none;
     }
-    .cn[data-scrolled] {
-      background: hsl(0 0% 100% / 0.78);
-      -webkit-backdrop-filter: blur(16px) saturate(1.5);
-      backdrop-filter: blur(16px) saturate(1.5);
-      border-color: hsl(0 0% 100% / 0.9);
-      box-shadow: 0 12px 32px -14px hsl(232 50% 30% / 0.3);
+    .links .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      height: 30px;
+      /* 6 px + el gap de 4 px: deja el divisor a 10 px del botón, igual que del logo. */
+      margin-left: 6px;
+      padding: 0 12px;
+      font-size: 13px;
     }
-    .cn[data-scrolled] .brand {
-      opacity: 1;
-      transform: none;
-      filter: none;
-      visibility: visible;
-      pointer-events: auto;
+    /* Halo más ceñido: el de escritorio se ve grueso en un botón tan pequeño. */
+    .nav-cta::after {
+      inset: -4px;
+      padding: 4px;
+    }
+    .menu-btn {
+      display: inline-flex;
+      width: 32px;
+      height: 30px;
+      margin-left: 0;
+    }
+    .menu-btn svg {
+      height: 22px;
+    }
+    .menu {
+      display: flex;
+    }
+    .pill-logo :global(img) {
+      height: 18px;
+    }
+    .cn[data-scrolled] .links {
+      padding: 7px 6px 6px;
+    }
+    .cn[data-scrolled] .pill-logo {
+      margin-left: 6px;
+      padding-right: 10px;
     }
   }
 </style>
@@ -429,7 +566,39 @@ const links = [
 <script>
   const nav = document.querySelector<HTMLElement>('[data-cn]');
   const sentinel = document.querySelector<HTMLElement>('[data-cn-sentinel]');
+  // Escritorio: notch al bajar más de 60 px. Celular: notch siempre.
+  const mobile = matchMedia('(max-width: 899px)');
   if (nav && sentinel) {
-    new IntersectionObserver(([entry]) => nav.toggleAttribute('data-scrolled', !entry.isIntersecting)).observe(sentinel);
+    let atTop = true;
+    const update = () => nav.toggleAttribute('data-scrolled', !atTop || mobile.matches);
+    new IntersectionObserver(([entry]) => {
+      atTop = entry.isIntersecting;
+      update();
+    }).observe(sentinel);
+    mobile.addEventListener('change', update);
+  }
+
+  // Menú de celular: abre y cierra con el botón; se cierra con Escape, al tocar fuera, al elegir un enlace o al pasar a escritorio.
+  const btn = document.querySelector<HTMLButtonElement>('[data-cn-menu-btn]');
+  const menu = document.querySelector<HTMLElement>('[data-cn-menu]');
+  if (nav && btn && menu) {
+    const setOpen = (open: boolean) => {
+      nav.toggleAttribute('data-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    };
+    const isOpen = () => nav.hasAttribute('data-open');
+    btn.addEventListener('click', () => setOpen(!isOpen()));
+    menu.querySelectorAll('[data-cn-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (isOpen() && !nav.contains(e.target as Node)) setOpen(false);
+    });
+    mobile.addEventListener('change', (e) => !e.matches && setOpen(false));
   }
 </script>
