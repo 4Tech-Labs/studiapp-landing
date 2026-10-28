@@ -1,0 +1,79 @@
+---
+// Anillos de luz en WebGL2 (port sin React de <MagicRings /> de React Bits, ver src/lib/magic-rings.js).
+// Las props son las mismas del componente original; se pasan al script como JSON en data-options.
+// Llena su contenedor: el padre necesita position relative y un alto. El canvas no recibe clics.
+interface Props {
+  color?: string;
+  colorTwo?: string;
+  ringCount?: number;
+  motion?: 'pulse' | 'ripple' | 'breathe';
+  speed?: number;
+  lineThickness?: number;
+  glow?: number;
+  baseRadius?: number;
+  radiusStep?: number;
+  expansion?: number;
+  taper?: number;
+  rotation?: number;
+  spin?: number;
+  tilt?: number;
+  dispersion?: number;
+  grain?: number;
+  opacity?: number;
+  followMouse?: boolean;
+  mouseInfluence?: number;
+  hoverScale?: number;
+  hoverIntensity?: number;
+  parallax?: number;
+  clickBurst?: boolean;
+  intro?: boolean;
+  theme?: 'dark' | 'light';
+  maxDevicePixelRatio?: number;
+  /** Propia del port: [desde, hasta] en fracciones del medio ancho; reemplaza baseRadius y radiusStep. */
+  span?: [number, number];
+  class?: string;
+}
+
+// Astro agrega atributos data-astro-cid-* de quien usa el componente: no son opciones de los anillos.
+const { class: className, ...props } = Astro.props;
+const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.startsWith('data-')));
+---
+
+<div class:list={['magic-rings', className]} data-magic-rings data-options={JSON.stringify(options)}>
+  <canvas class="magic-rings-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .magic-rings {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .magic-rings-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+</style>
+
+<script>
+  import { mountMagicRings } from '../lib/magic-rings.js';
+
+  // Se monta cuando los anillos se acercan a la pantalla; así la entrada (se abren desde los lados) se ve al llegar.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        lazy.unobserve(target);
+        const el = target as HTMLElement;
+        mountMagicRings(el, JSON.parse(el.dataset.options || '{}'));
+      });
+    },
+    { rootMargin: '120px' },
+  );
+  document.querySelectorAll<HTMLElement>('[data-magic-rings]').forEach((el) => lazy.observe(el));
+</script>

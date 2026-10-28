@@ -1,5 +1,6 @@
 ---
 import { SITE, PRODUCT } from '../data/site';
+import MagicRings from './MagicRings.astro';
 
 interface Props {
   /** 'product' en la landing de StudIApp; 'company' es el contacto del home de la empresa. */
@@ -17,6 +18,25 @@ const id = isProduct ? 'agenda' : 'contacto';
 
 <section id={id} aria-labelledby={`${id}-titulo`} class="agenda" data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
   <div aria-hidden="true" class="glow"></div>
+  {
+    /* Solo en el home de la empresa: anillos azules que van del 55 % al 95 % del medio ancho, para que enmarquen el
+       texto por los lados en vez de pasar por detrás del titular. */
+    !isProduct && (
+      <div aria-hidden="true" class="rings">
+        <MagicRings
+          color="#8fb3ff"
+          colorTwo="#2f5bd9"
+          ringCount={6}
+          span={[0.55, 0.95]}
+          expansion={0.05}
+          lineThickness={1.6}
+          glow={0.9}
+          hoverScale={1.04}
+          parallax={0.03}
+        />
+      </div>
+    )
+  }
   <div class="inner">
     {
       isProduct ? (
@@ -82,6 +102,18 @@ const id = isProduct ? 'agenda' : 'contacto';
     background:
       radial-gradient(ellipse 34% 55% at 6% 104%, hsl(222 95% 46% / 0.6) 0%, hsl(222 90% 40% / 0.18) 45%, transparent 75%),
       radial-gradient(ellipse 34% 55% at 94% -4%, hsl(222 95% 46% / 0.6) 0%, hsl(222 90% 40% / 0.18) 45%, transparent 75%);
+  }
+  .rings {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  /* En celular la sección es angosta y los anillos quedan detrás del texto: no se muestran. Oculto, el observer
+     nunca lo ve en pantalla y el WebGL ni siquiera se monta. */
+  @media (max-width: 767px) {
+    .rings {
+      display: none;
+    }
   }
   .inner {
     position: relative;
