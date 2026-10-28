@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import { SITE, TEAM } from '../data/site';
 import LightRays from './LightRays.astro';
+import WaveTitle from './WaveTitle.astro';
 
 // Tarjetas de retrato: foto, nombre y cargo. Al pasar el mouse, enfocar con teclado o tocar la tarjeta, el reverso
 // (cuadrícula azul con el enlace a LinkedIn) sube desde abajo. Las tarjetas entran escalonadas al llegar a la sección.
@@ -33,7 +34,7 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
       {/* Sin título grande: el arco de tarjetas es el protagonista; el kicker es el encabezado de la sección. */}
       <div class="head" data-reveal style="--i:0">
         <h2 id="equipo-titulo" class="kicker">
-          Equipo<span class="sr-only"> de {SITE.name}</span>
+          <WaveTitle parts={[{ text: 'Equipo' }]} theme="dark" /><span class="sr-only"> de {SITE.name}</span>
         </h2>
       </div>
 

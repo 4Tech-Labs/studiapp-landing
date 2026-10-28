@@ -1,6 +1,7 @@
 ---
 import { COMPANY } from '../data/site';
 import ShapeGrid from './ShapeGrid.astro';
+import WaveTitle from './WaveTitle.astro';
 
 // Membresía en NVIDIA Inception (aprobada el 23-oct-2026). El sello es el SVG oficial sin modificar
 // (guía: https://design.nvidia.com/partners/inception/nvidia-inception-program/member-badge):
@@ -24,7 +25,7 @@ import ShapeGrid from './ShapeGrid.astro';
   <div class="inner">
     <p class="kicker">Respaldo</p>
     {/* "Seleccionados" y no "respaldados por NVIDIA": la membresía no implica que NVIDIA avale a la empresa. */}
-    <h2 id="respaldo-titulo">Seleccionados por <span class="accent">NVIDIA Inception</span></h2>
+    <h2 id="respaldo-titulo"><WaveTitle parts={[{ text: 'Seleccionados por' }, { text: 'NVIDIA Inception', accent: true }]} /></h2>
     <p class="lead">
       {COMPANY.name} es parte del programa de NVIDIA para startups que construyen con inteligencia artificial. Eso nos da acceso a <strong>herramientas, formación técnica y expertos de NVIDIA</strong> para construir software con tecnología de primer nivel.
     </p>
@@ -82,9 +83,6 @@ import ShapeGrid from './ShapeGrid.astro';
     line-height: 1.06;
     letter-spacing: -0.025em;
     text-wrap: balance;
-  }
-  .accent {
-    color: var(--accent);
   }
   .lead {
     margin: 18px 0 0;

@@ -1,6 +1,7 @@
 ---
 import { SITE, PRODUCT } from '../data/site';
 import MagicRings from './MagicRings.astro';
+import WaveTitle from './WaveTitle.astro';
 
 interface Props {
   /** 'product' en la landing de StudIApp; 'company' es el contacto del home de la empresa. */
@@ -53,9 +54,7 @@ const id = isProduct ? 'agenda' : 'contacto';
         <>
           <p class="kicker">Contacto · Reunión de 30 minutos</p>
           <h2 id={`${id}-titulo`}>
-            Hablemos de
-            <br />
-            <span class="serif">tu próximo proyecto.</span>
+            <WaveTitle parts={[{ text: 'Hablemos de' }, { text: 'tu próximo proyecto.', accent: true, break: true }]} theme="dark" />
           </h2>
           <p class="lead">Cuéntanos qué quieres construir y te proponemos cómo hacerlo: software a la medida, aplicaciones o soluciones con IA.</p>
         </>

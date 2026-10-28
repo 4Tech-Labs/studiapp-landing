@@ -4,6 +4,7 @@ import companyLogo from '../assets/4techlabs-logo.png';
 import { SITE, COMPANY, PRODUCT, CATALOG } from '../data/site';
 import GradientWaves from './GradientWaves.astro';
 import ReflectiveCard from './ReflectiveCard.astro';
+import WaveTitle from './WaveTitle.astro';
 
 // Identifica a la empresa dueña del sitio y de los productos del catálogo.
 // Los datos salen de COMPANY, los mismos que usan las páginas legales. La credencial lleva solo lo esencial
@@ -35,7 +36,7 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
   <div class="wrap">
     <div class="copy">
       <p class="kicker">Quiénes somos</p>
-      <h2 id="nosotros-titulo">Tus ideas, <span class="accent">hechas realidad</span></h2>
+      <h2 id="nosotros-titulo"><WaveTitle parts={[{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }]} /></h2>
       <p>
         <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software. Construimos aplicaciones web y móviles a la medida y automatizamos las tareas repetitivas de tu operación.
       </p>
@@ -161,9 +162,6 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
     letter-spacing: -0.025em;
     max-width: 16ch;
     text-wrap: balance;
-  }
-  .accent {
-    color: var(--accent);
   }
   .copy p:not(.kicker) {
     margin: 8px 0 0;

@@ -2,6 +2,7 @@
 import { CATALOG } from '../data/site';
 import Grainient from './Grainient.astro';
 import GradientASCII from './GradientASCII.astro';
+import WaveTitle from './WaveTitle.astro';
 
 // Catálogo de productos de la empresa (datos en CATALOG). Cada producto es una tarjeta a color que, en escritorio,
 // se queda fija arriba mientras la siguiente se apila encima. Los publicados enlazan a su landing; los que están
@@ -21,37 +22,13 @@ const ASCII_COLORS = {
 };
 const ASCII_CHARACTERS = ' .:=+x{}#@';
 
-// Titular con "color wave": cada letra va en su propio span con su índice (--i) y su color final (--final).
-// La palabra destacada reparte el azul de marca (el degradado de los botones) letra por letra.
-const TITLE = [
-  { text: 'Productos que', accent: false },
-  { text: 'construimos', accent: true },
-];
-let charIndex = 0;
-const TITLE_WORDS = TITLE.flatMap(({ text, accent }) =>
-  text.split(' ').map((word) => ({
-    chars: [...word].map((ch, k, all) => {
-      const final = accent ? `color-mix(in oklab, #1a5cc0, #0144a0 ${Math.round((k / Math.max(all.length - 1, 1)) * 100)}%)` : 'var(--ink)';
-      return { ch, style: `--i:${charIndex++};--final:${final}` };
-    }),
-  })),
-);
-const TITLE_CHARS = charIndex;
 ---
 
 <section id="productos" aria-labelledby="productos-titulo" class="catalog" data-screen-label="Productos">
   <div class="head">
     <p class="kicker">Productos</p>
-    <h2 id="productos-titulo" class="wave-title" aria-label={TITLE.map((t) => t.text).join(' ')} style={`--n:${TITLE_CHARS}`}>
-      {
-        TITLE_WORDS.map((word, wi) => (
-          <>
-            {/* Letras pegadas (sin saltos de línea entre ellas) para no meter espacios dentro de la palabra */}
-            <span class="w" aria-hidden="true">{word.chars.map((c) => <span class="c" style={c.style}>{c.ch}</span>)}</span>
-            {wi < TITLE_WORDS.length - 1 && ' '}
-          </>
-        ))
-      }
+    <h2 id="productos-titulo">
+      <WaveTitle parts={[{ text: 'Productos que' }, { text: 'construimos', accent: true }]} />
     </h2>
     <p class="lead">Además de desarrollar software para nuestros clientes, creamos productos propios con inteligencia artificial.</p>
   </div>
@@ -255,59 +232,6 @@ const TITLE_CHARS = charIndex;
     letter-spacing: -0.025em;
     color: hsl(232 30% 12%);
     text-wrap: balance;
-  }
-  /* Color wave text reveal: al hacer scroll, una ola de color recorre el titular letra por letra.
-     Todo depende de un solo número, --wave-p (0 → 1). Cada letra calcula su propio tramo de la ola:
-     tenue → color de la ola → color final. Así se anima una sola variable por cuadro, no 25 animaciones. */
-  @property --wave-p {
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 1;
-  }
-  .wave-title {
-    --ink: hsl(232 30% 12%);
-    --dim: hsl(232 18% 85%);
-    --wave: #4f8ff7;
-    /* Ancho de la ola en letras */
-    --wave-w: 6;
-    --wave-p: 1;
-  }
-  .wave-title .w {
-    white-space: nowrap;
-  }
-  .wave-title .c {
-    --t: clamp(0, (var(--wave-p) * (var(--n) + var(--wave-w)) - var(--i)) / var(--wave-w), 1);
-    color: color-mix(
-      in oklab,
-      color-mix(in oklab, var(--dim), var(--wave) calc(min(var(--t) * 2, 1) * 100%)),
-      var(--final) calc(max(var(--t) * 2 - 1, 0) * 100%)
-    );
-  }
-  /* Navegadores con animaciones ligadas al scroll: corre en CSS, sin JavaScript */
-  @supports (animation-timeline: view()) {
-    .wave-title {
-      animation: wave-progress linear both;
-    }
-    /* En otra regla a propósito: el minificador juntaría animation-timeline dentro del shorthand `animation`,
-       y Chrome descarta ese shorthand completo (el timeline no es válido ahí) */
-    .head .wave-title {
-      animation-timeline: view();
-      animation-range: cover 12% cover 48%;
-    }
-  }
-  @keyframes wave-progress {
-    from {
-      --wave-p: 0;
-    }
-    to {
-      --wave-p: 1;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .wave-title {
-      animation: none;
-      --wave-p: 1;
-    }
   }
   .lead {
     margin: 18px auto 0;
@@ -1026,30 +950,6 @@ const TITLE_CHARS = charIndex;
 
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // Respaldo del "color wave" para navegadores sin animation-timeline: mismo rango que en CSS, pero calculado con
-  // un listener de scroll que solo existe mientras el titular está en pantalla y escribe una variable por cuadro.
-  const waveTitle = document.querySelector<HTMLElement>('.wave-title');
-  if (waveTitle && !reduceMotion && !CSS.supports('animation-timeline: view()')) {
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const { top } = waveTitle.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const start = vh * 0.92;
-      const end = vh * 0.52;
-      const p = Math.min(1, Math.max(0, (start - top) / (start - end)));
-      waveTitle.style.setProperty('--wave-p', p.toFixed(3));
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) window.addEventListener('scroll', onScroll, { passive: true });
-      else window.removeEventListener('scroll', onScroll);
-      update();
-    }).observe(waveTitle);
-  }
 
   // Videos de vista previa: no se descargan hasta que la tarjeta entra en pantalla, y se pausan al salir.
   // Con movimiento reducido o ahorro de datos se queda el póster.
