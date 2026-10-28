@@ -81,7 +81,7 @@ const social = [
         ) : (
           <nav aria-labelledby="footer-producto" class="col">
             <p id="footer-producto" class="kicker">Productos</p>
-            {CATALOG.map((p) => <a href={p.href}>{p.name}</a>)}
+            {CATALOG.map((p) => <a href={p.status === 'available' ? p.href : `/#${p.id}`}>{p.name}</a>)}
             <a href="/#productos">Catálogo</a>
           </nav>
         )

@@ -25,31 +25,59 @@ export const PRODUCT = {
 };
 
 export interface CatalogItem {
+  /** Ancla de la tarjeta en el home (/#id). */
+  id: string;
   name: string;
-  /** Categoría corta que va sobre el nombre. */
-  category: string;
+  /** Paleta de la tarjeta (ver .theme-* en Catalog.astro). */
+  theme: 'blue' | 'purple';
+  /** Titular en dos líneas: la segunda va en el color de la tarjeta. */
+  title: [string, string];
   description: string;
-  /** Tres o cuatro puntos fuertes, una línea cada uno. */
-  highlights: string[];
-  /** Página del producto dentro del sitio. */
-  href: string;
-  /** Logo cuadrado del producto (ruta en public/). */
-  logo: string;
-  /** Imagen de vista previa (ruta en public/, 16:9). */
-  preview: string;
+  /** Enlace opcional dentro de la descripción: la primera aparición de `text` se vuelve un enlace a `href`. */
+  descriptionLink?: { text: string; href: string };
 }
 
-/** Catálogo de productos del home, en orden. Detrás del último se muestra una tarjeta de "Próximamente". */
-export const CATALOG: CatalogItem[] = [
+/** Producto publicado: enlaza a su landing y muestra una imagen de vista previa. */
+export interface AvailableProduct extends CatalogItem {
+  status: 'available';
+  /** Página del producto dentro del sitio. */
+  href: string;
+  /** Video de vista previa (16:9) que se reproduce en silencio y en bucle mientras la tarjeta está en pantalla. */
+  preview: VideoSources & { poster: string };
+}
+
+/** Producto por lanzar: en lugar del enlace muestra un formulario de lista de espera. */
+export interface UpcomingProduct extends CatalogItem {
+  status: 'soon';
+  /** Endpoint que recibe POST con JSON `{ email }` y responde `{ ok, alreadyRegistered }`. */
+  waitlistUrl: string;
+}
+
+/** Catálogo de productos del home, en orden. */
+export const CATALOG: (AvailableProduct | UpcomingProduct)[] = [
   {
+    status: 'available',
+    id: 'studiapp',
     name: PRODUCT.name,
-    category: 'Planeación escolar con IA',
+    theme: 'blue',
+    title: ['Planea el año escolar', 'en minutos con IA'],
     description:
-      'El copiloto que planea el año escolar en minutos: genera planeaciones anuales, periódicas y semanales en las plantillas de cada colegio, con su contexto institucional.',
-    highlights: ['Copiloto con IA para cada etapa', 'Contexto institucional y currículo del MEN', 'DUA y PIAR sin trabajo doble', 'Trabajo en equipo docente'],
+      'Un copiloto que genera tus planeaciones anuales, periódicas y semanales en las plantillas de tu colegio, alineadas con el currículo del MEN y estándares internacionales, y con educación inclusiva desde el inicio: ajustes DUA y PIAR en cada planeación.',
     href: PRODUCT.path,
-    logo: '/logo.webp',
-    preview: '/videos/copiloto-con-ia-v1-poster.webp',
+    // El mismo video del hero de /studiapp (HERO.video, que se declara más abajo)
+    preview: { mp4: '/videos/hero-v1.mp4', poster: '/videos/hero-v1-poster.webp' },
+  },
+  {
+    status: 'soon',
+    id: 'complexipy-platform',
+    name: 'Complexipy Platform',
+    theme: 'purple',
+    title: ['Frena la complejidad', 'antes de que llegue a producción'],
+    description:
+      'Con la IA escribiendo cada vez más código, revisar un pull request se volvió una caja negra. En segundos te mostramos qué funciones se complicaron y cómo simplificarlas. Construido sobre Complexipy, el open source de nuestro cofundador Robin Quintero, con más de 7 millones de descargas.',
+    descriptionLink: { text: 'Complexipy', href: 'https://github.com/rohaquinlop/complexipy' },
+    // Lista de espera de Complexipy Teams (Worker + D1 de Robin); responde con CORS abierto.
+    waitlistUrl: 'https://www.complexipy-teams.com/api/waitlist',
   },
 ];
 

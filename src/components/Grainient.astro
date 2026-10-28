@@ -1,0 +1,71 @@
+---
+// Degradado animado con grano en WebGL2 (port sin React de <Grainient /> de React Bits, ver src/lib/grainient.js).
+// Las props son las mismas del componente original; se pasan al script como JSON en data-options.
+// Llena su contenedor: el padre necesita position relative y un alto.
+interface Props {
+  colors?: string[];
+  type?: 'linear' | 'radial';
+  angle?: number;
+  bands?: number;
+  softness?: number;
+  flow?: number;
+  scale?: number;
+  speed?: number;
+  silk?: number;
+  grainAmount?: number;
+  grainSize?: number;
+  grainAnimated?: boolean;
+  contrast?: number;
+  saturation?: number;
+  variation?: number;
+  interactive?: boolean;
+  stir?: number;
+  clickSwirl?: boolean;
+  intro?: boolean;
+  lightMode?: boolean;
+  dpr?: number;
+  class?: string;
+}
+
+// Astro agrega atributos data-astro-cid-* de quien usa el componente: no son opciones del degradado.
+const { class: className, ...props } = Astro.props;
+const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.startsWith('data-')));
+---
+
+<div class:list={['grainient-container', className]} data-grainient data-options={JSON.stringify(options)}>
+  <canvas class="grainient-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .grainient-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .grainient-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<script>
+  import { mountGrainient } from '../lib/grainient.js';
+
+  // Se monta (contexto WebGL + shaders) solo cuando el contenedor se acerca a la pantalla, no al cargar la página.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        lazy.unobserve(target);
+        const el = target as HTMLElement;
+        mountGrainient(el, JSON.parse(el.dataset.options || '{}'));
+      });
+    },
+    { rootMargin: '300px' },
+  );
+  document.querySelectorAll<HTMLElement>('[data-grainient]').forEach((el) => lazy.observe(el));
+</script>
