@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import { SITE, TEAM } from '../data/site';
+import LightRays from './LightRays.astro';
 
 // Tarjetas de retrato: foto, nombre y cargo. Al pasar el mouse, enfocar con teclado o tocar la tarjeta, el reverso
 // (cuadrícula azul con el enlace a LinkedIn) sube desde abajo. Las tarjetas entran escalonadas al llegar a la sección.
@@ -17,18 +18,22 @@ const initials = (name: string) => {
 };
 // Ancho máximo de la tarjeta en CSS px: las fotos se generan a 1× y 2× de ese ancho (sin pasar del original).
 const CARD_W = 236;
+// Giro inicial del arco 3D por posición en la lista (-0.7 a 0.7); el script lo recalcula con la posición real en el riel.
+const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / ((TEAM.length - 1) / 2)) * 0.7 : 0);
 ---
 
 {
   TEAM.length > 0 && (
     <section id="equipo" aria-labelledby="equipo-titulo" class="team" data-screen-label="Equipo" data-team>
       <div aria-hidden="true" class="glow" />
-      <div aria-hidden="true" class="ring" />
+      <div aria-hidden="true" class="rays">
+        <LightRays raysColor="#0144a0" lightSpread={0.5} rayLength={3} glow={0.6} haze={0.25} mouseInfluence={0.1} />
+      </div>
 
+      {/* Sin título grande: el arco de tarjetas es el protagonista; el kicker es el encabezado de la sección. */}
       <div class="head" data-reveal style="--i:0">
-        <p class="kicker">Equipo</p>
-        <h2 id="equipo-titulo">
-          Las personas <span class="serif">que construyen {SITE.name}</span>
+        <h2 id="equipo-titulo" class="kicker">
+          Equipo<span class="sr-only"> de {SITE.name}</span>
         </h2>
       </div>
 
@@ -42,7 +47,7 @@ const CARD_W = 236;
             const photo = photoOf(m.photo);
             const hasBack = Boolean(m.bio || m.linkedin);
             return (
-              <li class="card" style={`--i:${i + 1}`} data-reveal tabindex={hasBack ? 0 : undefined} data-team-card={hasBack ? '' : undefined}>
+              <li class="card" style={`--i:${i + 1};--t:${tiltOf(i).toFixed(3)}`} data-reveal tabindex={hasBack ? 0 : undefined} data-team-card={hasBack ? '' : undefined}>
                 <div class="front">
                   {photo ? (
                     <Image
@@ -83,6 +88,7 @@ const CARD_W = 236;
                     </div>
                   </div>
                 )}
+                <span aria-hidden="true" class="glare" />
               </li>
             );
           })}
@@ -99,6 +105,7 @@ const CARD_W = 236;
 <style>
   .team {
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --arc: 50deg; /* giro máximo de las tarjetas en los bordes del riel */
     position: relative;
     overflow: hidden;
     margin-top: var(--gap);
@@ -120,19 +127,11 @@ const CARD_W = 236;
       radial-gradient(ellipse 45% 55% at 50% 62%, hsl(232 80% 45% / 0.38) 0%, transparent 70%),
       radial-gradient(ellipse 60% 40% at 50% 0%, hsl(240 70% 30% / 0.35) 0%, transparent 75%);
   }
-  /* Círculo decorativo: abraza el título y se desvanece antes de las tarjetas. */
-  .ring {
+  /* Haces de luz desde arriba (WebGL2); sin WebGL2 queda solo el brillo de .glow. */
+  .rays {
     position: absolute;
-    top: clamp(24px, 3vw, 40px);
-    left: 50%;
-    width: clamp(340px, 36vw, 480px);
-    aspect-ratio: 1;
-    transform: translateX(-50%);
-    border-radius: 9999px;
-    border: 1px solid hsl(230 70% 75% / 0.16);
+    inset: 0;
     pointer-events: none;
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 62%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 62%);
   }
   .head {
     position: relative;
@@ -142,44 +141,36 @@ const CARD_W = 236;
     text-align: center;
     padding: 0 clamp(20px, 4vw, 48px);
   }
+  /* Único texto sobre las tarjetas: tamaño medio para que el haz de luz ilumine algo con peso. Va en la tipografía
+     de titulares (no la de los rótulos pequeños) porque hace de título de la sección. */
   .kicker {
-    margin: 0 0 16px;
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: hsl(230 30% 75%);
-  }
-  h2 {
     margin: 0;
     font-family: var(--font-display);
+    font-size: clamp(15px, 1.4vw, 20px);
     font-weight: 600;
-    font-size: clamp(2.125rem, 4.6vw, 3.75rem);
-    line-height: 1.08;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
-  }
-  .serif {
-    display: block;
-    font-family: var(--font-display);
-    font-weight: inherit;
-    letter-spacing: 0;
-    color: hsl(235 90% 78%);
+    line-height: 1.3;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: hsl(230 60% 90%);
   }
 
-  /* Entrada escalonada (solo con JS; sin JS o con movimiento reducido se ve todo de inmediato). */
+  /* Entrada escalonada (solo con JS; sin JS o con movimiento reducido se ve todo de inmediato).
+     Usa translate y scale sueltos para no pisar el transform del arco 3D; el giro de las tarjetas no lleva retraso. */
   .team[data-reveal-state='pending'] [data-reveal] {
     opacity: 0;
-    transform: translateY(28px) scale(0.97);
+    translate: 0 28px;
+    scale: 0.97;
   }
   .team[data-reveal-state='in'] [data-reveal] {
     opacity: 1;
-    transform: none;
+    translate: none;
+    scale: none;
     transition:
       opacity 0.7s var(--ease-out),
-      transform 0.9s var(--ease-out);
-    transition-delay: calc(var(--i, 0) * 90ms);
+      translate 0.9s var(--ease-out),
+      scale 0.9s var(--ease-out),
+      transform 0.6s var(--ease-out);
+    transition-delay: calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), calc(var(--i, 0) * 90ms), 0s;
   }
 
   .viewport {
@@ -189,10 +180,12 @@ const CARD_W = 236;
     align-items: center;
   }
   .rail {
+    position: relative;
     flex: 1;
     min-width: 0;
     margin: 0;
-    padding: 12px clamp(20px, 6vw, 96px) 24px;
+    /* Arriba y abajo hay aire para el borde cercano de las tarjetas giradas, que la perspectiva hace más alto. */
+    padding: 24px clamp(20px, 6vw, 96px) 36px;
     list-style: none;
     display: flex;
     gap: clamp(14px, 1.6vw, 22px);
@@ -230,6 +223,22 @@ const CARD_W = 236;
       0 24px 50px -30px hsl(232 90% 40% / 0.7);
     outline-offset: 4px;
     cursor: default;
+    /* Arco cóncavo: --t va de -1 (borde izquierdo del riel) a 1 (derecho); el borde exterior de cada tarjeta gira
+       hacia el frente. Las tarjetas van sobre un cilindro de radio --r (lo calcula el script): cuanto más giran, más
+       se adelantan, y así el borde de cada una queda a la misma altura que el de su vecina. Abierta, la tarjeta se
+       endereza y vuelve casi al plano del riel (con la profundidad del cilindro, las de los extremos crecían hasta
+       tocar a su vecina) y, con mouse, se inclina hacia el cursor (--rx, --ry; los pone el script). */
+    --z: calc(var(--r, 600px) * (1 - cos(var(--t, 0) * var(--arc))));
+    transform: perspective(900px) translateZ(var(--z)) rotateX(0deg) rotateY(calc(var(--t, 0) * var(--arc) * -1));
+    transition: transform 0.6s var(--ease-out);
+  }
+  /* Ya enderezada, la inclinación sigue al cursor con una transición corta (la larga iría detrás del mouse). */
+  .team .rail .card[data-tracking] {
+    transition: transform 0.18s ease-out;
+  }
+  /* Mientras el riel se desliza, el giro sigue la posición sin transición (si no, va detrás del dedo). */
+  .team[data-scrolling] .rail .card {
+    transition: none;
   }
   /* Borde luminoso que aparece con el reverso. */
   .card::after {
@@ -254,6 +263,17 @@ const CARD_W = 236;
     border-radius: inherit;
     overflow: hidden;
     clip-path: inset(0 round 20px);
+  }
+  /* Sombra de profundidad: oscurece el borde lejano (el interior del arco) según cuánto gira la tarjeta. */
+  .front::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0) * -1) * 0.7))),
+      linear-gradient(270deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0)) * 0.7)));
+    transition: opacity 0.5s ease;
   }
   .photo {
     position: absolute;
@@ -332,6 +352,11 @@ const CARD_W = 236;
       24px 24px,
       24px 24px,
       100% 100%;
+    /* Paralaje: la cuadrícula se corre al revés que el contenido cuando la tarjeta se inclina (--sx, --sy). */
+    background-position:
+      calc(var(--sx, 0px) * -1) calc(var(--sy, 0px) * -1),
+      calc(var(--sx, 0px) * -1) calc(var(--sy, 0px) * -1),
+      center;
     /* Sin backdrop-filter: Chrome lo pinta en el rectángulo completo e ignora el redondeado del clip-path (esquinas cuadradas). */
     clip-path: inset(100% 0 0 0 round 20px);
     visibility: hidden;
@@ -343,9 +368,11 @@ const CARD_W = 236;
   .back-foot {
     opacity: 0;
     transform: translateY(12px);
+    translate: var(--sx, 0px) var(--sy, 0px);
     transition:
       opacity 0.3s ease,
-      transform 0.45s var(--ease-out);
+      transform 0.45s var(--ease-out),
+      translate 0.25s ease-out;
   }
   .back-foot {
     display: flex;
@@ -384,7 +411,33 @@ const CARD_W = 236;
 
   /* Estado abierto: hover (con mouse), foco de teclado visible dentro de la tarjeta, o toque (data-open).
      Solo :focus-visible, no :focus-within: tras hacer clic en LinkedIn y volver, el enlace sigue enfocado y la tarjeta quedaba abierta. */
+  /* Brillo que sigue al cursor (--gx, --gy), por encima del frente y del reverso. */
+  .glare {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      farthest-corner circle at var(--gx, 50%) var(--gy, 50%),
+      hsl(0 0% 100% / 0.55) 0%,
+      hsl(0 0% 100% / 0.18) 22%,
+      transparent 60%
+    );
+    mix-blend-mode: overlay;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
   @media (hover: hover) {
+    .card:hover {
+      transform: perspective(900px) translateZ(16px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    }
+    .card[data-tracking] .glare {
+      opacity: 1;
+    }
+    .card:hover .front::after {
+      opacity: 0;
+    }
     .card:hover .back {
       clip-path: inset(0 0 0 0 round 20px);
       visibility: visible;
@@ -412,6 +465,16 @@ const CARD_W = 236;
     .card:hover::after {
       opacity: 1;
     }
+  }
+  .card:focus-visible,
+  .card:has(:focus-visible),
+  .card[data-open] {
+    transform: perspective(900px) translateZ(16px) rotateX(0deg) rotateY(0deg);
+  }
+  .card:focus-visible .front::after,
+  .card:has(:focus-visible) .front::after,
+  .card[data-open] .front::after {
+    opacity: 0;
   }
   .card:focus-visible .back,
   .card:has(:focus-visible) .back,
@@ -485,6 +548,9 @@ const CARD_W = 236;
     }
   }
   @media (prefers-reduced-motion: reduce) {
+    .card {
+      transition: none;
+    }
     .card:hover .photo {
       transform: none;
     }
@@ -527,10 +593,80 @@ const CARD_W = 236;
       const card = rail.querySelector<HTMLElement>('.card');
       return card ? card.offsetWidth + parseFloat(getComputedStyle(rail).columnGap || '0') : rail.clientWidth;
     };
+    // Arco 3D: --t de cada tarjeta según dónde queda su centro respecto al centro visible del riel (-1 a 1).
+    const cards = [...rail.querySelectorAll<HTMLElement>('.card')];
+    // Radio del cilindro: la cuerda entre centros vecinos (ancho + gap) abarca el ángulo que cambia el giro entre ellos.
+    const tilt = () => {
+      const half = rail.clientWidth / 2;
+      const arc = (parseFloat(getComputedStyle(section).getPropertyValue('--arc')) * Math.PI) / 180;
+      const angle = (arc * step()) / half;
+      rail.style.setProperty('--r', `${(step() / (2 * Math.sin(angle / 2))).toFixed(0)}px`);
+      for (const card of cards) {
+        const center = card.offsetLeft + card.offsetWidth / 2 - rail.scrollLeft;
+        const t = Math.max(-1, Math.min(1, (center - half) / half));
+        card.style.setProperty('--t', t.toFixed(3));
+      }
+    };
+    let frame = 0;
+    const schedule = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        update();
+        tilt();
+      });
+    };
+    let idle = 0;
     prev.addEventListener('click', () => rail.scrollBy({ left: -step(), behavior: 'smooth' }));
     next.addEventListener('click', () => rail.scrollBy({ left: step(), behavior: 'smooth' }));
-    rail.addEventListener('scroll', update, { passive: true });
-    new ResizeObserver(update).observe(rail);
+    rail.addEventListener(
+      'scroll',
+      () => {
+        section.toggleAttribute('data-scrolling', true);
+        clearTimeout(idle);
+        idle = window.setTimeout(() => section.removeAttribute('data-scrolling'), 120);
+        schedule();
+      },
+      { passive: true },
+    );
+    tilt();
+    new ResizeObserver(schedule).observe(rail);
+
+    // Con mouse, la tarjeta abierta se inclina hacia el cursor (hasta TILT grados), el brillo lo sigue y el reverso
+    // hace paralaje. El seguimiento empieza cuando termina de enderezarse (data-tracking), para no cortar esa transición.
+    const TILT = 8;
+    const PARALLAX = 5;
+    if (!reduce) {
+      for (const card of cards) {
+        let settle = 0;
+        const aim = (e: PointerEvent) => {
+          const r = card.getBoundingClientRect();
+          if (!r.width || !r.height) return;
+          const nx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1));
+          const ny = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1));
+          card.style.setProperty('--rx', `${(ny * TILT).toFixed(2)}deg`);
+          card.style.setProperty('--ry', `${(-nx * TILT).toFixed(2)}deg`);
+          card.style.setProperty('--gx', `${((nx + 1) * 50).toFixed(1)}%`);
+          card.style.setProperty('--gy', `${((ny + 1) * 50).toFixed(1)}%`);
+          card.style.setProperty('--sx', `${(nx * PARALLAX).toFixed(1)}px`);
+          card.style.setProperty('--sy', `${(ny * PARALLAX).toFixed(1)}px`);
+        };
+        card.addEventListener('pointerenter', (e) => {
+          if (e.pointerType !== 'mouse') return;
+          aim(e);
+          settle = window.setTimeout(() => card.toggleAttribute('data-tracking', true), 600);
+        });
+        card.addEventListener('pointermove', (e) => {
+          if (e.pointerType === 'mouse') aim(e);
+        });
+        card.addEventListener('pointerleave', (e) => {
+          if (e.pointerType !== 'mouse') return;
+          clearTimeout(settle);
+          card.removeAttribute('data-tracking');
+          for (const p of ['--rx', '--ry', '--sx', '--sy']) card.style.removeProperty(p);
+        });
+      }
+    }
 
     const closeAll = () => rail.querySelectorAll('[data-open]').forEach((c) => c.removeAttribute('data-open'));
 

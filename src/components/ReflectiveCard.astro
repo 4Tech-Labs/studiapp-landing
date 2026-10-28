@@ -1,0 +1,153 @@
+---
+// Tarjeta de metal cepillado en WebGL2 que se inclina hacia el cursor (port sin React de <ReflectiveCard /> de React
+// Bits, ver src/lib/reflective-card.js). El contenido va en el slot; las opciones del metal se pasan al script como
+// JSON en data-options. Sin WebGL2 queda un degradado plateado (o grafito) con el mismo contenido.
+interface Props {
+  theme?: 'dark' | 'light';
+  tint?: string;
+  metalness?: number;
+  roughness?: number;
+  blurStrength?: number;
+  grayscale?: number;
+  warp?: number;
+  warpScale?: number;
+  shine?: number;
+  bevel?: number;
+  glare?: number;
+  enableTilt?: boolean;
+  tiltStrength?: number;
+  intro?: boolean;
+  radius?: number;
+  /** Fondo bajo el metal (cualquier valor de background). En el tema oscuro el metal se suma encima en modo screen,
+   *  así que un fondo de color (p. ej. azul marino) tiñe la tarjeta y los reflejos quedan por encima. */
+  base?: string;
+  /** Vidrio: la tarjeta deja ver (desenfocado) lo que tiene detrás y el metal queda como un brillo suave encima. */
+  glass?: boolean;
+  class?: string;
+}
+
+// Astro agrega atributos data-astro-cid-* de quien usa el componente: no son opciones del metal.
+const { class: className, base, glass, ...props } = Astro.props;
+const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.startsWith('data-')));
+const theme = props.theme === 'light' ? 'light' : 'dark';
+const radius = Math.max(0, props.radius ?? 24);
+---
+
+<div
+  class:list={['reflective-card', `rc-${theme}`, { 'rc-glass': glass }, className]}
+  style={`--rc-radius:${radius}px${base ? `;--rc-base:${base}` : ''}`}
+  data-reflective-card
+  data-options={JSON.stringify(options)}
+>
+  <div class="rc-body">
+    <canvas class="rc-canvas" aria-hidden="true"></canvas>
+    <div class="rc-content"><slot /></div>
+    <span class="rc-rim" aria-hidden="true"></span>
+  </div>
+</div>
+
+<style>
+  .reflective-card {
+    position: relative;
+    perspective: 900px;
+    color: var(--rc-ink);
+    touch-action: pan-y;
+  }
+  .rc-dark {
+    --rc-base: linear-gradient(160deg, #2a2930 0%, #1d1c22 60%, #16151a 100%);
+    --rc-shadow: 0 22px 44px -20px rgba(0, 0, 0, 0.8), 0 6px 16px -8px rgba(0, 0, 0, 0.5);
+    --rc-ink: #f4f4f5;
+    --rc-muted: rgba(244, 244, 245, 0.6);
+    --rc-tile: linear-gradient(180deg, #3a3644 0%, #27242f 100%);
+    --rc-tile-edge: rgba(255, 255, 255, 0.07);
+    --rc-tile-highlight: rgba(255, 255, 255, 0.12);
+    --rc-tile-shadow: 0 4px 10px -4px rgba(0, 0, 0, 0.7);
+    --rc-rim: rgba(255, 255, 255, 0.07);
+    --rc-rim-highlight: rgba(255, 255, 255, 0.1);
+  }
+  .rc-light {
+    --rc-base: linear-gradient(160deg, #f4f5f8 0%, #e3e5ea 55%, #d6d9e0 100%);
+    --rc-shadow: 0 22px 44px -22px rgba(24, 24, 27, 0.3), 0 6px 16px -10px rgba(24, 24, 27, 0.16);
+    --rc-ink: #18181b;
+    --rc-muted: rgba(24, 24, 27, 0.6);
+    --rc-tile: linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%);
+    --rc-tile-edge: rgba(24, 24, 27, 0.08);
+    --rc-tile-highlight: rgba(255, 255, 255, 1);
+    --rc-tile-shadow: 0 4px 10px -5px rgba(24, 24, 27, 0.25);
+    --rc-rim: rgba(24, 24, 27, 0.08);
+    --rc-rim-highlight: rgba(255, 255, 255, 0.8);
+  }
+  /* El script pone --rc-rotate-*, --rc-lift y --rc-presence (inclinación y entrada). */
+  .rc-body {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--rc-radius);
+    background: var(--rc-base);
+    box-shadow: var(--rc-shadow);
+    transform: translate3d(0, var(--rc-lift, 0px), 0) rotateX(var(--rc-rotate-x, 0deg)) rotateY(var(--rc-rotate-y, 0deg));
+    opacity: var(--rc-presence, 1);
+    isolation: isolate;
+    will-change: transform;
+  }
+  .rc-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  /* El metal oscuro es casi negro: en modo screen deja ver el fondo (--rc-base) y solo suma los reflejos. */
+  .rc-dark .rc-canvas {
+    mix-blend-mode: screen;
+  }
+  /* Vidrio: fondo translúcido que desenfoca lo de atrás; el metal pasa a ser un brillo en overlay que se mueve con
+     la inclinación, y el borde es una línea de luz. */
+  .rc-glass {
+    --rc-base: linear-gradient(160deg, hsl(0 0% 100% / 0.62) 0%, hsl(220 80% 97% / 0.34) 55%, hsl(220 70% 94% / 0.26) 100%);
+    --rc-shadow: 0 1px 2px hsl(220 60% 30% / 0.06), 0 26px 50px -28px rgba(0, 64, 163, 0.42);
+    --rc-rim: hsl(0 0% 100% / 0.75);
+    --rc-rim-highlight: hsl(0 0% 100%);
+  }
+  .rc-glass .rc-body {
+    -webkit-backdrop-filter: blur(22px) saturate(1.7);
+    backdrop-filter: blur(22px) saturate(1.7);
+  }
+  .rc-glass .rc-canvas {
+    mix-blend-mode: overlay;
+    opacity: 0.55;
+  }
+  .rc-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+  }
+  .rc-rim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 1px var(--rc-rim),
+      inset 0 1px 0 var(--rc-rim-highlight);
+  }
+</style>
+
+<script>
+  import { mountReflectiveCard } from '../lib/reflective-card.js';
+
+  // Se monta (contexto WebGL + shader) cuando la tarjeta se acerca a la pantalla; así la entrada se ve al llegar.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        lazy.unobserve(target);
+        const el = target as HTMLElement;
+        mountReflectiveCard(el, JSON.parse(el.dataset.options || '{}'));
+      });
+    },
+    { rootMargin: '120px' },
+  );
+  document.querySelectorAll<HTMLElement>('[data-reflective-card]').forEach((el) => lazy.observe(el));
+</script>
