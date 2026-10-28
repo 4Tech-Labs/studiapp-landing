@@ -10,6 +10,13 @@
     inset 0 1px 1px rgba(255, 255, 255, 0.5),
     inset 0 -1px 1px rgba(0, 25, 70, 0.35),
     0 6px 14px -6px rgba(0, 64, 163, 0.55);
+  /* Botón principal (la acción de cada sección): azul de la marca 4Tech Labs, el mismo del logo y del botón del hero. */
+  --brand: #0144a0;
+  --brand-grad: linear-gradient(180deg, #1a5cc0 0%, #0144a0 100%);
+  --brand-shadow:
+    inset 0 1px 1px hsl(0 0% 100% / 0.3),
+    0 0 0 1px #013a8c,
+    0 14px 28px -12px rgb(1 68 160 / 0.55);
   --sky: hsl(222 100% 92%);
   --radius: 24px;
   --gap: clamp(10px, 1.5vw, 16px);
@@ -37,7 +44,7 @@ html {
 body {
   background: hsl(0 0% 100%);
   color: var(--ink);
-  font-family: var(--font-inter);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   padding: var(--gap);
 }

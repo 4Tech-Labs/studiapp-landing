@@ -1,28 +1,25 @@
 ---
 import Base from '../layouts/Base.astro';
-import Nav from '../components/Nav.astro';
-import Hero from '../components/Hero.astro';
-import Features from '../components/Features.astro';
-import Plantillas from '../components/Plantillas.astro';
-import Nosotros from '../components/Nosotros.astro';
+import CompanyNav from '../components/CompanyNav.astro';
+import CompanyHero from '../components/CompanyHero.astro';
+import Catalog from '../components/Catalog.astro';
 import Team from '../components/Team.astro';
+import Nosotros from '../components/Nosotros.astro';
 import Respaldo from '../components/Respaldo.astro';
 import Agenda from '../components/Agenda.astro';
-import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
 ---
 
+<!-- Home de 4Tech Labs: la empresa y su catálogo. Cada producto tiene su propia landing (StudIApp en /studiapp). -->
 <Base>
-  <Nav />
+  <CompanyNav />
   <main>
-    <Hero />
-    <Features />
-    <Plantillas />
+    <CompanyHero />
+    <Catalog />
     <Team />
     <Nosotros />
     <Respaldo />
-    <Agenda />
-    <Faq />
+    <Agenda variant="company" />
   </main>
   <Footer />
 </Base>

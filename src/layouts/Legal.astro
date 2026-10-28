@@ -1,6 +1,6 @@
 ---
 import Base from './Base.astro';
-import Nav from '../components/Nav.astro';
+import CompanyNav from '../components/CompanyNav.astro';
 import Footer from '../components/Footer.astro';
 import EffectiveDate from '../components/legal/EffectiveDate.astro';
 import { SITE } from '../data/site';
@@ -19,7 +19,7 @@ const { title, description, toc = [] } = Astro.props;
 
 <!-- Sin fecha de vigencia el texto no está completo: noindex hasta que se defina (ver LEGAL en src/data/site.ts). -->
 <Base title={`${title} | ${SITE.name}`} description={description} noindex={!effectiveDate}>
-  <Nav />
+  <CompanyNav />
   <main>
     <article class="legal">
       <header class="head">
@@ -81,7 +81,7 @@ const { title, description, toc = [] } = Astro.props;
   }
   .kicker {
     margin: 0 0 16px;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -91,8 +91,8 @@ const { title, description, toc = [] } = Astro.props;
   h1 {
     margin: 0 auto;
     max-width: 640px;
-    font-family: var(--font-inter-tight);
-    font-weight: 500;
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: clamp(2.125rem, 5vw, 3.25rem);
     line-height: 1.06;
     letter-spacing: -0.025em;
@@ -123,7 +123,7 @@ const { title, description, toc = [] } = Astro.props;
   }
   .toc-title {
     margin: 0 0 12px;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;

@@ -1,10 +1,10 @@
 ---
 import { Image } from 'astro:assets';
 import companyLogo from '../assets/4techlabs-logo.png';
-import { SITE, COMPANY } from '../data/site';
+import { SITE, COMPANY, PRODUCT } from '../data/site';
 import { foundingDate } from '../lib/legal';
 
-// Identifica a la empresa detrás del producto: el dominio es el de la empresa y la marca es la del producto.
+// Identifica a la empresa dueña del sitio y de los productos del catálogo.
 // Los datos salen de COMPANY, los mismos que usan las páginas legales.
 const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
 ---
@@ -13,12 +13,12 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
   <div class="wrap">
     <div class="copy">
       <p class="kicker">Quiénes somos</p>
-      <h2 id="nosotros-titulo">Detrás de {SITE.name} está <span class="accent">{COMPANY.name}</span></h2>
+      <h2 id="nosotros-titulo">Somos <span class="accent">{COMPANY.name}</span></h2>
       <p>
-        {SITE.name} es un producto de <strong>{COMPANY.legalName}</strong>, una empresa colombiana de tecnología con sede en Cali que desarrolla herramientas de inteligencia artificial para la educación.
+        <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software. Diseñamos y construimos aplicaciones web, móviles y soluciones con inteligencia artificial.
       </p>
       <p>
-        Creamos {SITE.name} para que los docentes dediquen menos tiempo a los formatos y más a sus estudiantes. Por eso la plataforma se adapta al currículo, a las plantillas y al contexto de cada colegio, sin pedirle que cambie sus procesos.
+        Acompañamos a cada cliente desde la idea hasta el producto en producción. También creamos productos propios, como <a href={PRODUCT.path}>{PRODUCT.name}</a>, nuestra plataforma de planeación escolar con IA.
       </p>
     </div>
 
@@ -94,7 +94,7 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
   /* Misma etiqueta que "Características" y "Preguntas frecuentes". */
   .kicker {
     margin: 0;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.14em;
@@ -104,7 +104,7 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
   /* Como en Plantillas, la otra sección a dos columnas. */
   h2 {
     margin: 0;
-    font-family: var(--font-inter-tight);
+    font-family: var(--font-display);
     font-weight: 600;
     font-size: clamp(2.25rem, 3.6vw, 3rem);
     line-height: 1.05;
@@ -126,6 +126,12 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
   .copy strong {
     font-weight: 600;
     color: var(--ink);
+  }
+  .copy p a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   /* Tarjeta blanca de las preguntas frecuentes abiertas. */
   .card {
@@ -161,7 +167,7 @@ const tel = `tel:${COMPANY.phone.replace(/\s/g, '')}`;
     border-top: 1px solid hsl(220 28% 93%);
   }
   dt {
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;

@@ -1,15 +1,17 @@
 ---
 import { Font } from 'astro:assets';
-import { SITE, SOCIAL, COMPANY, TEAM } from '../data/site';
+import { SITE, SOCIAL, COMPANY, TEAM, PRODUCT } from '../data/site';
 import '../styles/global.css';
 
 interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  /** Página de un producto (StudIApp): el WebPage trata del SoftwareApplication y no de la empresa. */
+  product?: boolean;
 }
 
-const { title = SITE.title, description = SITE.description, noindex = false } = Astro.props;
+const { title = SITE.title, description = SITE.description, noindex = false, product = false } = Astro.props;
 // Con build.format 'file' el pathname llega como /pagina.html; la URL pública es /pagina (Cloudflare sirve el .html sin extensión).
 const cleanPath = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
 const canonical = new URL(cleanPath, SITE.url).href;
@@ -19,8 +21,7 @@ const id = (h: string) => `${SITE.url}/#${h}`;
 const sameAs = Object.values(SOCIAL).filter(Boolean);
 const team = TEAM.map((m) => ({ '@type': 'Person', name: m.name, jobTitle: m.role, ...(m.linkedin && { sameAs: [m.linkedin] }) }));
 
-// Mismo grafo que el original inyectaba por JS, ahora renderizado en build.
-// La organización es la empresa (dueña del dominio); el producto es el SoftwareApplication.
+// La organización es la empresa (dueña del dominio y del sitio); el producto es el SoftwareApplication de su catálogo.
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -50,21 +51,22 @@ const jsonLd = {
     },
     {
       '@type': 'WebPage',
-      '@id': id('webpage'),
+      '@id': `${canonical}#webpage`,
       url: canonical,
       name: title,
       description,
       inLanguage: SITE.lang,
       isPartOf: { '@id': id('website') },
-      about: { '@id': id('app') },
+      about: { '@id': id(product ? 'app' : 'organization') },
     },
     {
       '@type': 'SoftwareApplication',
       '@id': id('app'),
-      name: SITE.name,
+      name: PRODUCT.name,
+      url: new URL(PRODUCT.path, SITE.url).href,
       applicationCategory: 'EducationalApplication',
       operatingSystem: 'Web',
-      description: SITE.description,
+      description: PRODUCT.description,
       inLanguage: SITE.lang,
       publisher: { '@id': id('organization') },
     },
@@ -101,9 +103,8 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <Font cssVariable="--font-inter-tight" preload />
-    <Font cssVariable="--font-inter" preload />
-    <Font cssVariable="--font-instrument-serif" />
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-sans" preload />
 
     <slot name="head" />
     <script type="application/ld+json" is:inline set:html={JSON.stringify(jsonLd)}></script>

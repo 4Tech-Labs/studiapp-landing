@@ -1,18 +1,18 @@
 ---
 import LottieLogo from './LottieLogo.astro';
-import { SITE } from '../data/site';
+import { PRODUCT, COMPANY } from '../data/site';
 ---
 
 <!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se encoge (equivale a scrollY > 60). -->
 <div class="nav-sentinel" aria-hidden="true" data-nav-sentinel></div>
 <header>
   <nav aria-label="Principal" class="nav" data-nav>
-    <a href="/#inicio" aria-label={`${SITE.name}, inicio`} class="brand"><LottieLogo width={22} height={31} />{SITE.name}</a>
+    <a href={`${PRODUCT.path}#inicio`} aria-label={`${PRODUCT.name}, inicio`} class="brand"><LottieLogo width={22} height={31} />{PRODUCT.name}</a>
     <span aria-hidden="true" class="sep"></span>
     <div class="links">
-      <a href="/#caracteristicas" class="link">Características</a>
-      <a href="/#quienes-somos" class="link">Nosotros</a>
-      <a href="/#agenda" class="cta"><span aria-hidden="true" class="shine"></span>Contacto</a>
+      <a href={`${PRODUCT.path}#caracteristicas`} class="link">Características</a>
+      <a href="/" class="link">{COMPANY.name}</a>
+      <a href={`${PRODUCT.path}#agenda`} class="cta"><span aria-hidden="true" class="shine"></span>Contacto</a>
     </div>
   </nav>
 </header>
@@ -66,7 +66,7 @@ import { SITE } from '../data/site';
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: var(--font-inter-tight);
+    font-family: var(--font-display);
     font-size: 16px;
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -85,7 +85,7 @@ import { SITE } from '../data/site';
     gap: clamp(14px, 2.2vw, 28px);
   }
   .link {
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;
@@ -108,7 +108,7 @@ import { SITE } from '../data/site';
     color: hsl(0 0% 100%);
     background: var(--accent-grad);
     box-shadow: var(--accent-shadow);
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;

@@ -1,22 +1,52 @@
 ---
-import { SITE } from '../data/site';
-const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent('Agenda una reunión con StudIApp')}`;
+import { SITE, PRODUCT } from '../data/site';
+
+interface Props {
+  /** 'product' en la landing de StudIApp; 'company' es el contacto del home de la empresa. */
+  variant?: 'product' | 'company';
+}
+
+const { variant = 'product' } = Astro.props;
+const isProduct = variant === 'product';
+const subject = isProduct ? `Agenda una reunión con ${PRODUCT.name}` : 'Contacto desde 4techlabs.com';
+const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}`;
 // Con agendador, el botón lo abre en otra pestaña y el correo queda como alternativa en la nota.
 const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel: 'noopener' } : { href: mailto };
+const id = isProduct ? 'agenda' : 'contacto';
 ---
 
-<section id="agenda" aria-labelledby="agenda-titulo" class="agenda" data-screen-label="Agenda una reunión">
+<section id={id} aria-labelledby={`${id}-titulo`} class="agenda" data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
   <div aria-hidden="true" class="glow"></div>
   <div class="inner">
-    <p class="kicker">Agenda hoy · Reunión de 30 minutos</p>
-    <h2 id="agenda-titulo">Optimiza tu tiempo y enfócate en lo más importante:<br /><span class="serif">tus estudiantes.</span></h2>
-    <p class="lead">Menos horas en formatos y planeaciones, más horas en el aula. Te mostramos cómo funciona con las plantillas de tu colegio.</p>
+    {
+      isProduct ? (
+        <>
+          <p class="kicker">Agenda hoy · Reunión de 30 minutos</p>
+          <h2 id={`${id}-titulo`}>
+            Optimiza tu tiempo y enfócate en lo más importante:
+            <br />
+            <span class="serif">tus estudiantes.</span>
+          </h2>
+          <p class="lead">Menos horas en formatos y planeaciones, más horas en el aula. Te mostramos cómo funciona con las plantillas de tu colegio.</p>
+        </>
+      ) : (
+        <>
+          <p class="kicker">Contacto · Reunión de 30 minutos</p>
+          <h2 id={`${id}-titulo`}>
+            Hablemos de
+            <br />
+            <span class="serif">tu próximo proyecto.</span>
+          </h2>
+          <p class="lead">Cuéntanos qué quieres construir y te proponemos cómo hacerlo: software a la medida, aplicaciones o soluciones con IA.</p>
+        </>
+      )
+    }
     <div class="ctas">
-      <a {...booking} class="btn-light">
+      <a {...booking} class="btn-primary">
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
-      <a href="#caracteristicas" class="btn-ghost">Ver características</a>
+      {isProduct ? <a href="#caracteristicas" class="btn-ghost">Ver características</a> : <a href={mailto} class="btn-ghost">Escríbenos</a>}
     </div>
     {
       SITE.bookingUrl ? (
@@ -43,6 +73,7 @@ const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel
     align-items: center;
     text-align: center;
     padding: clamp(72px, 8vw, 112px) clamp(24px, 5vw, 64px);
+    scroll-margin-top: 14px;
   }
   .glow {
     position: absolute;
@@ -62,7 +93,7 @@ const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel
   }
   .kicker {
     margin: 0 0 24px;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.16em;
@@ -71,17 +102,16 @@ const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel
   }
   h2 {
     margin: 0;
-    font-family: var(--font-inter-tight);
-    font-weight: 500;
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: clamp(2.125rem, 5.8vw, 4.6rem);
     line-height: 1.06;
     letter-spacing: -0.015em;
     text-wrap: balance;
   }
   .serif {
-    font-family: var(--font-instrument-serif);
-    font-style: italic;
-    font-weight: 400;
+    font-family: var(--font-display);
+    font-weight: inherit;
     color: hsl(222 100% 88%);
     letter-spacing: 0;
   }
@@ -101,24 +131,29 @@ const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel
     align-items: center;
     gap: 12px;
   }
-  .btn-light {
+  /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse. */
+  .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     height: 54px;
     padding: 0 26px;
     border-radius: 9999px;
-    background: hsl(222 100% 92%);
-    color: hsl(222 30% 8%);
+    background: var(--brand-grad);
+    color: hsl(0 0% 100%);
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.01em;
     white-space: nowrap;
-    transition: background 0.2s ease;
+    box-shadow:
+      var(--brand-shadow),
+      0 0 0 1px hsl(210 100% 75% / 0.35),
+      0 0 32px -6px rgb(26 92 192 / 0.6);
+    transition: filter 0.2s ease;
   }
-  .btn-light:hover {
-    background: hsl(0 0% 100%);
-    color: hsl(222 30% 8%);
+  .btn-primary:hover {
+    color: hsl(0 0% 100%);
+    filter: brightness(1.12);
   }
   .btn-ghost {
     display: inline-flex;

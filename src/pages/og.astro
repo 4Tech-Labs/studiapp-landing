@@ -7,7 +7,7 @@
 import Base from '../layouts/Base.astro';
 import { Picture } from 'astro:assets';
 import heroSrc from '../assets/hero-2560.webp';
-import { SITE } from '../data/site';
+import { SITE, PRODUCT } from '../data/site';
 ---
 
 <Base title={`Imagen para compartir | ${SITE.name}`} noindex>
@@ -17,7 +17,7 @@ import { SITE } from '../data/site';
       <div class="veil"></div>
     </div>
     <div class="content">
-      <div class="brand"><img src="/logo.webp" width="34" height="48" alt="" />{SITE.name}</div>
+      <div class="brand"><img src="/logo.webp" width="34" height="48" alt="" />{PRODUCT.name}</div>
       <h1>Planea un año escolar en <span>minutos</span></h1>
       <p>Planeaciones anuales, periódicas y semanales con IA, en las plantillas que ya usa tu colegio.</p>
       <div class="cta">Agenda una reunión</div>
@@ -37,7 +37,7 @@ import { SITE } from '../data/site';
     height: 630px;
     overflow: hidden;
     background: var(--sky);
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     color: var(--ink);
   }
   .bg {
@@ -73,15 +73,15 @@ import { SITE } from '../data/site';
     display: inline-flex;
     align-items: center;
     gap: 12px;
-    font-family: var(--font-inter-tight);
+    font-family: var(--font-display);
     font-size: 26px;
     font-weight: 600;
     letter-spacing: -0.01em;
   }
   h1 {
     margin: 0;
-    font-family: var(--font-inter-tight);
-    font-weight: 500;
+    font-family: var(--font-display);
+    font-weight: 600;
     font-size: 78px;
     line-height: 1.05;
     letter-spacing: -0.025em;

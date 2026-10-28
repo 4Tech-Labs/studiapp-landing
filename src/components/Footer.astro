@@ -2,7 +2,15 @@
 import { Image } from 'astro:assets';
 import LottieLogo from './LottieLogo.astro';
 import companyLogo from '../assets/4techlabs-logo.png';
-import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY } from '../data/site';
+import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY, PRODUCT, CATALOG } from '../data/site';
+
+interface Props {
+  /** 'company' en el home y las páginas de la empresa; 'product' en la landing de StudIApp. */
+  variant?: 'company' | 'product';
+}
+
+const { variant = 'company' } = Astro.props;
+const isProduct = variant === 'product';
 
 const year = new Date().getFullYear();
 const social = [
@@ -28,12 +36,27 @@ const social = [
   <div aria-hidden="true" class="glow"></div>
   <div class="top">
     <div class="about">
-      <a href="/#inicio" aria-label={`${SITE.name}, inicio`} class="brand"><LottieLogo width={24} height={34} />{SITE.name}</a>
-      <p>Planeaciones escolares con IA, en las plantillas de tu colegio.</p>
-      <a href="/#quienes-somos" class="maker">
-        <span class="kicker">Un producto de</span>
-        <Image src={companyLogo} alt={COMPANY.name} height={64} densities={[1, 2]} />
-      </a>
+      {
+        isProduct ? (
+          <a href={`${PRODUCT.path}#inicio`} aria-label={`${PRODUCT.name}, inicio`} class="brand">
+            <LottieLogo width={24} height={34} />
+            {PRODUCT.name}
+          </a>
+        ) : (
+          <a href="/" aria-label={`${COMPANY.name}, inicio`} class="company-brand">
+            <Image src={companyLogo} alt={COMPANY.name} height={64} densities={[1, 2]} />
+          </a>
+        )
+      }
+      <p>{isProduct ? PRODUCT.tagline : 'Desarrollo de software e inteligencia artificial, hecho en Colombia.'}</p>
+      {
+        isProduct && (
+          <a href="/" class="maker">
+            <span class="kicker">Un producto de</span>
+            <Image src={companyLogo} alt={COMPANY.name} height={64} densities={[1, 2]} />
+          </a>
+        )
+      }
       {
         social.length > 0 && (
           <div class="social">
@@ -47,16 +70,27 @@ const social = [
       }
     </div>
     <div class="navs">
-      <nav aria-labelledby="footer-producto" class="col">
-        <p id="footer-producto" class="kicker">Producto</p>
-        <a href="/#caracteristicas">Características</a>
-        <a href="/#agenda">Agenda una reunión</a>
-        {FAQ.length > 0 && <a href="/#preguntas-frecuentes">Preguntas frecuentes</a>}
-      </nav>
+      {
+        isProduct ? (
+          <nav aria-labelledby="footer-producto" class="col">
+            <p id="footer-producto" class="kicker">Producto</p>
+            <a href={`${PRODUCT.path}#caracteristicas`}>Características</a>
+            <a href={`${PRODUCT.path}#agenda`}>Agenda una reunión</a>
+            {FAQ.length > 0 && <a href={`${PRODUCT.path}#preguntas-frecuentes`}>Preguntas frecuentes</a>}
+          </nav>
+        ) : (
+          <nav aria-labelledby="footer-producto" class="col">
+            <p id="footer-producto" class="kicker">Productos</p>
+            {CATALOG.map((p) => <a href={p.href}>{p.name}</a>)}
+            <a href="/#productos">Catálogo</a>
+          </nav>
+        )
+      }
       <nav aria-labelledby="footer-empresa" class="col">
         <p id="footer-empresa" class="kicker">Empresa</p>
         <a href="/#quienes-somos">Quiénes somos</a>
-        <a href={`mailto:${SITE.email}`}>Contacto</a>
+        <a href="/#equipo">Equipo</a>
+        <a href="/#contacto">Contacto</a>
       </nav>
       <nav aria-labelledby="footer-legal" class="col">
         <p id="footer-legal" class="kicker">Legal</p>
@@ -108,7 +142,7 @@ const social = [
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: var(--font-inter-tight);
+    font-family: var(--font-display);
     font-size: 18px;
     font-weight: 600;
     letter-spacing: -0.01em;
@@ -130,6 +164,14 @@ const social = [
     margin-top: 4px;
   }
   .maker :global(img) {
+    display: block;
+    width: auto;
+    height: 64px;
+  }
+  .company-brand {
+    align-self: flex-start;
+  }
+  .company-brand :global(img) {
     display: block;
     width: auto;
     height: 64px;
@@ -175,7 +217,7 @@ const social = [
   }
   .kicker {
     margin: 0;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.12em;

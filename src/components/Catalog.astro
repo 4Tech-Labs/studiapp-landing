@@ -1,0 +1,341 @@
+---
+import { CATALOG } from '../data/site';
+
+// Catálogo de productos de la empresa (datos en CATALOG). Cada producto enlaza a su propia landing;
+// al final, una tarjeta de "Próximamente" deja claro que el catálogo va a crecer.
+---
+
+<section id="productos" aria-labelledby="productos-titulo" class="catalog" data-screen-label="Productos">
+  <div class="head">
+    <p class="kicker">Productos</p>
+    <h2 id="productos-titulo">Productos que <span class="accent">construimos</span></h2>
+    <p class="lead">Además de desarrollar software para nuestros clientes, creamos productos propios con inteligencia artificial.</p>
+  </div>
+
+  <ul class="list">
+    {
+      CATALOG.map((p) => (
+        <li class="product">
+          <div class="info">
+            <div class="id">
+              <span class="logo">
+                <img src={p.logo} alt="" width="34" height="48" loading="lazy" decoding="async" />
+              </span>
+              <div>
+                <p class="category">{p.category}</p>
+                <h3>{p.name}</h3>
+              </div>
+              <span class="status">Disponible</span>
+            </div>
+            <p class="desc">{p.description}</p>
+            <ul class="highlights">
+              {p.highlights.map((h) => (
+                <li>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {h}
+                </li>
+              ))}
+            </ul>
+            <a href={p.href} class="go">
+              Conocer {p.name}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </a>
+          </div>
+          <a href={p.href} class="preview" tabindex="-1" aria-hidden="true">
+            <span class="glow" />
+            <span class="window">
+              <span class="bar">
+                <i />
+                <i />
+                <i />
+              </span>
+              <img src={p.preview} alt="" width="1280" height="720" loading="lazy" decoding="async" />
+            </span>
+          </a>
+        </li>
+      ))
+    }
+    <li class="soon">
+      <span class="soon-ico" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"></path><path d="M19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"></path></svg>
+      </span>
+      <p class="soon-title">Próximamente</p>
+      <p class="soon-text">Estamos construyendo nuevos productos con inteligencia artificial. Escríbenos si quieres probarlos primero.</p>
+      <a href="#contacto" class="soon-link">Quiero saber más</a>
+    </li>
+  </ul>
+</section>
+
+<style>
+  .catalog {
+    margin-top: var(--gap);
+    border-radius: var(--radius);
+    background: hsl(0 0% 100%);
+    box-shadow: inset 0 0 0 1px hsl(228 30% 93%);
+    padding: clamp(64px, 8vw, 112px) clamp(16px, 4vw, 48px);
+    scroll-margin-top: 14px;
+  }
+  .head {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .kicker {
+    margin: 0 0 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: hsl(232 14% 48%);
+  }
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: hsl(232 30% 12%);
+    text-wrap: balance;
+  }
+  .accent {
+    background: linear-gradient(100deg, #5aaef0 0%, #7e84ee 70%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lead {
+    margin: 18px auto 0;
+    max-width: 56ch;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.6;
+    color: hsl(232 12% 40%);
+    text-wrap: pretty;
+  }
+  .list {
+    list-style: none;
+    margin: clamp(40px, 5vw, 64px) auto 0;
+    padding: 0;
+    max-width: 1180px;
+    display: grid;
+    gap: var(--gap);
+  }
+
+  /* Tarjeta de producto */
+  .product {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: clamp(24px, 4vw, 56px);
+    padding: clamp(20px, 3.4vw, 44px);
+    border-radius: 28px;
+    background:
+      radial-gradient(ellipse 60% 70% at 100% 100%, hsl(240 85% 92% / 0.8), transparent 70%),
+      radial-gradient(ellipse 50% 60% at 70% 0%, hsl(205 95% 92% / 0.8), transparent 70%),
+      hsl(228 33% 97%);
+    box-shadow: inset 0 0 0 1px hsl(228 30% 92%);
+  }
+  .id {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .logo {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    background: hsl(0 0% 100%);
+    box-shadow:
+      inset 0 -4px 8px hsl(232 70% 70% / 0.12),
+      0 12px 24px -12px hsl(232 60% 45% / 0.45);
+  }
+  .logo img {
+    width: auto;
+    height: 32px;
+  }
+  .category {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: hsl(232 14% 48%);
+  }
+  h3 {
+    margin: 2px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 2.6vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(232 30% 12%);
+  }
+  .status {
+    align-self: flex-start;
+    margin-left: auto;
+    padding: 5px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: hsl(152 60% 26%);
+    background: hsl(152 60% 92%);
+    white-space: nowrap;
+  }
+  .desc {
+    margin: 22px 0 0;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.6;
+    color: hsl(232 12% 34%);
+    text-wrap: pretty;
+  }
+  .highlights {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .highlights li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: hsl(232 24% 18%);
+  }
+  .highlights svg {
+    flex-shrink: 0;
+    padding: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: hsl(0 0% 100%);
+    background: linear-gradient(135deg, #7cc0f7, #8f8ff2);
+  }
+  .go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    margin-top: 28px;
+    padding: 0 22px;
+    border-radius: 9999px;
+    font-size: 15px;
+    font-weight: 500;
+    color: hsl(0 0% 100%);
+    background: var(--brand-grad);
+    box-shadow: var(--brand-shadow);
+    transition: filter 0.2s ease;
+  }
+  .go:hover {
+    color: hsl(0 0% 100%);
+    filter: brightness(1.15);
+  }
+  .go svg {
+    transition: transform 0.2s ease;
+  }
+  .go:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* Vista previa en una ventana de navegador */
+  .preview {
+    position: relative;
+    display: block;
+  }
+  .preview .glow {
+    position: absolute;
+    inset: 10% 6% -6%;
+    background:
+      radial-gradient(ellipse 50% 60% at 30% 50%, hsl(205 95% 78% / 0.7), transparent 70%),
+      radial-gradient(ellipse 50% 60% at 70% 50%, hsl(240 85% 80% / 0.7), transparent 70%);
+    filter: blur(30px);
+  }
+  .window {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    border-radius: 18px;
+    background: hsl(0 0% 100%);
+    box-shadow:
+      0 0 0 1px hsl(232 30% 40% / 0.08),
+      0 30px 60px -30px hsl(232 50% 30% / 0.45);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .preview:hover .window {
+    transform: translateY(-4px);
+  }
+  .bar {
+    display: flex;
+    gap: 6px;
+    padding: 10px 12px;
+    border-bottom: 1px solid hsl(228 30% 93%);
+  }
+  .bar i {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: hsl(228 20% 88%);
+  }
+  .window img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Próximamente */
+  .soon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: clamp(28px, 4vw, 44px);
+    border-radius: 28px;
+    border: 1.5px dashed hsl(232 30% 70% / 0.6);
+  }
+  .soon-ico {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    color: #7e84ee;
+    background: hsl(240 85% 96%);
+  }
+  .soon-title {
+    margin: 14px 0 0;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: hsl(232 30% 12%);
+  }
+  .soon-text {
+    margin: 8px 0 0;
+    max-width: 52ch;
+    font-size: 15px;
+    line-height: 1.55;
+    color: hsl(232 12% 40%);
+  }
+  .soon-link {
+    margin-top: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5f66e0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .soon-link:hover {
+    color: hsl(236 60% 40%);
+  }
+
+  @media (max-width: 899px) {
+    .product {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

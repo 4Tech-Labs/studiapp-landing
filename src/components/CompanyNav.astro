@@ -1,0 +1,174 @@
+---
+import { Image } from 'astro:assets';
+import logo from '../assets/4techlabs-logo-4tl.png';
+import { COMPANY } from '../data/site';
+
+// Nav del sitio de la empresa: logo a la izquierda y enlaces al centro.
+// Al hacer scroll el logo se desvanece y los enlaces quedan en una píldora de vidrio (como en el diseño de referencia).
+const links = [
+  { href: '/#productos', label: 'Productos' },
+  { href: '/#equipo', label: 'Equipo' },
+  { href: '/#quienes-somos', label: 'Nosotros' },
+  { href: '/#respaldo', label: 'Respaldo' },
+  { href: '/#contacto', label: 'Contacto' },
+];
+---
+
+<!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se condensa (equivale a scrollY > 60). -->
+<div class="cn-sentinel" aria-hidden="true" data-cn-sentinel></div>
+<header class="cn" data-cn>
+  <a href="/" aria-label={`${COMPANY.name}, inicio`} class="brand">
+    <Image src={logo} alt="" height={34} densities={[1, 2]} loading="eager" />
+  </a>
+  <nav aria-label="Principal" class="links">
+    {links.map((l) => <a href={l.href}>{l.label}</a>)}
+  </nav>
+</header>
+
+<style>
+  .cn-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 60px;
+    pointer-events: none;
+    visibility: hidden;
+  }
+  .cn {
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    position: fixed;
+    top: calc(var(--gap) + 10px);
+    left: calc(var(--gap) + clamp(14px, 2.4vw, 36px));
+    right: calc(var(--gap) + clamp(14px, 2.4vw, 36px));
+    z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    height: 52px;
+    animation: cnIn 0.7s 0.1s var(--ease) both;
+  }
+  .brand {
+    justify-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: hsl(232 30% 12%);
+    white-space: nowrap;
+  }
+  .brand :global(img) {
+    display: block;
+    width: auto;
+    height: 34px;
+  }
+  .brand {
+    transition:
+      opacity 0.35s var(--ease),
+      transform 0.35s var(--ease),
+      visibility 0s linear 0s;
+  }
+  .links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 5px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    transition:
+      background 0.35s var(--ease),
+      border-color 0.35s var(--ease),
+      box-shadow 0.35s var(--ease);
+  }
+  .links a {
+    padding: 8px 13px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: hsl(232 18% 22%);
+    white-space: nowrap;
+    transition: background 0.2s ease;
+  }
+  .links a:hover {
+    color: hsl(232 30% 10%);
+    background: hsl(232 40% 50% / 0.07);
+  }
+  /* Condensada: solo la píldora de enlaces, como en el diseño. */
+  .cn[data-scrolled] .brand {
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.35s var(--ease),
+      transform 0.35s var(--ease),
+      visibility 0s linear 0.35s;
+  }
+  .cn[data-scrolled] .links {
+    background: hsl(0 0% 100% / 0.72);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+    backdrop-filter: blur(16px) saturate(1.5);
+    border-color: hsl(0 0% 100% / 0.9);
+    box-shadow:
+      0 12px 32px -14px hsl(232 50% 30% / 0.3),
+      0 0 0 1px hsl(232 30% 40% / 0.06);
+  }
+
+  @keyframes cnIn {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Tablet y celular: solo el logo; al condensarse, la barra entera pasa a ser la píldora. */
+  @media (max-width: 899px) {
+    .cn {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      top: calc(var(--gap) + 8px);
+      left: calc(var(--gap) + 10px);
+      right: calc(var(--gap) + 10px);
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 9999px;
+      border: 1px solid transparent;
+      transition:
+        background 0.35s var(--ease),
+        border-color 0.35s var(--ease),
+        box-shadow 0.35s var(--ease);
+    }
+    .links {
+      display: none;
+    }
+    .cn[data-scrolled] {
+      background: hsl(0 0% 100% / 0.78);
+      -webkit-backdrop-filter: blur(16px) saturate(1.5);
+      backdrop-filter: blur(16px) saturate(1.5);
+      border-color: hsl(0 0% 100% / 0.9);
+      box-shadow: 0 12px 32px -14px hsl(232 50% 30% / 0.3);
+    }
+    .cn[data-scrolled] .brand {
+      opacity: 1;
+      transform: none;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+</style>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-cn]');
+  const sentinel = document.querySelector<HTMLElement>('[data-cn-sentinel]');
+  if (nav && sentinel) {
+    new IntersectionObserver(([entry]) => nav.toggleAttribute('data-scrolled', !entry.isIntersecting)).observe(sentinel);
+  }
+</script>

@@ -18,31 +18,25 @@ export default defineConfig({
   // Solo subset latin: el español cabe completo en U+0000-00FF.
   fonts: [
     {
+      // Titulares y frases de peso (var(--font-display)). Inter Tight, licencia SIL Open Font.
+      // Para cambiar de fuente basta con cambiar el bloque correspondiente.
       provider: fontProviders.google(),
-      name: 'Inter',
-      cssVariable: '--font-inter',
+      name: 'Inter Tight',
+      cssVariable: '--font-display',
       weights: ['400 700'],
       styles: ['normal'],
       subsets: ['latin'],
       fallbacks: ['Arial', 'sans-serif'],
     },
     {
+      // Texto: párrafos, interfaz y botones (var(--font-sans)). DM Sans, licencia SIL Open Font.
       provider: fontProviders.google(),
-      name: 'Inter Tight',
-      cssVariable: '--font-inter-tight',
-      weights: ['400 600'],
+      name: 'DM Sans',
+      cssVariable: '--font-sans',
+      weights: ['400 700'],
       styles: ['normal'],
       subsets: ['latin'],
       fallbacks: ['Arial', 'sans-serif'],
-    },
-    {
-      provider: fontProviders.google(),
-      name: 'Instrument Serif',
-      cssVariable: '--font-instrument-serif',
-      weights: [400],
-      styles: ['italic'],
-      subsets: ['latin'],
-      fallbacks: ['Georgia', 'serif'],
     },
   ],
   integrations: [

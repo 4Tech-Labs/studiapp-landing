@@ -1,10 +1,10 @@
 /** Datos centrales del sitio. Dominio, correo, redes y videos se cambian aquí y en ningún otro lugar. */
 export const SITE = {
   url: 'https://4techlabs.com', // dominio corporativo (Cloudflare Registrar, 18-sep-2026), sin barra final
-  name: 'StudIApp',
-  title: 'Planea el año escolar con IA en minutos | StudIApp',
+  name: '4Tech Labs', // el sitio es de la empresa; cada producto tiene su página (ver PRODUCT y CATALOG)
+  title: 'Desarrollo de software a la medida en Colombia | 4Tech Labs',
   description:
-    'Planea el año escolar en minutos con IA. Planeaciones en las plantillas de tu colegio, con contexto institucional, DUA y PIAR. Agenda una reunión.',
+    'Empresa colombiana de desarrollo de software a la medida: aplicaciones web, móviles y soluciones con inteligencia artificial. Cuéntanos tu proyecto.',
   lang: 'es',
   locale: 'es_CO',
   email: 'hola@4techlabs.com', // reenviado a fourtechlabs@gmail.com con Cloudflare Email Routing
@@ -13,6 +13,45 @@ export const SITE = {
   themeColor: '#0040a3',
   ogImage: '/og.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
+
+/** StudIApp, el primer producto del catálogo. Su landing vive en `path` y usa estos textos para título, descripción y JSON-LD. */
+export const PRODUCT = {
+  name: 'StudIApp',
+  path: '/studiapp',
+  title: 'Planea el año escolar con IA en minutos | StudIApp',
+  description:
+    'Planea el año escolar en minutos con IA. Planeaciones en las plantillas de tu colegio, con contexto institucional, DUA y PIAR. Agenda una reunión.',
+  tagline: 'Planeaciones escolares con IA, en las plantillas de tu colegio.',
+};
+
+export interface CatalogItem {
+  name: string;
+  /** Categoría corta que va sobre el nombre. */
+  category: string;
+  description: string;
+  /** Tres o cuatro puntos fuertes, una línea cada uno. */
+  highlights: string[];
+  /** Página del producto dentro del sitio. */
+  href: string;
+  /** Logo cuadrado del producto (ruta en public/). */
+  logo: string;
+  /** Imagen de vista previa (ruta en public/, 16:9). */
+  preview: string;
+}
+
+/** Catálogo de productos del home, en orden. Detrás del último se muestra una tarjeta de "Próximamente". */
+export const CATALOG: CatalogItem[] = [
+  {
+    name: PRODUCT.name,
+    category: 'Planeación escolar con IA',
+    description:
+      'El copiloto que planea el año escolar en minutos: genera planeaciones anuales, periódicas y semanales en las plantillas de cada colegio, con su contexto institucional.',
+    highlights: ['Copiloto con IA para cada etapa', 'Contexto institucional y currículo del MEN', 'DUA y PIAR sin trabajo doble', 'Trabajo en equipo docente'],
+    href: PRODUCT.path,
+    logo: '/logo.webp',
+    preview: '/videos/copiloto-con-ia-v1-poster.webp',
+  },
+];
 
 /** URLs reales de redes. Vacío = el icono no se muestra. */
 export const SOCIAL = {

@@ -1,0 +1,75 @@
+---
+// Fondo animado de fibras en WebGL2 (port sin React de <GhostFibers /> de React Bits, ver src/lib/ghost-fibers.js).
+// Las props son las mismas del componente original; se pasan al script como JSON en data-options.
+// Llena su contenedor: el padre necesita position relative y un alto.
+interface Props {
+  glowColor?: string;
+  lineColor?: string;
+  secondaryColor?: string;
+  gradient?: 'depth' | 'along' | 'across';
+  speed?: number;
+  scale?: number;
+  rotation?: number;
+  rollSpeed?: number;
+  layers?: number;
+  waves?: number;
+  twist?: number;
+  threads?: number;
+  volume?: number;
+  spread?: number;
+  density?: number;
+  thickness?: number;
+  flow?: number;
+  fiberStyle?: 'dots' | 'dashes' | 'lines';
+  tips?: number;
+  foldGlow?: number;
+  perspective?: number;
+  depthOfField?: number;
+  focusDepth?: number;
+  particles?: number;
+  sparkle?: number;
+  glow?: number;
+  brightness?: number;
+  vignette?: number;
+  grain?: number;
+  mouseInteraction?: boolean;
+  hoverEffect?: 'focus' | 'part' | 'none';
+  mouseStrength?: number;
+  pulseOnClick?: boolean;
+  intro?: boolean;
+  lightMode?: boolean;
+  paused?: boolean;
+  dpr?: number;
+  class?: string;
+}
+
+const { class: className, ...options } = Astro.props;
+---
+
+<div class:list={['ghost-fibers-container', className]} data-ghost-fibers data-options={JSON.stringify(options)}>
+  <canvas class="ghost-fibers-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .ghost-fibers-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .ghost-fibers-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<script>
+  import { mountGhostFibers } from '../lib/ghost-fibers.js';
+
+  document.querySelectorAll<HTMLElement>('[data-ghost-fibers]').forEach((el) => {
+    mountGhostFibers(el, JSON.parse(el.dataset.options || '{}'));
+  });
+</script>
