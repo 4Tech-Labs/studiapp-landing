@@ -135,19 +135,8 @@ const radius = Math.max(0, props.radius ?? 24);
 </style>
 
 <script>
-  import { mountReflectiveCard } from '../lib/reflective-card.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta (contexto WebGL + shader) cuando la tarjeta se acerca a la pantalla; así la entrada se ve al llegar.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountReflectiveCard(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '120px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-reflective-card]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-reflective-card]', () => import('../lib/reflective-card.js').then((m) => m.mountReflectiveCard), '120px');
 </script>

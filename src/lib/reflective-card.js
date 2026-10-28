@@ -283,6 +283,8 @@ const createRenderer = (canvas) => {
     depth: false,
     stencil: false,
     powerPreference: 'default',
+    // Sin aceleración por GPU (WebGL por software) queda la tarjeta sin metal: dibujarlo por CPU trabaría la página.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!gl) return null;
   const plate = link(gl, PLATE);

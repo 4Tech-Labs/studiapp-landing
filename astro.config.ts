@@ -14,6 +14,14 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   image: { responsiveStyles: false },
+  vite: {
+    build: {
+      // Vite 8 compila el CSS para Safari 16.4+ y reescribe las media queries en sintaxis de rango (width<=899px),
+      // que Safari 15 no entiende: en iPhones con iOS 15 (6s, 7) no se aplicaba ningún estilo de celular.
+      // Con iOS 15 en la lista el CSS conserva min-width/max-width. El JavaScript sigue con el target de Vite.
+      cssTarget: ['chrome111', 'edge111', 'firefox114', 'safari15', 'ios15'],
+    },
+  },
   // Fonts API: Astro descarga las fuentes en build, las sirve desde /_astro con hash y genera fallbacks con size-adjust (CLS ≈ 0).
   // Solo subset latin: el español cabe completo en U+0000-00FF.
   fonts: [

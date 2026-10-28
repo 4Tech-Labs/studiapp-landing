@@ -430,6 +430,8 @@ export function mountMagicRings(container, options, restored = false) {
     depth: false,
     stencil: false,
     powerPreference: 'default',
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const programs = new Map();
@@ -834,7 +836,8 @@ export function mountMagicRings(container, options, restored = false) {
     document.removeEventListener('visibilitychange', onVisibility);
     canvas.removeEventListener('webglcontextlost', onLost);
     canvas.removeEventListener('webglcontextrestored', onRestored);
-    if (!gl.isContextLost()) {
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (!lost && !gl.isContextLost()) {
       gl.deleteVertexArray(vao);
       gl.deleteTexture(glowTexture);
       gl.deleteFramebuffer(glowBuffer);

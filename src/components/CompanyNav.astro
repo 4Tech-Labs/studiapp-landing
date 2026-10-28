@@ -25,7 +25,19 @@ const links = [
     <a href="/" aria-label={`${COMPANY.name}, inicio`} class="pill-logo">
       <Image src={logo} alt="" height={22} densities={[1, 2]} loading="eager" />
     </a>
-    {links.map((l) => <a href={l.href} class:list={{ 'nav-cta': l.cta }}>{l.label}</a>)}
+    {
+      links.map((l) =>
+        l.cta ? (
+          <a href={l.href} class="nav-cta">
+            <span aria-hidden="true" class="cta-ring" />
+            <span aria-hidden="true" class="cta-ring cta-halo" />
+            {l.label}
+          </a>
+        ) : (
+          <a href={l.href}>{l.label}</a>
+        ),
+      )
+    }
     <button type="button" class="menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="cn-menu" data-cn-menu-btn>
       <svg viewBox="0 0 32 32" aria-hidden="true">
         <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
@@ -310,16 +322,41 @@ const links = [
     background: hsl(232 40% 50% / 0.07);
   }
 
-  /* Destello que recorre el borde del botón: un arco de luz (::before) y su halo difuso (::after).
-     Solo se ve en el notch; el ángulo se anima como propiedad registrada, sin repintar el resto de la barra. */
-  .nav-cta::before,
-  .nav-cta::after {
+  /* Destello que recorre el borde del botón: un arco de luz (.cta-ring) y su halo difuso (.cta-halo). Cada capa
+     es un anillo (la máscara deja solo el borde) con un degradado cónico adentro que gira con transform: corre en
+     el hilo gráfico, sin repintar en cada cuadro (animar el ángulo del degradado repintaba las dos capas siempre,
+     también arriba del todo, donde no se ven). Solo gira en el notch; fuera de él queda en pausa. */
+  .cta-ring {
+    position: absolute;
+    inset: -2.5px;
+    padding: 2.5px;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease);
+  }
+  .cta-halo {
+    inset: -6px;
+    padding: 6px;
+    z-index: -1;
+    filter: blur(5px);
+  }
+  /* Cuadrado centrado en el botón que cubre todo el anillo mientras gira: 150 % del ancho alcanza la diagonal de
+     cualquier píldora. Girarlo equivale a mover el ángulo inicial del degradado. */
+  .cta-ring::before {
     content: '';
     position: absolute;
-    border-radius: inherit;
-    pointer-events: none;
+    top: 50%;
+    left: 50%;
+    width: 150%;
+    aspect-ratio: 1;
     background: conic-gradient(
-      from var(--nav-cta-angle),
       transparent 0deg,
       hsl(205 100% 80% / 0.15) 20deg,
       hsl(210 100% 82% / 0.55) 120deg,
@@ -328,33 +365,15 @@ const links = [
       transparent 240deg,
       transparent 360deg
     );
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.15s var(--ease);
-    animation: navCtaSpin 3s linear infinite;
+    transform: translate(-50%, -50%);
+    animation: navCtaSpin 3s linear infinite paused;
   }
-  .nav-cta::before {
-    inset: -2.5px;
-    padding: 2.5px;
-  }
-  .nav-cta::after {
-    inset: -6px;
-    padding: 6px;
-    z-index: -1;
-    filter: blur(5px);
-  }
-  @property --nav-cta-angle {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
+  .cn[data-scrolled] .cta-ring::before {
+    animation-play-state: running;
   }
   @keyframes navCtaSpin {
     to {
-      --nav-cta-angle: 360deg;
+      transform: translate(-50%, -50%) rotate(360deg);
     }
   }
 
@@ -477,13 +496,12 @@ const links = [
       box-shadow 0.4s var(--ease) 0.3s,
       filter 0.2s ease;
   }
-  .cn[data-scrolled] .nav-cta::before {
+  .cn[data-scrolled] .cta-ring {
     opacity: 1;
     transition: opacity 0.5s var(--ease) 0.6s;
   }
-  .cn[data-scrolled] .nav-cta::after {
+  .cn[data-scrolled] .cta-halo {
     opacity: 0.85;
-    transition: opacity 0.5s var(--ease) 0.6s;
   }
 
   @keyframes ctaPop {
@@ -534,7 +552,7 @@ const links = [
       font-size: 13px;
     }
     /* Halo más ceñido: el de escritorio se ve grueso en un botón tan pequeño. */
-    .nav-cta::after {
+    .cta-halo {
       inset: -4px;
       padding: 4px;
     }

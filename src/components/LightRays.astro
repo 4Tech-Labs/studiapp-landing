@@ -58,19 +58,8 @@ const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.
 </style>
 
 <script>
-  import { mountLightRays } from '../lib/light-rays.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta (contexto WebGL + shaders) solo cuando el contenedor se acerca a la pantalla, no al cargar la página.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountLightRays(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '300px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-light-rays]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-light-rays]', () => import('../lib/light-rays.js').then((m) => m.mountLightRays));
 </script>

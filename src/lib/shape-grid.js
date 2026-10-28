@@ -222,7 +222,9 @@ const traceCell = (ctx, shape, layout, size, i, j, x, y, inset) => {
   } else if (shape === 'tile') {
     const half = size / 2 - Math.max(inset, size * 0.06);
     const r = Math.min(half, size * 0.22);
-    ctx.roundRect(x - half, y - half, half * 2, half * 2, r);
+    // roundRect no existe en Safari < 16 ni Firefox < 112: ahí la baldosa queda cuadrada
+    if (ctx.roundRect) ctx.roundRect(x - half, y - half, half * 2, half * 2, r);
+    else ctx.rect(x - half, y - half, half * 2, half * 2);
   } else if (shape === 'cross') {
     const arm = size * 0.16 + inset;
     ctx.moveTo(x - arm, y);
@@ -585,7 +587,7 @@ export function mountShapeGrid(container, options) {
     if (!state.alive) return;
     const dt = state.last ? Math.min(0.05, (now - state.last) / 1000) : 1 / 60;
     state.last = now;
-    resize();
+    // El tamaño lo actualiza el ResizeObserver: medir el contenedor en cada cuadro forzaría un layout por cuadro.
     if (!state.started) {
       state.started = true;
       state.startedAt = state.time;

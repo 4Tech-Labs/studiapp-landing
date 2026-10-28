@@ -465,6 +465,8 @@ export function mountGradientASCII(container, options) {
     antialias: false,
     depth: false,
     stencil: false,
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const s = settingsFrom(options);
@@ -507,6 +509,8 @@ export function mountGradientASCII(container, options) {
   let last = 0;
   let visible = true;
   let disposed = false;
+  let lost = false;
+  let remount = null;
 
   // La paleta no cambia después de montar: se convierte a Oklab una sola vez.
   s.colors.forEach((color, i) => ramp.set(toLab(parse(color)), i * 3));
@@ -619,8 +623,13 @@ export function mountGradientASCII(container, options) {
     view.width = Math.max(1, container.clientWidth);
     view.height = Math.max(1, container.clientHeight);
     view.ratio = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.round(view.width * view.ratio));
-    canvas.height = Math.max(1, Math.round(view.height * view.ratio));
+    // Reasignar el tamaño del canvas (aunque sea el mismo) borra y vuelve a reservar su búfer: solo si cambió.
+    const pixelWidth = Math.max(1, Math.round(view.width * view.ratio));
+    const pixelHeight = Math.max(1, Math.round(view.height * view.ratio));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
     sizeTarget(gl, fieldTarget, Math.max(1, Math.round(canvas.width / 2)), Math.max(1, Math.round(canvas.height / 2)));
     const haloWidth = Math.max(1, Math.round(canvas.width / 4));
     const haloHeight = Math.max(1, Math.round(canvas.height / 4));
@@ -662,7 +671,7 @@ export function mountGradientASCII(container, options) {
 
   const frame = (now) => {
     raf = 0;
-    if (disposed || !visible || document.hidden) return;
+    if (disposed || lost || !visible || document.hidden) return;
     const dt = last ? clamp((now - last) / 1000, 0.001, 0.05) : 1 / 60;
     last = now;
     if (!reduce) {
@@ -683,7 +692,7 @@ export function mountGradientASCII(container, options) {
   };
 
   function wake() {
-    if (!raf && !disposed && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && !disposed && !lost && visible && !document.hidden) raf = requestAnimationFrame(frame);
   }
 
   const locate = (event) => {
@@ -727,6 +736,21 @@ export function mountGradientASCII(container, options) {
     wake();
   };
 
+  // Si el navegador pierde el contexto WebGL (p. ej. al volver de otra app en el celular) se detiene; al
+  // recuperarlo se vuelve a montar sin la intro.
+  const onLost = (event) => {
+    event.preventDefault();
+    lost = true;
+    cancelAnimationFrame(raf);
+    raf = 0;
+  };
+  const onRestored = () => {
+    destroy();
+    remount = mountGradientASCII(container, { ...options, intro: false });
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
+  canvas.addEventListener('webglcontextrestored', onRestored);
+
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
   const intersection = new IntersectionObserver((entries) => {
@@ -742,7 +766,7 @@ export function mountGradientASCII(container, options) {
   document.addEventListener('visibilitychange', onVisibility);
   resize();
 
-  return () => {
+  function destroy() {
     disposed = true;
     cancelAnimationFrame(raf);
     resizeObserver.disconnect();
@@ -750,6 +774,10 @@ export function mountGradientASCII(container, options) {
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerdown', onPointerDown);
     document.removeEventListener('visibilitychange', onVisibility);
+    canvas.removeEventListener('webglcontextlost', onLost);
+    canvas.removeEventListener('webglcontextrestored', onRestored);
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (lost || gl.isContextLost()) return;
     [fieldTarget, haloA, haloB].forEach((target) => {
       target.textures.forEach((texture) => gl.deleteTexture(texture));
       gl.deleteFramebuffer(target.framebuffer);
@@ -757,6 +785,11 @@ export function mountGradientASCII(container, options) {
     gl.deleteTexture(atlas.texture);
     gl.deleteVertexArray(vao);
     [field, halo, blur, composite].forEach((item) => gl.deleteProgram(item.program));
+  }
+
+  return () => {
+    if (remount) return remount();
+    destroy();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 }

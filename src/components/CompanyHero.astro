@@ -118,6 +118,13 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     background: hsl(228 33% 98%);
     color: hsl(232 30% 12%);
   }
+  /* Safari < 16 no conoce overflow: clip y las fibras se saldrían de las esquinas redondeadas. Va en @supports y no
+     como declaración duplicada porque el minificador de CSS descarta la duplicada. */
+  @supports not (overflow: clip) {
+    .ch {
+      overflow: hidden;
+    }
+  }
   .stage {
     position: relative;
     padding: calc(var(--nav-h) + 96px) clamp(16px, 4vw, 48px) clamp(24px, 4vw, 48px);
@@ -522,11 +529,13 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
 </style>
 
 <script>
-  // Avance del scroll mientras el hero sale de la pantalla (0 arriba, 1 cuando ya salió). Solo con movimiento permitido.
+  // Avance del scroll mientras el hero sale de la pantalla (0 arriba, 1 cuando ya salió). Solo con movimiento
+  // permitido, y el listener de scroll solo existe mientras el hero está en pantalla (más abajo --p ya vale 1).
   const hero = document.querySelector<HTMLElement>('[data-ch]');
   if (hero) {
     const mq = matchMedia('(prefers-reduced-motion: no-preference)');
     let frame = 0;
+    let inView = false;
     const update = () => {
       frame = 0;
       const r = hero.getBoundingClientRect();
@@ -537,17 +546,20 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
       if (!frame) frame = requestAnimationFrame(update);
     };
     const setup = () => {
-      if (mq.matches) {
+      if (mq.matches && inView) {
         addEventListener('scroll', onScroll, { passive: true });
         addEventListener('resize', onScroll);
-        update();
       } else {
         removeEventListener('scroll', onScroll);
         removeEventListener('resize', onScroll);
-        hero.style.setProperty('--p', '0');
       }
+      if (mq.matches) update();
+      else hero.style.setProperty('--p', '0');
     };
+    new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      setup();
+    }).observe(hero);
     mq.addEventListener('change', setup);
-    setup();
   }
 </script>

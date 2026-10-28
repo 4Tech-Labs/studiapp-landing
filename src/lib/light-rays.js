@@ -288,7 +288,10 @@ export function mountLightRays(container, options) {
     antialias: false,
     depth: false,
     stencil: false,
-    powerPreference: 'high-performance',
+    // Un fondo decorativo no debe despertar la GPU dedicada de un portátil (gasta batería): la GPU por defecto basta.
+    powerPreference: 'default',
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const shader = link(gl);
@@ -519,7 +522,8 @@ export function mountLightRays(container, options) {
     document.removeEventListener('visibilitychange', onVisibility);
     canvas.removeEventListener('webglcontextlost', onLost);
     canvas.removeEventListener('webglcontextrestored', onRestored);
-    if (!gl.isContextLost()) {
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (!lost && !gl.isContextLost()) {
       gl.deleteVertexArray(vao);
       gl.deleteProgram(shader.program);
     }

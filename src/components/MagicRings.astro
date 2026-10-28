@@ -61,19 +61,8 @@ const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.
 </style>
 
 <script>
-  import { mountMagicRings } from '../lib/magic-rings.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta cuando los anillos se acercan a la pantalla; así la entrada (se abren desde los lados) se ve al llegar.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountMagicRings(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '120px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-magic-rings]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-magic-rings]', () => import('../lib/magic-rings.js').then((m) => m.mountMagicRings), '120px');
 </script>

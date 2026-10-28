@@ -467,37 +467,27 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
       opacity: 1;
     }
   }
-  .card:focus-visible,
-  .card:has(:focus-visible),
-  .card[data-open] {
+  /* :has() va dentro de :is(), que perdona selectores desconocidos: en un navegador sin :has() una lista normal
+     descartaría la regla completa y la tarjeta tampoco se abriría con el foco ni con el toque (data-open). */
+  .card:is(:focus-visible, :has(:focus-visible), [data-open]) {
     transform: perspective(900px) translateZ(16px) rotateX(0deg) rotateY(0deg);
   }
-  .card:focus-visible .front::after,
-  .card:has(:focus-visible) .front::after,
-  .card[data-open] .front::after {
+  .card:is(:focus-visible, :has(:focus-visible), [data-open]) .front::after {
     opacity: 0;
   }
-  .card:focus-visible .back,
-  .card:has(:focus-visible) .back,
-  .card[data-open] .back {
+  .card:is(:focus-visible, :has(:focus-visible), [data-open]) .back {
     clip-path: inset(0 0 0 0 round 20px);
     visibility: visible;
     transition: clip-path 0.55s var(--ease-out);
   }
-  .card:focus-visible :is(.back-top, .back-foot),
-  .card:has(:focus-visible) :is(.back-top, .back-foot),
-  .card[data-open] :is(.back-top, .back-foot) {
+  .card:is(:focus-visible, :has(:focus-visible), [data-open]) :is(.back-top, .back-foot) {
     opacity: 1;
     transform: none;
   }
-  .card:focus-visible .caption,
-  .card:has(:focus-visible) .caption,
-  .card[data-open] .caption {
+  .card:is(:focus-visible, :has(:focus-visible), [data-open]) .caption {
     opacity: 0;
   }
-  .card:focus-visible::after,
-  .card:has(:focus-visible)::after,
-  .card[data-open]::after {
+  .card:is(:focus-visible, :has(:focus-visible), [data-open])::after {
     opacity: 1;
   }
   .sr-only {
@@ -597,16 +587,20 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
     // Arco 3D: --t de cada tarjeta según dónde queda su centro respecto al centro visible del riel (-1 a 1).
     const cards = [...rail.querySelectorAll<HTMLElement>('.card')];
     // Radio del cilindro: la cuerda entre centros vecinos (ancho + gap) abarca el ángulo que cambia el giro entre ellos.
+    // Primero se leen todas las medidas y después se escriben las variables: intercalar lecturas y escrituras
+    // obligaría al navegador a recalcular estilos una vez por tarjeta en cada cuadro del scroll.
     const tilt = () => {
       const half = rail.clientWidth / 2;
       const arc = (parseFloat(getComputedStyle(section).getPropertyValue('--arc')) * Math.PI) / 180;
-      const angle = (arc * step()) / half;
-      rail.style.setProperty('--r', `${(step() / (2 * Math.sin(angle / 2))).toFixed(0)}px`);
-      for (const card of cards) {
-        const center = card.offsetLeft + card.offsetWidth / 2 - rail.scrollLeft;
-        const t = Math.max(-1, Math.min(1, (center - half) / half));
-        card.style.setProperty('--t', t.toFixed(3));
-      }
+      const pitch = step();
+      const angle = (arc * pitch) / half;
+      const scroll = rail.scrollLeft;
+      const tilts = cards.map((card) => {
+        const center = card.offsetLeft + card.offsetWidth / 2 - scroll;
+        return [card, Math.max(-1, Math.min(1, (center - half) / half))] as const;
+      });
+      rail.style.setProperty('--r', `${(pitch / (2 * Math.sin(angle / 2))).toFixed(0)}px`);
+      for (const [card, t] of tilts) card.style.setProperty('--t', t.toFixed(3));
     };
     let frame = 0;
     const schedule = () => {

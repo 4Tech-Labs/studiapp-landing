@@ -61,19 +61,8 @@ const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.
 </style>
 
 <script>
-  import { mountGradientWaves } from '../lib/gradient-waves.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta (contexto WebGL + shaders) solo cuando el contenedor se acerca a la pantalla, no al cargar la página.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountGradientWaves(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '300px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-gradient-waves]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-gradient-waves]', () => import('../lib/gradient-waves.js').then((m) => m.mountGradientWaves));
 </script>

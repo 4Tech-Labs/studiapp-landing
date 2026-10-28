@@ -342,7 +342,10 @@ export function mountGradientWaves(container, options) {
     depth: false,
     stencil: false,
     premultipliedAlpha: true,
-    powerPreference: 'high-performance',
+    // Un fondo decorativo no debe despertar la GPU dedicada de un portátil (gasta batería): la GPU por defecto basta.
+    powerPreference: 'default',
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
@@ -392,6 +395,8 @@ export function mountGradientWaves(container, options) {
     swells: [],
     quiet: 0,
   };
+  let lost = false;
+  let remount = null;
 
   const fit = () => {
     const ratio = Math.min(window.devicePixelRatio || 1, s.dpr);
@@ -470,7 +475,7 @@ export function mountGradientWaves(container, options) {
 
   const tick = (now) => {
     state.raf = 0;
-    if (!state.visible || document.hidden) return;
+    if (lost || !state.visible || document.hidden) return;
     const dt = state.last ? Math.min((now - state.last) / 1000, 0.1) : 0;
     state.last = now;
     const reduced = prefersReduced();
@@ -508,7 +513,7 @@ export function mountGradientWaves(container, options) {
   };
 
   const wake = () => {
-    if (state.raf || !state.visible || document.hidden) return;
+    if (state.raf || lost || !state.visible || document.hidden) return;
     state.last = 0;
     state.quiet = 0;
     state.raf = requestAnimationFrame(tick);
@@ -555,6 +560,21 @@ export function mountGradientWaves(container, options) {
     wake();
   };
 
+  // Si el navegador pierde el contexto WebGL (p. ej. al volver de otra app en el celular) se detiene; al
+  // recuperarlo se vuelve a montar sin la intro.
+  const onLost = (event) => {
+    event.preventDefault();
+    lost = true;
+    cancelAnimationFrame(state.raf);
+    state.raf = 0;
+  };
+  const onRestored = () => {
+    destroy();
+    remount = mountGradientWaves(container, { ...options, intro: false });
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
+  canvas.addEventListener('webglcontextrestored', onRestored);
+
   const visibility = new IntersectionObserver((entries) => {
     state.visible = entries.some((entry) => entry.isIntersecting);
     wake();
@@ -568,17 +588,27 @@ export function mountGradientWaves(container, options) {
   window.addEventListener('pointerdown', onDown);
   document.documentElement.addEventListener('pointerleave', onLeave);
 
-  return () => {
+  function destroy() {
     cancelAnimationFrame(state.raf);
+    state.raf = 0;
     document.removeEventListener('visibilitychange', wake);
     visibility.disconnect();
     sizes.disconnect();
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerdown', onDown);
     document.documentElement.removeEventListener('pointerleave', onLeave);
+    canvas.removeEventListener('webglcontextlost', onLost);
+    canvas.removeEventListener('webglcontextrestored', onRestored);
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (lost || gl.isContextLost()) return;
     gl.deleteProgram(program);
     gl.deleteBuffer(buffer);
     gl.deleteVertexArray(vao);
+  }
+
+  return () => {
+    if (remount) return remount();
+    destroy();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 }

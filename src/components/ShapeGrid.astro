@@ -65,19 +65,8 @@ const style = [
 </style>
 
 <script>
-  import { mountShapeGrid } from '../lib/shape-grid.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta cuando la cuadrícula se acerca a la pantalla; así la entrada desde el centro se ve al llegar.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountShapeGrid(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '120px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-shape-grid]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-shape-grid]', () => import('../lib/shape-grid.js').then((m) => m.mountShapeGrid), '120px');
 </script>

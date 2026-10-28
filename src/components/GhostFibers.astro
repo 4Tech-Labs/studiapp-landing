@@ -43,7 +43,9 @@ interface Props {
   class?: string;
 }
 
-const { class: className, ...options } = Astro.props;
+// Astro agrega atributos data-astro-cid-* de quien usa el componente: no son opciones de las fibras.
+const { class: className, ...props } = Astro.props;
+const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.startsWith('data-')));
 ---
 
 <div class:list={['ghost-fibers-container', className]} data-ghost-fibers data-options={JSON.stringify(options)}>
@@ -67,9 +69,8 @@ const { class: className, ...options } = Astro.props;
 </style>
 
 <script>
-  import { mountGhostFibers } from '../lib/ghost-fibers.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
-  document.querySelectorAll<HTMLElement>('[data-ghost-fibers]').forEach((el) => {
-    mountGhostFibers(el, JSON.parse(el.dataset.options || '{}'));
-  });
+  // Se monta (contexto WebGL + shaders) cuando el hero está en pantalla; su JavaScript se descarga recién ahí.
+  lazyMount('[data-ghost-fibers]', () => import('../lib/ghost-fibers.js').then((m) => m.mountGhostFibers));
 </script>

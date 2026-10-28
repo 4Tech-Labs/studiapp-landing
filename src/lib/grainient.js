@@ -292,6 +292,8 @@ export function mountGrainient(container, options) {
     antialias: false,
     depth: false,
     stencil: false,
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const s = settingsFrom(options);
@@ -338,6 +340,8 @@ export function mountGrainient(container, options) {
   let raf = 0;
   let last = 0;
   let visible = true;
+  let lost = false;
+  let remount = null;
 
   // La paleta no cambia después de montar: se convierte a Oklab una sola vez.
   const labs = s.colors.map((color) => toLab(parse(color)));
@@ -397,8 +401,13 @@ export function mountGrainient(container, options) {
     view.width = Math.max(1, container.clientWidth);
     view.height = Math.max(1, container.clientHeight);
     view.ratio = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.round(view.width * view.ratio));
-    canvas.height = Math.max(1, Math.round(view.height * view.ratio));
+    // Reasignar el tamaño del canvas (aunque sea el mismo) borra y vuelve a reservar su búfer: solo si cambió.
+    const pixelWidth = Math.max(1, Math.round(view.width * view.ratio));
+    const pixelHeight = Math.max(1, Math.round(view.height * view.ratio));
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
     const width = Math.max(1, Math.round(canvas.width / 2));
     const height = Math.max(1, Math.round(canvas.height / 2));
     if (width !== fieldSize.width || height !== fieldSize.height) {
@@ -472,7 +481,7 @@ export function mountGrainient(container, options) {
 
   const frame = (now) => {
     raf = 0;
-    if (!visible || document.hidden) return;
+    if (lost || !visible || document.hidden) return;
     const dt = last ? clamp((now - last) / 1000, 0.001, 0.05) : 1 / 60;
     last = now;
     if (!reduce) time += dt * s.speed * 0.16;
@@ -490,7 +499,7 @@ export function mountGrainient(container, options) {
   };
 
   function wake() {
-    if (!raf && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && !lost && visible && !document.hidden) raf = requestAnimationFrame(frame);
   }
 
   const locate = (event) => {
@@ -534,6 +543,21 @@ export function mountGrainient(container, options) {
     wake();
   };
 
+  // Si el navegador pierde el contexto WebGL (p. ej. al volver de otra app en el celular) se detiene; al
+  // recuperarlo se vuelve a montar sin la intro.
+  const onLost = (event) => {
+    event.preventDefault();
+    lost = true;
+    cancelAnimationFrame(raf);
+    raf = 0;
+  };
+  const onRestored = () => {
+    destroy();
+    remount = mountGrainient(container, { ...options, intro: false });
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
+  canvas.addEventListener('webglcontextrestored', onRestored);
+
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
   const intersection = new IntersectionObserver((entries) => {
@@ -550,19 +574,29 @@ export function mountGrainient(container, options) {
   document.addEventListener('visibilitychange', onVisibility);
   resize();
 
-  return () => {
+  function destroy() {
     cancelAnimationFrame(raf);
+    raf = 0;
     resizeObserver.disconnect();
     intersection.disconnect();
     window.removeEventListener('pointermove', onPointerMove);
     window.removeEventListener('pointerdown', onPointerDown);
     document.documentElement.removeEventListener('pointerleave', onPointerLeave);
     document.removeEventListener('visibilitychange', onVisibility);
+    canvas.removeEventListener('webglcontextlost', onLost);
+    canvas.removeEventListener('webglcontextrestored', onRestored);
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (lost || gl.isContextLost()) return;
     gl.deleteTexture(target);
     gl.deleteFramebuffer(buffer);
     gl.deleteVertexArray(vao);
     gl.deleteProgram(field.program);
     gl.deleteProgram(composite.program);
+  }
+
+  return () => {
+    if (remount) return remount();
+    destroy();
     gl.getExtension('WEBGL_lose_context')?.loseContext();
   };
 }

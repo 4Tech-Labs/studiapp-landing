@@ -602,6 +602,8 @@ export function mountGhostFibers(container, options) {
     antialias: false,
     depth: false,
     stencil: false,
+    // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
+    failIfMajorPerformanceCaveat: true,
   });
   if (!canvas || !gl) return () => {};
   const s = settingsFrom(options);
@@ -666,6 +668,8 @@ export function mountGhostFibers(container, options) {
   let last = 0;
   let visible = true;
   let alive = true;
+  let lost = false;
+  let remount = null;
 
   const toRgb = (value, fallback) => {
     if (!probeContext || !value) return fallback;
@@ -898,7 +902,7 @@ export function mountGhostFibers(container, options) {
 
   const frame = (now) => {
     raf = 0;
-    if (!alive || !visible || document.hidden) return;
+    if (!alive || lost || !visible || document.hidden) return;
     const elapsed = last ? (now - last) / 1000 : 1 / 60;
     const dt = Math.min(0.05, elapsed);
     last = now;
@@ -954,7 +958,7 @@ export function mountGhostFibers(container, options) {
   };
 
   const wake = () => {
-    if (!raf && alive && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && alive && !lost && visible && !document.hidden) raf = requestAnimationFrame(frame);
   };
 
   const onPointerMove = (event) => {
@@ -989,6 +993,21 @@ export function mountGhostFibers(container, options) {
     wake();
   };
 
+  // Si el navegador pierde el contexto WebGL (p. ej. al volver de otra app en el celular) se detiene; al
+  // recuperarlo se vuelve a montar sin la intro.
+  const onLost = (event) => {
+    event.preventDefault();
+    lost = true;
+    cancelAnimationFrame(raf);
+    raf = 0;
+  };
+  const onRestored = () => {
+    destroy();
+    remount = mountGhostFibers(container, { ...options, intro: false });
+  };
+  canvas.addEventListener('webglcontextlost', onLost);
+  canvas.addEventListener('webglcontextrestored', onRestored);
+
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(container);
   const intersection = new IntersectionObserver((entries) => {
@@ -1006,7 +1025,7 @@ export function mountGhostFibers(container, options) {
   resize();
   wake();
 
-  return () => {
+  function destroy() {
     alive = false;
     cancelAnimationFrame(raf);
     resizeObserver.disconnect();
@@ -1015,11 +1034,20 @@ export function mountGhostFibers(container, options) {
     window.removeEventListener('pointerdown', onPointerDown);
     document.documentElement.removeEventListener('pointerleave', onPointerLeave);
     document.removeEventListener('visibilitychange', onVisibility);
+    canvas.removeEventListener('webglcontextlost', onLost);
+    canvas.removeEventListener('webglcontextrestored', onRestored);
+    // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
+    if (lost || gl.isContextLost()) return;
     gl.deleteVertexArray(vao);
     [scene, ...chain].forEach((target) => {
       if (target.texture) gl.deleteTexture(target.texture);
       gl.deleteFramebuffer(target.framebuffer);
     });
     [dots, dust, bright, down, up, composite].forEach((entry) => gl.deleteProgram(entry.program));
+  }
+
+  return () => {
+    if (remount) remount();
+    else destroy();
   };
 }

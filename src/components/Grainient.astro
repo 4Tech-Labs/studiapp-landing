@@ -53,19 +53,8 @@ const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.
 </style>
 
 <script>
-  import { mountGrainient } from '../lib/grainient.js';
+  import { lazyMount } from '../lib/lazy-mount';
 
   // Se monta (contexto WebGL + shaders) solo cuando el contenedor se acerca a la pantalla, no al cargar la página.
-  const lazy = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(({ target, isIntersecting }) => {
-        if (!isIntersecting) return;
-        lazy.unobserve(target);
-        const el = target as HTMLElement;
-        mountGrainient(el, JSON.parse(el.dataset.options || '{}'));
-      });
-    },
-    { rootMargin: '300px' },
-  );
-  document.querySelectorAll<HTMLElement>('[data-grainient]').forEach((el) => lazy.observe(el));
+  lazyMount('[data-grainient]', () => import('../lib/grainient.js').then((m) => m.mountGrainient));
 </script>
