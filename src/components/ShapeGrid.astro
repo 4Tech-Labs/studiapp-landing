@@ -1,0 +1,83 @@
+---
+// Cuadrícula animada en canvas 2D (port sin React de <ShapeGrid /> de React Bits, ver src/lib/shape-grid.js).
+// Las props son las mismas del componente original; fade, opacity y backgroundColor se aplican aquí en CSS y el
+// resto se pasa al script como JSON en data-options. Llena su contenedor: el padre necesita position relative y un alto.
+import { fadeMask } from '../lib/shape-grid.js';
+
+interface Props {
+  shape?: 'square' | 'tile' | 'hexagon' | 'triangle' | 'diamond' | 'circle' | 'cross' | 'dot';
+  cellSize?: number;
+  lineWidth?: number;
+  direction?: 'diagonal' | 'up' | 'down' | 'left' | 'right' | 'none';
+  speed?: number;
+  lineColor?: string;
+  hoverColor?: string;
+  hoverFillColor?: string;
+  fillOpacity?: number;
+  rainbow?: boolean;
+  tiltX?: number;
+  tiltY?: number;
+  radius?: number;
+  trail?: number;
+  glow?: number;
+  twinkle?: number;
+  fade?: number;
+  clickCascade?: boolean;
+  intro?: boolean;
+  opacity?: number;
+  backgroundColor?: string;
+  paused?: boolean;
+  dpr?: number;
+  class?: string;
+}
+
+// Astro agrega atributos data-astro-cid-* de quien usa el componente: no son opciones de la cuadrícula.
+const { class: className, fade = 1, opacity = 1, backgroundColor = 'transparent', ...props } = Astro.props;
+const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.startsWith('data-')));
+const mask = fadeMask(Math.min(Math.max(fade, 0), 1));
+const style = [
+  `opacity:${Math.min(Math.max(opacity, 0), 1)}`,
+  `background-color:${backgroundColor}`,
+  ...(mask === 'none'
+    ? []
+    : [`mask-image:${mask}`, `-webkit-mask-image:${mask}`, 'mask-composite:intersect', '-webkit-mask-composite:source-in']),
+].join(';');
+---
+
+<div class:list={['shape-grid', className]} style={style} data-shape-grid data-options={JSON.stringify(options)}>
+  <canvas class="shape-grid-canvas" aria-hidden="true"></canvas>
+</div>
+
+<style>
+  .shape-grid {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .shape-grid-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    transform-origin: 0 0;
+  }
+</style>
+
+<script>
+  import { mountShapeGrid } from '../lib/shape-grid.js';
+
+  // Se monta cuando la cuadrícula se acerca a la pantalla; así la entrada desde el centro se ve al llegar.
+  const lazy = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(({ target, isIntersecting }) => {
+        if (!isIntersecting) return;
+        lazy.unobserve(target);
+        const el = target as HTMLElement;
+        mountShapeGrid(el, JSON.parse(el.dataset.options || '{}'));
+      });
+    },
+    { rootMargin: '120px' },
+  );
+  document.querySelectorAll<HTMLElement>('[data-shape-grid]').forEach((el) => lazy.observe(el));
+</script>

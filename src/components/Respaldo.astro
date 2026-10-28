@@ -1,25 +1,36 @@
 ---
-import { Image } from 'astro:assets';
-import companyLogo from '../assets/4techlabs-logo.png';
 import { COMPANY } from '../data/site';
+import ShapeGrid from './ShapeGrid.astro';
 
 // Membresía en NVIDIA Inception (aprobada el 23-oct-2026). El sello es el SVG oficial sin modificar
 // (guía: https://design.nvidia.com/partners/inception/nvidia-inception-program/member-badge):
-// no cambiar colores, proporciones ni texto, y no mostrarlo más grande que el logo de la empresa.
+// no cambiar colores, proporciones ni texto, y no mostrarlo más grande que el logo de la empresa si van juntos.
 ---
 
 <section id="respaldo" aria-labelledby="respaldo-titulo" class="respaldo" data-screen-label="Respaldo">
-  <div aria-hidden="true" class="grid-bg"></div>
+  {/* Cuadrícula que se desliza y enciende en verde NVIDIA las celdas bajo el cursor; sin JS queda el degradado. */}
+  <div aria-hidden="true" class="grid-bg">
+    <ShapeGrid
+      lineColor="hsl(222 40% 50% / 0.09)"
+      hoverColor="#76b900"
+      fillOpacity={0.1}
+      speed={0.3}
+      radius={1.5}
+      trail={0.7}
+      glow={0.3}
+      fade={1}
+    />
+  </div>
   <div class="inner">
     <p class="kicker">Respaldo</p>
-    <h2 id="respaldo-titulo">Somos parte de <span class="accent">NVIDIA Inception</span></h2>
+    {/* "Seleccionados" y no "respaldados por NVIDIA": la membresía no implica que NVIDIA avale a la empresa. */}
+    <h2 id="respaldo-titulo">Seleccionados por <span class="accent">NVIDIA Inception</span></h2>
     <p class="lead">
-      {COMPANY.name} fue aceptada en NVIDIA Inception, el programa de NVIDIA para startups que construyen con inteligencia artificial.
+      {COMPANY.name} es parte del programa de NVIDIA para startups que construyen con inteligencia artificial. Eso nos da acceso a <strong>herramientas, formación técnica y expertos de NVIDIA</strong> para construir software con tecnología de primer nivel.
     </p>
 
+    {/* Solo el sello oficial, sin caja alrededor (ya trae su propio recuadro). */}
     <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" class="lockup" aria-label={`${COMPANY.name}, miembro de NVIDIA Inception`}>
-      <Image src={companyLogo} alt="" height={96} densities={[1, 2]} class="company" />
-      <span aria-hidden="true" class="times">×</span>
       <img src="/nvidia-inception-badge.svg" alt="" width="190" height="82" loading="lazy" decoding="async" class="badge" />
     </a>
   </div>
@@ -39,18 +50,11 @@ import { COMPANY } from '../data/site';
     padding: clamp(64px, 8vw, 112px) clamp(20px, 4vw, 48px);
     scroll-margin-top: 14px;
   }
-  /* Cuadrícula tenue que se desvanece hacia los bordes. */
+  /* Capa de la cuadrícula animada (ShapeGrid se desvanece sola hacia los bordes). */
   .grid-bg {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background-image:
-      linear-gradient(hsl(222 40% 50% / 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(222 40% 50% / 0.07) 1px, transparent 1px);
-    background-size: 40px 40px;
-    background-position: center top;
-    -webkit-mask-image: radial-gradient(ellipse 70% 75% at 50% 45%, #000 30%, transparent 100%);
-    mask-image: radial-gradient(ellipse 70% 75% at 50% 45%, #000 30%, transparent 100%);
   }
   .inner {
     position: relative;
@@ -90,60 +94,34 @@ import { COMPANY } from '../data/site';
     color: hsl(210 10% 34%);
     text-wrap: pretty;
   }
+  /* Los beneficios del programa, en la tinta del título para que resalten dentro del párrafo. */
+  .lead strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
 
-  /* Logo de la empresa × sello. El sello visible (~59 px de alto) queda más bajo que el logo (96 px). */
+  /* El sello solo, sin caja: se levanta un poco con sombra al pasar el mouse. */
   .lockup {
-    margin-top: clamp(36px, 4.5vw, 52px);
+    margin-top: clamp(32px, 4vw, 44px);
     display: inline-flex;
-    align-items: center;
-    gap: clamp(20px, 3.5vw, 40px);
-    padding: clamp(22px, 3vw, 32px) clamp(28px, 4.5vw, 56px);
-    border-radius: 24px;
-    background: hsl(0 0% 100%);
-    box-shadow:
-      inset 0 0 0 1px hsl(220 28% 91%),
-      0 24px 50px -28px hsl(222 70% 30% / 0.35);
+    border-radius: 6px;
     transition:
       transform 0.25s ease,
-      box-shadow 0.25s ease;
+      filter 0.25s ease;
   }
   .lockup:hover {
     transform: translateY(-2px);
-    box-shadow:
-      inset 0 0 0 1px hsl(222 60% 82%),
-      0 30px 60px -28px hsl(222 70% 30% / 0.45);
-  }
-  .lockup :global(.company) {
-    display: block;
-    width: auto;
-    height: 96px;
-  }
-  .times {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-weight: 400;
-    line-height: 1;
-    color: hsl(220 15% 70%);
+    filter: drop-shadow(0 14px 22px hsl(222 70% 30% / 0.18));
   }
   .badge {
     display: block;
     width: auto;
-    height: 82px;
+    height: 96px;
   }
 
   @media (max-width: 479px) {
-    .lockup {
-      gap: 16px;
-      padding: 18px 20px;
-    }
-    .lockup :global(.company) {
-      height: 72px;
-    }
     .badge {
-      height: 62px;
-    }
-    .times {
-      font-size: 22px;
+      height: 76px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
