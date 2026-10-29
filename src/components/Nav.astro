@@ -579,21 +579,23 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     }
   }
 
-  /* Tablet y celular: siempre en notch (lo fija el script), compacto, con el logo, Contacto y el botón de menú; el resto de enlaces va en el panel.
-     Todo mide 30 px de alto y comparte el mismo eje vertical; el botón Contacto es más chico que en escritorio. */
+  /* Tablet y celular: siempre en notch (lo fija el script), con el logo, Contacto y el botón de menú; el resto de
+     enlaces va en el panel. Los tres son blancos táctiles de 44 px de alto (el mínimo de Apple) con aire entre ellos:
+     a 30 px y 4 px de separación era fácil tocar el de al lado. Contacto se ve de 38 px y su zona táctil (::after)
+     llega a 44. */
   @media (max-width: 899px) {
     .cn {
       --top: calc(var(--gap) + 8px);
       left: calc(var(--gap) + 10px);
       right: calc(var(--gap) + 10px);
-      height: 46px;
+      height: 56px;
     }
     .brand :global(img) {
       height: 28px;
     }
     .links {
-      gap: 4px;
-      padding: 7px 6px 6px;
+      gap: 8px;
+      padding: 6px 6px 6px;
     }
     .links a:not(.pill-logo, .nav-cta) {
       display: none;
@@ -601,11 +603,16 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     .links .nav-cta {
       display: inline-flex;
       align-items: center;
-      height: 30px;
-      /* 6 px + el gap de 4 px: deja el divisor a 10 px del botón, igual que del logo. */
-      margin-left: 6px;
-      padding: 0 12px;
-      font-size: 13px;
+      height: 38px;
+      /* 4 px + el gap de 8 px: deja el divisor a 12 px del botón, igual que del logo. */
+      margin-left: 4px;
+      padding: 0 18px;
+      font-size: 14px;
+    }
+    .links .nav-cta::after {
+      content: '';
+      position: absolute;
+      inset: -3px -4px;
     }
     /* Halo más ceñido: el de escritorio se ve grueso en un botón tan pequeño. */
     .cta-halo {
@@ -614,12 +621,12 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     }
     .menu-btn {
       display: inline-flex;
-      width: 32px;
-      height: 30px;
+      width: 44px;
+      height: 44px;
       margin-left: 0;
     }
     .menu-btn svg {
-      height: 22px;
+      height: 26px;
     }
     .menu {
       display: flex;
@@ -630,9 +637,15 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     .pill-name {
       font-size: 14px;
     }
+    /* El logo también lleva a inicio: toda la altura de la píldora es zona táctil. El divisor queda corto y centrado. */
     .links .pill-logo {
-      margin-left: 6px;
-      padding-right: 10px;
+      height: 44px;
+      margin-left: 8px;
+      padding-right: 12px;
+    }
+    .links .pill-logo::after {
+      top: 12px;
+      bottom: 12px;
     }
   }
 </style>
