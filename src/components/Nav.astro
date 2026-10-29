@@ -17,12 +17,12 @@ interface Props {
 const { variant = 'company' } = Astro.props;
 const isProduct = variant === 'product';
 const home = isProduct ? { href: `${PRODUCT.path}#inicio`, label: `${PRODUCT.name}, inicio` } : { href: '/', label: `${COMPANY.name}, inicio` };
-// La de StudIApp solo lleva a secciones de la landing: a la empresa se llega desde la sección "Un producto de" y el footer.
+// La de StudIApp solo lleva a secciones de la landing; Nosotros es su sección "Un producto de 4Tech Labs", que enlaza
+// al sitio de la empresa.
 const links = isProduct
   ? [
       { href: `${PRODUCT.path}#caracteristicas`, label: 'Características' },
-      { href: `${PRODUCT.path}#plantillas`, label: 'Plantillas' },
-      { href: `${PRODUCT.path}#inclusion`, label: 'DUA y PIAR' },
+      { href: `${PRODUCT.path}#empresa`, label: 'Nosotros' },
       { href: `${PRODUCT.path}#preguntas-frecuentes`, label: 'Preguntas' },
       { href: `${PRODUCT.path}#agenda`, label: 'Contacto', cta: true },
     ]
