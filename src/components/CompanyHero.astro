@@ -157,6 +157,11 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     max-width: 1120px;
     margin: 0 auto;
     opacity: calc(1 - var(--p) * 2.2);
+  }
+  /* El desenfoque y la subida solo mientras el hero sale (data-leaving lo pone el script). En reposo no lleva filter
+     ni transform: con un filter puesto, aunque sea blur(0), Safari de iPhone pinta el botón como una imagen y la luz
+     que gira en su borde se veía pixelada. */
+  .ch[data-leaving] .copy {
     filter: blur(calc(var(--p) * 16px));
     transform: translateY(calc(var(--p) * -70px));
   }
@@ -177,7 +182,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
   }
   .w {
     display: inline-block;
-    animation: blurIn 0.9s calc(0.2s + var(--i) * 0.07s) var(--ease) both;
+    animation: blurIn 0.9s calc(0.2s + var(--i) * 0.07s) var(--ease) backwards;
   }
   /* Bajada de 20 px como máximo, en el rango de las landings de referencia (Linear 16, Framer 18, Notion 20 px): en
      22 px se veía tan ancha como el titular y los dos bloques competían */
@@ -208,7 +213,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     display: inline-block;
     margin-top: 34px;
     border-radius: var(--r);
-    animation: blurIn 0.9s calc(0.2s + var(--i) * 0.045s) var(--ease) both;
+    animation: blurIn 0.9s calc(0.2s + var(--i) * 0.045s) var(--ease) backwards;
   }
   .cta:focus-visible {
     outline: 2px solid var(--b300);
@@ -498,6 +503,9 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
       stroke-dashoffset: -60;
     }
   }
+  /* Se usa con fill backwards y no both: con both el valor final (filter: blur(0)) se quedaba puesto para siempre y
+     Safari de iPhone pintaba el botón como imagen de baja resolución. El final coincide con el estilo normal, así que
+     al terminar no salta nada. */
   @keyframes blurIn {
     from {
       opacity: 0;
@@ -551,6 +559,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
       const r = hero.getBoundingClientRect();
       const p = Math.min(1, Math.max(0, -r.top / r.height));
       hero.style.setProperty('--p', p.toFixed(4));
+      hero.toggleAttribute('data-leaving', p > 0);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -564,7 +573,10 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
         removeEventListener('resize', onScroll);
       }
       if (mq.matches) update();
-      else hero.style.setProperty('--p', '0');
+      else {
+        hero.style.setProperty('--p', '0');
+        hero.removeAttribute('data-leaving');
+      }
     };
     new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
