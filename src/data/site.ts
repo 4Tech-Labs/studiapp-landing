@@ -157,12 +157,15 @@ export const FEATURES: Feature[] = [
   },
 ];
 
-/** Sección de inclusión (DUA y PIAR) de /studiapp. Reusa el video de la pestaña hasta tener uno propio. */
+/**
+ * Sección de inclusión (DUA y PIAR) de /studiapp. Reusa el video de la pestaña hasta tener uno propio, con otra portada:
+ * el fotograma del PIAR (seg. 47) en vez de la portada con título, que competía con el h2 de la sección.
+ */
 export const INCLUSION: { title: [string, string]; text: string; label: string; video: VideoSources } = {
   title: ['Educación inclusiva', 'desde la primera planeación'], // la 2.ª parte va en color de acento
   text: 'StudIApp aplica los principios del DUA en cada planeación y genera el PIAR de cada estudiante en el formato que define tu colegio, incluso si es uno propio. Ajustes razonables listos para revisar, sin duplicar el trabajo del docente.',
   label: 'dua y piar',
-  video: { mp4: '/videos/dua-y-piar-v1.mp4', poster: '/videos/dua-y-piar-v1-poster.webp' },
+  video: { mp4: '/videos/dua-y-piar-v1.mp4', poster: '/videos/dua-y-piar-v1-poster-piar.webp' },
 };
 
 export interface FaqItem {
