@@ -137,7 +137,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     height: 52px;
-    /* backwards y no both: una animación de opacidad/transform retenida al terminar convierte la nav en
+    /* backwards y no both: una animación de opacidad/translate retenida al terminar convierte la nav en
        "backdrop root" y Chrome deja de difuminar lo que hay detrás de la píldora. */
     animation: cnIn 0.7s 0.1s var(--ease) backwards;
     transition: transform 0.4s var(--ease-out);
@@ -562,14 +562,17 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
       transform: none;
     }
   }
+  /* Con translate y no transform: el transform es el que sube la barra al notch, y una animación de transform lo
+     pisaría mientras dura. La nav que arranca en notch (celular, StudIApp) bajaba hasta la posición de arriba del
+     todo y al terminar la entrada saltaba al borde. Así la entrada se suma encima del notch y no lo reemplaza. */
   @keyframes cnIn {
     from {
       opacity: 0;
-      transform: translateY(-12px);
+      translate: 0 -12px;
     }
     to {
       opacity: 1;
-      transform: none;
+      translate: none;
     }
   }
 
