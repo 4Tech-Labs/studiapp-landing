@@ -29,7 +29,7 @@ npm run deploy       # build + wrangler deploy (requiere npx wrangler login)
 | Animación del logo | `public/lottie/robot.json` |
 | Imagen para compartir en redes (1200×630) | `public/og.jpg` (se captura de la página `/og` con Chrome headless, ver `src/pages/og.astro`) |
 | Logo de 4Tech Labs (Quiénes somos, footer y JSON-LD) | `scripts/4techlabs-logo-src.jpg` (avatar de la organización en GitHub) → `node scripts/make-company-logo.mjs` genera `src/assets/4techlabs-logo.png` (sin fondo, para la página) y `public/4techlabs-logo.png` (sobre blanco, para buscadores). El script asume dos tintas sobre fondo blanco; si llega el original sin fondo (SVG o PNG), se usa directamente en lugar de los generados |
-| Logo estático y favicons | `scripts/logo-src.png` (frame 0 del Lottie rasterizado a 3×) → `node scripts/make-icons.mjs` regenera `public/logo.webp`, `favicon.ico`, `favicon-96.png` y `apple-touch-icon.png` |
+| Logo estático y favicons | `node scripts/make-icons.mjs` regenera los dos juegos de iconos. Empresa (home y páginas legales): el "4" de `src/assets/4techlabs-logo-4tl.png` → `public/favicon.ico`, `favicon-96.png` y `apple-touch-icon.png`. StudIApp (`/studiapp`): el robot de `scripts/logo-src.png` (frame 0 del Lottie rasterizado a 3×) → `public/studiapp-favicon.ico`, `studiapp-favicon-96.png`, `studiapp-apple-touch-icon.png` y `logo.webp`. `Base.astro` elige el juego con la prop `product` |
 | Cabeceras de caché y seguridad | `public/_headers` |
 
 ## Videos (hero y pestañas)

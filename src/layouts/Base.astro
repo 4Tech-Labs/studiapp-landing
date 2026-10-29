@@ -17,6 +17,8 @@ const cleanPath = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.h
 const canonical = new URL(cleanPath, SITE.url).href;
 const ogImage = new URL(SITE.ogImage, SITE.url).href;
 const id = (h: string) => `${SITE.url}/#${h}`;
+// Iconos de la pestaña: el "4" del logo 4TL en el sitio de la empresa; el robot en la página de StudIApp.
+const iconPrefix = product ? '/studiapp-' : '/';
 // Perfiles de la empresa en redes: enlazan la organización con su página de LinkedIn, etc.
 const sameAs = Object.values(SOCIAL).filter(Boolean);
 const team = TEAM.map((m) => ({ '@type': 'Person', name: m.name, jobTitle: m.role, ...(m.linkedin && { sameAs: [m.linkedin] }) }));
@@ -84,9 +86,9 @@ const jsonLd = {
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <meta name="theme-color" content={SITE.themeColor} />
-    <link rel="icon" href="/favicon.ico" sizes="32x32" />
-    <link rel="icon" href="/favicon-96.png" type="image/png" sizes="96x96" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href={`${iconPrefix}favicon.ico`} sizes="32x32" />
+    <link rel="icon" href={`${iconPrefix}favicon-96.png`} type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href={`${iconPrefix}apple-touch-icon.png`} />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
     <meta property="og:type" content="website" />
