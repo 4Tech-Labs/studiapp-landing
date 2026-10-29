@@ -23,3 +23,77 @@ import Footer from '../components/Footer.astro';
   </main>
   <Footer />
 </Base>
+
+<style>
+  /* Cierre del home: Respaldo se queda fijo bajo el nav y Contacto sube tapándolo, como un telón. Solo en escritorio
+     con alto suficiente (las mismas condiciones que el apilado de Productos): en celular Respaldo no cabe entero y
+     quedaría tapado antes de leerlo. Va en la página porque depende del orden de las dos secciones. */
+  @media (min-width: 900px) and (min-height: 720px) {
+    main {
+      timeline-scope: --contacto;
+    }
+    main :global(#respaldo) {
+      position: sticky;
+      top: 84px;
+    }
+    /* Contacto publica su línea de tiempo para que Respaldo se hunda mientras sube, y una sombra en el borde de
+       arriba lo separa de la sección que tapa */
+    main :global(#contacto) {
+      view-timeline-name: --contacto;
+      box-shadow: 0 -28px 56px -28px hsl(222 40% 8% / 0.45);
+    }
+  }
+  /* Mientras Contacto la tapa, Respaldo se encoge y se atenúa un poco. Solo transform y opacidad: no repintan. */
+  @media (min-width: 900px) and (min-height: 720px) and (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      main :global(#respaldo) {
+        transform-origin: 50% 0%;
+        animation: respaldo-hunde linear both;
+      }
+      /* En otra regla a propósito (ver WaveTitle): el minificador juntaría animation-timeline dentro del shorthand
+         `animation`, y Chrome descarta ese shorthand completo. El selector distinto evita que las junte y, más
+         específico, gana sobre el shorthand, que devolvería el timeline a auto. */
+      main :global(#respaldo.respaldo) {
+        animation-timeline: --contacto;
+        animation-range: entry 40% contain 75%;
+      }
+    }
+  }
+  @keyframes respaldo-hunde {
+    to {
+      transform: scale(0.94);
+      opacity: 0.55;
+    }
+  }
+</style>
+
+<script>
+  // Con Respaldo pegado, el navegador calcula el salto a #respaldo desde donde está pegado: si Contacto ya lo tapa,
+  // el enlace del nav deja la vista sobre Contacto. Se salta a su lugar en el flujo; lo mismo al llegar con el
+  // teclado a su enlace mientras está tapado, para que el foco no quede escondido.
+  const respaldo = document.getElementById('respaldo');
+  const contacto = document.getElementById('contacto');
+  if (respaldo && contacto) {
+    const isStuck = () => getComputedStyle(respaldo).position === 'sticky';
+    // Su lugar en el flujo, sin el desplazamiento del sticky: justo encima de Contacto, que no se pega
+    const flowTop = () =>
+      contacto.getBoundingClientRect().top +
+      scrollY -
+      parseFloat(getComputedStyle(contacto).marginTop) -
+      respaldo.offsetHeight -
+      parseFloat(getComputedStyle(respaldo).scrollMarginTop);
+    // Sin behavior: sigue el scroll-behavior de la página (suave, o inmediato con movimiento reducido)
+    const goToRespaldo = () => window.scrollTo({ top: flowTop() });
+
+    document.addEventListener('click', (e) => {
+      const link = (e.target as Element).closest<HTMLAnchorElement>('a[href$="#respaldo"]');
+      if (!link || link.pathname !== location.pathname || !isStuck()) return;
+      e.preventDefault();
+      history.pushState(null, '', '#respaldo');
+      goToRespaldo();
+    });
+    respaldo.addEventListener('focusin', () => {
+      if (isStuck() && contacto.getBoundingClientRect().top < respaldo.getBoundingClientRect().bottom) goToRespaldo();
+    });
+  }
+</script>

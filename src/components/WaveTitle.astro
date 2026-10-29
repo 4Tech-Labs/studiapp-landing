@@ -13,9 +13,11 @@ interface Props {
   parts: Part[];
   /** light: sobre fondo claro (acento en el degradado azul de marca). dark: sobre fondo oscuro (acento azul claro). */
   theme?: 'light' | 'dark';
+  /** Sin la ola: el titular queda quieto en sus colores finales, igual que los demás al terminar. */
+  still?: boolean;
 }
 
-const { parts, theme = 'light' } = Astro.props;
+const { parts, theme = 'light', still = false } = Astro.props;
 
 let index = 0;
 const words = parts.flatMap((part, pi) =>
@@ -35,7 +37,8 @@ const total = index;
 const label = parts.map((part) => part.text).join(' ');
 ---
 
-<span class:list={['wave-title', `wt-${theme}`]} style={`--n:${total}`} data-wave-title>
+{/* Sin data-wave-title, ni la animación de CSS ni el respaldo de JavaScript lo toman */}
+<span class:list={['wave-title', `wt-${theme}`, { 'wt-still': still }]} style={`--n:${total}`} data-wave-title={still ? undefined : ''}>
   <span class="sr-only">{label}</span>
   <span aria-hidden="true">
     {
@@ -104,6 +107,9 @@ const label = parts.map((part) => part.text).join(' ');
     to {
       --wave-p: 1;
     }
+  }
+  .wave-title.wt-still {
+    animation: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .wave-title {
