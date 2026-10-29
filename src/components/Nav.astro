@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import logo from '../assets/4techlabs-logo-4tl.png';
+import logo from '../assets/4techlabs-logo.png';
 import { COMPANY, PRODUCT } from '../data/site';
 import LottieLogo from './LottieLogo.astro';
 
@@ -33,9 +33,13 @@ const links = isProduct
       { href: '/#respaldo', label: 'Respaldo' },
       { href: '/#contacto', label: 'Contacto', cta: true },
     ];
-// Ancho del hueco del logo pequeño en la píldora (margen 8 + logo de 22 px de alto + padding 16 + gap 2). Arriba la
-// píldora se corre la mitad de este ancho para que los enlaces queden centrados sin el logo (ver .links).
-const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
+// El logo de 4TECH LABS es el mismo de Quiénes somos y el pie: apilado y casi cuadrado, así que necesita más alto que
+// uno horizontal para que "LABS" se lea (44 px arriba, 30 px en la píldora).
+const BRAND_H = 44;
+const PILL_H = 30;
+// Ancho del hueco del logo pequeño en la píldora (margen 8 + logo + padding 16 + gap 2). Arriba la píldora se corre
+// la mitad de este ancho para que los enlaces queden centrados sin el logo (ver .links).
+const slot = 8 + Math.round((logo.width / logo.height) * PILL_H) + 16 + 2;
 ---
 
 <!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se condensa (equivale a scrollY > 60). -->
@@ -44,7 +48,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
   {
     !isProduct && (
       <a href={home.href} aria-label={home.label} class="brand">
-        <Image src={logo} alt="" height={34} densities={[1, 2]} loading="eager" />
+        <Image src={logo} alt="" height={BRAND_H} densities={[1, 2]} loading="eager" />
       </a>
     )
   }
@@ -52,7 +56,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     <span aria-hidden="true" class="glass"></span>
     <a href={home.href} aria-label={home.label} class:list={['pill-logo', { 'has-name': isProduct }]}>
       {
-        // Robot más alto que el logo de la empresa (22 px): el dibujo trae mucho margen transparente. Va con el nombre
+        // Robot de 30 px, como el logo de la empresa (el dibujo trae mucho margen transparente). Va con el nombre
         // porque en la landing de StudIApp es el único logo de la nav.
         isProduct ? (
           <>
@@ -60,7 +64,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
             <span class="pill-name">{PRODUCT.name}</span>
           </>
         ) : (
-          <Image src={logo} alt="" height={22} densities={[1, 2]} loading="eager" />
+          <Image src={logo} alt="" height={PILL_H} densities={[1, 2]} loading="eager" />
         )
       }
     </a>
@@ -160,7 +164,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
   .brand :global(img) {
     display: block;
     width: auto;
-    height: 34px;
+    height: 44px;
   }
 
   /* Píldora de enlaces: siempre en la columna del centro, aunque no haya logo grande (StudIApp). Mide lo mismo en
@@ -231,7 +235,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
     display: block;
     flex-shrink: 0;
     width: auto;
-    height: 22px;
+    height: 30px;
     opacity: 0;
     transform: scale(0.6);
     transition:
@@ -532,8 +536,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
   }
   .cn[data-scrolled] .pill-logo > :global(img) {
     opacity: 1;
-    /* Ajuste óptico: la estela debajo de las letras sube el peso visual del logo; 2 px abajo lo alinea con el texto. */
-    transform: translateY(2px);
+    transform: none;
     transition:
       opacity 0.35s var(--ease) 0.2s,
       transform 0.55s var(--spring) 0.2s;
@@ -591,7 +594,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
       height: 56px;
     }
     .brand :global(img) {
-      height: 28px;
+      height: 38px;
     }
     .links {
       gap: 8px;
@@ -632,7 +635,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
       display: flex;
     }
     .pill-logo > :global(img) {
-      height: 18px;
+      height: 30px;
     }
     .pill-name {
       font-size: 14px;
