@@ -33,7 +33,7 @@ const isVideo = HERO.media === 'video';
       <p class="lead">Genera planeaciones anuales, periódicas y semanales con IA, en las plantillas que ya usa tu colegio y con el contexto de tu institución.</p>
 
       <div class="ctas">
-        <a href="#agenda" class="btn-dark">Agenda una reunión</a>
+        <a href="#agenda" class="btn-pop"><span class="pop-label">Agenda una reunión</span></a>
         {
           isVideo && (
             <button type="button" aria-label="Reproducir video" class="btn-play" data-hero-play>
@@ -165,23 +165,52 @@ const isVideo = HERO.media === 'video';
     gap: 12px;
     animation: fadeUp16 0.6s ease-out 0.3s both;
   }
-  .btn-dark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  /* Botón principal en 3D: cara en la tinta del sitio levantada 4 px hacia arriba a la izquierda sobre un canto gris
+     en diagonal, el mismo gris del filo del botón de reproducir. Blanco no: sobre el fondo claro del hero el canto
+     desaparecería. El canto son copias de la sombra desplazadas en diagonal; con dos basta (entre ellas la muesca
+     mide menos de un cuarto de píxel). Al pasar el mouse, o al tocarla en celular, se asienta en su lugar. 44 px de
+     alto, como antes. */
+  .btn-pop {
+    --pop-raised:
+      2px 2px 0 0 hsl(220 14% 72%),
+      4px 4px 0 0 hsl(220 14% 72%),
+      6px 8px 18px -6px rgb(1 40 100 / 0.35);
+    --pop-pressed: 0 2px 8px -4px rgb(1 40 100 / 0.35);
+    display: inline-block;
     border-radius: 9999px;
-    padding: 0 24px;
-    height: 44px;
-    font-size: 14px;
-    font-weight: 500;
     background: var(--ink);
     color: hsl(0 0% 100%);
+    font-size: 14px;
+    font-weight: 600;
     white-space: nowrap;
-    transition: background 0.2s ease;
+    translate: -4px -4px;
+    box-shadow: var(--pop-raised);
+    transition:
+      translate 0.15s ease,
+      box-shadow 0.15s ease;
+    touch-action: manipulation;
   }
-  .btn-dark:hover {
-    background: hsl(210 14% 17% / 0.9);
-    color: hsl(0 0% 100%);
+  /* Solo con mouse: en pantallas táctiles el :hover se queda pegado después del toque */
+  @media (hover: hover) {
+    .btn-pop:hover {
+      color: hsl(0 0% 100%);
+      translate: none;
+      box-shadow: var(--pop-pressed);
+    }
+  }
+  .btn-pop:active {
+    translate: none;
+    box-shadow: var(--pop-pressed);
+  }
+  .pop-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 24px;
+  }
+  .btn-pop:active .pop-label {
+    translate: 0 1px;
   }
   /* Botón de reproducir en 3D: un bisel claro (el botón), un pozo oscuro desenfocado que hace de sombra de contacto
      (::before) y encima la cúpula azul de la marca con un brillo arriba y un labio oscuro abajo. Al presionar, el
