@@ -71,13 +71,17 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
               </p>
               {p.status === 'available' ? (
                 <a href={p.href} class="go">
-                  <span aria-hidden="true" class="go-sheen" />
-                  Conocer {p.name}
-                  <svg class="chevrons" width="17" height="11" viewBox="0 0 66 43" aria-hidden="true">
-                    <polygon points="39.58,4.46 44.11,0 66,21.5 44.11,43 39.58,38.54 56.94,21.5" />
-                    <polygon points="19.79,4.46 24.32,0 46.21,21.5 24.32,43 19.79,38.54 37.15,21.5" />
-                    <polygon points="0,4.46 4.53,0 26.42,21.5 4.53,43 0,38.54 17.36,21.5" />
-                  </svg>
+                  <span aria-hidden="true" class="go-shadow" />
+                  <span aria-hidden="true" class="go-edge" />
+                  <span class="go-front">
+                    <span aria-hidden="true" class="go-sheen" />
+                    Conocer {p.name}
+                    <svg class="chevrons" width="17" height="11" viewBox="0 0 66 43" aria-hidden="true">
+                      <polygon points="39.58,4.46 44.11,0 66,21.5 44.11,43 39.58,38.54 56.94,21.5" />
+                      <polygon points="19.79,4.46 24.32,0 46.21,21.5 24.32,43 19.79,38.54 37.15,21.5" />
+                      <polygon points="0,4.46 4.53,0 26.42,21.5 4.53,43 0,38.54 17.36,21.5" />
+                    </svg>
+                  </span>
                 </a>
               ) : (
                 <form class="waitlist" action={p.waitlistUrl} method="post" data-waitlist data-state="idle" novalidate>
@@ -240,7 +244,7 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
     --echo-2: hsl(216 95% 91%);
     --glow: hsl(212 95% 80% / 0.55);
     --btn: var(--brand-grad);
-    --btn-shadow: var(--brand-shadow);
+    --btn-edge: linear-gradient(to left, hsl(216 100% 14%) 0%, hsl(216 100% 24%) 8%, hsl(216 100% 24%) 92%, hsl(216 100% 14%) 100%);
   }
   .theme-purple {
     --bg: hsl(258 90% 97.5%);
@@ -252,7 +256,7 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
     --echo-2: hsl(256 85% 91%);
     --glow: hsl(258 90% 80% / 0.5);
     --btn: linear-gradient(180deg, hsl(258 66% 54%) 0%, hsl(262 64% 40%) 100%);
-    --btn-shadow: 0 10px 24px -12px hsl(260 64% 34% / 0.7);
+    --btn-edge: linear-gradient(to left, hsl(262 64% 16%) 0%, hsl(262 64% 27%) 8%, hsl(262 64% 27%) 92%, hsl(262 64% 16%) 100%);
   }
 
   /* Tarjeta de producto */
@@ -374,25 +378,66 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
     color: var(--accent);
     text-decoration-color: currentColor;
   }
+  /* Botón principal en 3D: la cara (.go-front) flota 4 px sobre su canto (.go-edge) y su sombra (.go-shadow). Al pasar
+     el mouse la cara sube con un pequeño rebote y la sombra baja; al presionar, la cara se hunde casi hasta el canto.
+     Todo se mueve con transform, que corre en el hilo gráfico. */
   .go {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 48px;
+    display: inline-block;
     margin-top: 28px;
-    /* A la derecha queda menos padding: el espacio lo ocupan las flechas que se despliegan al pasar el mouse */
-    padding: 0 13px 0 22px;
     border-radius: 9999px;
     font-size: 15px;
     font-weight: 600;
     color: hsl(0 0% 100%);
-    background: var(--btn);
-    box-shadow: var(--btn-shadow);
-    transition: filter 0.2s ease;
+    touch-action: manipulation;
+    transition: filter 0.25s ease;
   }
   .go:hover {
     color: hsl(0 0% 100%);
-    filter: brightness(1.15);
+    filter: brightness(1.1);
+  }
+  .go-shadow,
+  .go-edge {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+  .go-shadow {
+    background: hsl(222 60% 12% / 0.25);
+    transform: translateY(2px);
+    transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  .go-edge {
+    background: var(--btn-edge);
+  }
+  .go-front {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    /* A la derecha queda menos padding: el espacio lo ocupan las flechas que se despliegan al pasar el mouse */
+    padding: 0 13px 0 22px;
+    border-radius: inherit;
+    background: var(--btn);
+    box-shadow: inset 0 1px 1px hsl(0 0% 100% / 0.3);
+    transform: translateY(-4px);
+    transition: transform 0.6s cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  .go:is(:hover, :focus-visible) .go-front {
+    transform: translateY(-6px);
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+  .go:is(:hover, :focus-visible) .go-shadow {
+    transform: translateY(4px);
+    transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.4, 1.5);
+  }
+  .go:active .go-front {
+    transform: translateY(-2px);
+    transition: transform 34ms;
+  }
+  .go:active .go-shadow {
+    transform: translateY(1px);
+    transition: transform 34ms;
   }
   /* Resplandor que respira detrás del botón principal. Es un pseudo-elemento que solo anima su opacidad,
      así el navegador no repinta la sombra en cada cuadro. */
@@ -443,9 +488,8 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
   }
   /* En celular la pantalla es chica y el halo se derrama sobre el recuadro de abajo: más corto, más tenue */
   @media (max-width: 899px) {
-    a.go {
+    .go-front {
       height: 46px;
-      box-shadow: 0 6px 16px -10px hsl(216 90% 30% / 0.5);
     }
     a.go::before {
       box-shadow: 0 0 14px 0 color-mix(in srgb, var(--accent) 40%, transparent);
@@ -473,6 +517,12 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
     a.go::before,
     .go-sheen::before {
       animation: none;
+    }
+    /* Sin rebote: la cara y la sombra siguen respondiendo al mouse y al clic, pero sin transición */
+    .go-front,
+    .go-shadow,
+    .go:is(:hover, :focus-visible, :active) :is(.go-front, .go-shadow) {
+      transition: none;
     }
   }
 
