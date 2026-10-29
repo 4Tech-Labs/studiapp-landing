@@ -97,6 +97,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
             <path class="faint" d="M62.2941 64.9917C62.2941 64.9917 55.4671 49.8089 40.4932 48.2295C25.5194 46.6501 23.7159 36.5272 23.7159 36.5272"></path>
             <path class="faint" d="M62.2941 145.984C62.2941 145.984 55.4671 161.167 40.4932 162.746C25.5194 164.326 23.7159 174.449 23.7159 174.449"></path>
           </svg>
+          <span aria-hidden="true" class="halo"></span>
           <span class="wrap">
             <span aria-hidden="true" class="outline"></span>
             <span aria-hidden="true" class="content">
@@ -210,6 +211,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     --b400: #0144a0;
     --b500: #012c6b;
     --r: 16px;
+    --tilt: -2deg;
     --ring-peak: #fff;
     display: inline-block;
     margin-top: 34px;
@@ -225,7 +227,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     display: block;
     height: 58px;
     border-radius: inherit;
-    transform: rotate(-2deg);
+    transform: rotate(var(--tilt));
     transition: transform 0.3s var(--ease);
   }
   .bg {
@@ -405,7 +407,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
 
   /* Estados: el efecto de hover (levantado, luz y flecha) está siempre activo; al pasar el mouse ruedan las letras. */
   .cta:hover .btn {
-    transform: rotate(-2deg) translateY(-2px);
+    transform: rotate(var(--tilt)) translateY(-2px);
   }
   .cta:hover .wrap {
     transform: translate(10px, -10px);
@@ -572,13 +574,87 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     .line {
       display: inline;
     }
-    /* En celular la luz del borde es más sutil: a pantalla completa de un teléfono el blanco puro se veía muy fuerte. */
+  }
+
+  /* Pantallas táctiles (celular y tablet): el botón va derecho y la luz es el aro del botón Contacto de la nav (un
+     arco que gira y su halo difuso). Inclinado −2°, el filo de luz de 3 px se veía escalonado en iPhone con
+     cualquiera de las dos técnicas (capa de GPU o pintado); los aros de Contacto y de Agenda, que no van inclinados,
+     se ven bien. El 3D se mantiene con la cara corrida sobre la sombra. */
+  .halo {
+    display: none;
+  }
+  @media (hover: none) and (pointer: coarse) {
     .cta {
-      --ring-peak: rgb(255 255 255 / 0.6);
+      --tilt: 0deg;
+    }
+    /* Aro: el conic-gradient de Contacto en un cuadrado más grande que el botón que gira con rotate (sin inclinación
+       la capa de GPU se ve nítida); .content tapa todo salvo el filo de 3 px de .wrap. */
+    .outline {
+      overflow: hidden;
+      background: none;
+      animation: none;
+    }
+    .outline::before,
+    .halo::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150%;
+      aspect-ratio: 1;
+      translate: -50% -50%;
+      background: conic-gradient(
+        transparent 0deg,
+        hsl(205 100% 80% / 0.15) 20deg,
+        hsl(210 100% 82% / 0.55) 120deg,
+        hsl(210 100% 88% / 0.85) 190deg,
+        hsl(0 0% 100%) 225deg,
+        transparent 240deg,
+        transparent 360deg
+      );
+      animation: ringTurn 3s linear infinite;
+    }
+    /* Halo: el mismo arco, fuera del botón y difuminado. Va en la misma posición que .wrap (corrida 8 px) y la sigue al
+       presionar; la máscara deja solo el anillo de 6 px alrededor. */
+    .halo {
+      display: block;
+      position: absolute;
+      inset: -6px;
+      padding: 6px;
+      border-radius: calc(var(--r) + 6px);
+      overflow: hidden;
+      pointer-events: none;
+      opacity: 0.85;
+      filter: blur(5px);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      transform: translate(8px, -8px);
+      transition:
+        transform 0.3s ease,
+        opacity 0.4s ease;
+    }
+    .cta:hover .halo {
+      transform: translate(10px, -10px);
+    }
+    .cta:active .halo {
+      opacity: 0;
+      transform: translate(3px, -3px);
     }
   }
-  /* Fuera de pantalla las animaciones del botón se pausan: ahora corren en el hilo principal (ver .outline). */
+  @keyframes ringTurn {
+    to {
+      rotate: 1turn;
+    }
+  }
+
+  /* Fuera de pantalla las animaciones del botón se pausan: el aro de escritorio y la flecha corren en el hilo
+     principal (ver .outline). */
   .ch[data-away] .outline,
+  .ch[data-away] .outline::before,
+  .ch[data-away] .halo::before,
   .ch[data-away] .arrow span,
   .ch[data-away] .arrow span::before,
   .ch[data-away] .arrow span::after {
