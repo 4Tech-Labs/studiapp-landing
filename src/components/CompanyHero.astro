@@ -6,10 +6,14 @@ import GhostFibers from './GhostFibers.astro';
 // - de fondo, las fibras animadas de GhostFibers (azules de la marca, modo claro);
 // - al salir del hero con el scroll, el texto se desenfoca y las fibras se desvanecen.
 //   El script escribe ese avance en --p (0 a 1); sin JS o con movimiento reducido el hero queda quieto.
-// El titular es de marca; las palabras clave (desarrollo de software, software a la medida) van en la bajada, el <title> y la descripción.
-const title = ['Donde la tecnología', 'se encuentra con la excelencia'];
-// Bajada en dos renglones, como en la referencia (Mobbin); en celular fluye en un solo bloque.
-const lead = ['Somos una empresa colombiana de desarrollo de software.', 'Creamos software a la medida, aplicaciones web, móviles y soluciones con IA.'];
+// El titular dice qué hacemos con la palabra clave principal (software a la medida); la bajada concreta qué
+// construimos y qué gana el cliente con acciones, no adjetivos. El país va en el <title>.
+const title = ['Convertimos tus ideas', 'en software a la medida'];
+// Bajada: una sola frase partida en dos renglones, como en la referencia (Mobbin); en celular fluye en un solo bloque.
+const lead = [
+  'Creamos plataformas web, aplicaciones móviles y soluciones con IA',
+  'que automatizan tareas, simplifican procesos e impulsan tus resultados.',
+];
 
 let i = 0;
 const titleLines = title.map((line) => line.split(' ').map((w) => ({ w, i: i++ })));
@@ -159,11 +163,14 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
   h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-weight: 600;
+    /* 500 y no 600: a este tamaño el tamaño ya marca la jerarquía, y las landings de software (Linear: Inter 510,
+       −0,022em; Stripe, Vercel y Figma más livianas) usan pesos medios en el titular principal. */
+    font-weight: 500;
     font-size: clamp(2.3rem, 5.2vw, 4.6rem);
     line-height: 1.06;
-    /* Inter Tight ya trae el espaciado cerrado: más negativo se ve apretado. */
-    letter-spacing: -0.015em;
+    letter-spacing: -0.022em;
+    /* En celular el segundo renglón se parte: balanceado queda «que hace crecer / tu negocio» y no una palabra sola */
+    text-wrap: balance;
   }
   .line {
     display: block;
@@ -172,13 +179,16 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     display: inline-block;
     animation: blurIn 0.9s calc(0.2s + var(--i) * 0.07s) var(--ease) both;
   }
+  /* Bajada de 20 px como máximo, en el rango de las landings de referencia (Linear 16, Framer 18, Notion 20 px): en
+     22 px se veía tan ancha como el titular y los dos bloques competían */
   .lead {
     margin: 26px 0 0;
-    font-size: clamp(17px, 1.55vw, 22px);
+    font-size: clamp(17px, 1.4vw, 20px);
     font-weight: 400;
     line-height: 1.45;
     letter-spacing: -0.01em;
     color: hsl(232 10% 40%);
+    text-wrap: balance;
   }
   .lead .w {
     animation-duration: 0.7s;

@@ -1,0 +1,1068 @@
+---
+// Vista previa animada de Complexipy Platform (tarjeta del catálogo): la pantalla de revisión de un pull request del
+// producto (repo 4Tech-Labs/complexipy-platform, PullRequestPage), en claro y con sus tokens de color y de severidad.
+// En bucle: el check mide las funciones que tocó el PR (base → head), bloquea el merge si una supera el umbral,
+// muestra la complejidad por línea con la sugerencia de refactor del bot y, con el commit siguiente, el código
+// refactorizado pasa el check.
+// Es ilustrativa: no son datos reales. El script avanza data-step solo mientras la vista se ve; sin JS o con
+// movimiento reducido queda fija en el paso que más explica (la sugerencia, con el merge bloqueado).
+const THRESHOLD = 15;
+// Puntos que llenan la barra: el umbral queda justo en la mitad.
+const SCALE = 30;
+
+interface Fn {
+  name: string;
+  base: number;
+  head: number;
+  /** Complejidad después del commit de refactor; sin valor, el commit no tocó la función. */
+  fixed?: number;
+}
+const FUNCTIONS: Fn[] = [
+  { name: 'process_payment', base: 9, head: 21, fixed: 11 },
+  { name: 'validate_cart', base: 12, head: 14 },
+  { name: 'build_invoice', base: 14, head: 11 },
+];
+
+// Cómo queda una función frente al umbral y a su base: lo pasa (over), sube sin pasarlo (up) o baja (down).
+// Solo "over" va en rojo: el resto queda en tinta o en verde, para que la alarma sea una sola.
+const trend = (fn: Fn, value: number) => (value > THRESHOLD ? 'over' : value > fn.base ? 'up' : 'down');
+const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
+
+// process_payment antes y después del commit de refactor, con la complejidad cognitiva que suma cada línea
+// (if/for: 1 más 1 por nivel de anidación; elif: 1). La 45 es el pico; la sugerencia propone extraer las líneas 43–47.
+type Token = [kind: '' | 'k' | 'f', text: string];
+interface Line {
+  n: number;
+  indent: number;
+  tokens: Token[];
+  points?: number;
+}
+const BEFORE: Line[] = [
+  { n: 42, indent: 0, tokens: [['k', 'def'], ['', ' '], ['f', 'process_payment'], ['', '(order, user):']] },
+  { n: 43, indent: 1, tokens: [['k', 'for'], ['', ' item '], ['k', 'in'], ['', ' order.items:']], points: 1 },
+  { n: 44, indent: 2, tokens: [['k', 'if'], ['', ' item.stock < item.qty:']], points: 2 },
+  { n: 45, indent: 3, tokens: [['k', 'if'], ['', ' user.is_vip:']], points: 3 },
+  { n: 46, indent: 4, tokens: [['f', 'notify_backorder'], ['', '(item)']] },
+  { n: 47, indent: 3, tokens: [['k', 'elif'], ['', ' item.preorder:']], points: 1 },
+];
+const AFTER: Line[] = [
+  { n: 42, indent: 0, tokens: [['k', 'def'], ['', ' '], ['f', 'process_payment'], ['', '(order, user):']] },
+  { n: 43, indent: 1, tokens: [['k', 'for'], ['', ' item '], ['k', 'in'], ['', ' order.items:']], points: 1 },
+  { n: 44, indent: 2, tokens: [['f', 'check_stock'], ['', '(item, user)']] },
+  { n: 45, indent: 2, tokens: [['f', 'reserve'], ['', '(item)']] },
+  { n: 46, indent: 1, tokens: [['k', 'return'], ['', ' '], ['f', 'charge'], ['', '(order)']] },
+  { n: 47, indent: 0, tokens: [] },
+];
+const PEAK = 45;
+// Ancho de la barra de carga de cada línea mientras el código no se ha revisado, en caracteres.
+const SKELETON = [28, 20, 22, 14, 18, 16];
+---
+
+<div class="cx" data-cx data-step="suggest" style={`--scale:${SCALE};--threshold:${THRESHOLD}`}>
+  {/* Encabezado del PR: título con el ícono de PR abierto, ramas y el estado del merge en ícono y texto */}
+  <div class="cx-hero">
+    <div class="cx-head">
+      <svg class="cx-pr-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="4" cy="3.5" r="1.75" />
+        <circle cx="4" cy="12.5" r="1.75" />
+        <circle cx="12" cy="12.5" r="1.75" />
+        <path d="M4 5.25v5.5M12 10.75V6.5a2 2 0 0 0-2-2H7.5m0 0 1.75-1.75M7.5 4.5l1.75 1.75" />
+      </svg>
+      <p class="cx-title">Refactor del módulo de pagos</p>
+      <span class="cx-state">
+        <span class="cx-state-item is-scan when-scan">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="6" stroke-dasharray="2.6 2.1" /></svg>
+          Analizando
+        </span>
+        <span class="cx-state-item is-fail when-fail">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="6" /><path d="m3.9 12.1 8.2-8.2" /></svg>
+          Merge bloqueado
+        </span>
+        <span class="cx-state-item is-pass when-pass">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6" /><path d="m5.4 8.2 1.8 1.8 3.4-3.9" /></svg>
+          Listo para merge
+        </span>
+      </span>
+    </div>
+    <p class="cx-ref">
+      <span>#128</span>
+      <span class="cx-sep">·</span>
+      <code>main</code> ← <code>feat/pagos</code>
+      <span class="cx-sep">·</span>
+      <span class="cx-swap">
+        <code class="c1">7c1e2b4</code>
+        <code class="c2">a3f9c21</code>
+      </span>
+    </p>
+
+    {/* El check de GitHub que publica el producto en cada PR */}
+    <div class="cx-run">
+      <span class="cx-run-ico">
+        <span class="cx-spin when-scan"></span>
+        <svg class="when-fail" width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m2 2 6 6m0-6-6 6" /></svg>
+        <svg class="when-pass" width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.5 2.5 2.5 4.5-6" /></svg>
+      </span>
+      <p class="cx-run-text">
+        <b>complexipy</b>
+        <span class="cx-swap">
+          <span class="when-first-scan">Analizando 3 funciones impactadas…</span>
+          <span class="when-rescan">Nuevo commit: analizando de nuevo…</span>
+          <span class="when-fail">1 de 3 funciones supera el umbral de {THRESHOLD}</span>
+          <span class="when-pass">Las 3 funciones quedan bajo el umbral de {THRESHOLD}</span>
+        </span>
+      </p>
+      <span class="cx-run-time cx-swap">
+        <span class="when-fail">4 s</span>
+        <span class="when-pass">3 s</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="cx-body">
+    {/* Funciones impactadas: de dónde venía cada una (punto hueco, la base) a dónde llegó (punto lleno), con la línea
+        del umbral cruzando todas las filas */}
+    <div class="cx-table">
+      <div class="cx-thead">
+        <span>Función</span>
+        <span class="cx-limit"><span>umbral {THRESHOLD}</span></span>
+        <span class="cx-th-num cx-col-base">Antes</span>
+        <span class="cx-th-num">Ahora</span>
+        <span class="cx-th-num">Cambio</span>
+      </div>
+      {
+        FUNCTIONS.map((fn, k) => (
+          <div
+            class:list={['cx-fn', `t-${trend(fn, fn.head)}`, fn.fixed !== undefined && `f-${trend(fn, fn.fixed)}`, { 'is-hot': k === 0 }]}
+            style={`--k:${k};--base:${fn.base};--head:${fn.head};--fixed:${fn.fixed ?? fn.head}`}
+          >
+            <code class="cx-fn-name">{fn.name}</code>
+            <span class="cx-range">
+              <i class="cx-seg" />
+              <i class="cx-pin cx-pin-base" />
+              <i class="cx-pin cx-pin-head" />
+            </span>
+            <span class="cx-num cx-col-base">{fn.base}</span>
+            <span class="cx-num cx-now">
+              {fn.fixed === undefined ? (
+                <span class={`n-${trend(fn, fn.head)}`}>{fn.head}</span>
+              ) : (
+                <span class="cx-swap">
+                  <span class:list={['v1', `n-${trend(fn, fn.head)}`]}>{fn.head}</span>
+                  <span class:list={['v2', `n-${trend(fn, fn.fixed)}`]}>{fn.fixed}</span>
+                </span>
+              )}
+            </span>
+            <span class="cx-num cx-delta">
+              {fn.fixed === undefined ? (
+                <span class={`d-${trend(fn, fn.head)}`}>{signed(fn.head - fn.base)}</span>
+              ) : (
+                <span class="cx-swap">
+                  <span class:list={['v1', `d-${trend(fn, fn.head)}`]}>{signed(fn.head - fn.base)}</span>
+                  <span class:list={['v2', `d-${trend(fn, fn.fixed)}`]}>{signed(fn.fixed - fn.base)}</span>
+                </span>
+              )}
+            </span>
+          </div>
+        ))
+      }
+    </div>
+
+    {/* Revisión en línea de la función que más subió: complejidad por línea antes y después del refactor */}
+    <div class="cx-code">
+      <p class="cx-code-head">
+        <code>pagos/checkout.py</code>
+        <span>L42–47</span>
+      </p>
+      <div class="cx-lines">
+        {
+          [BEFORE, AFTER].map((lines, version) => (
+            <div class:list={['cx-version', version === 0 ? 'is-before' : 'is-after']}>
+              {lines.map((line, i) => (
+                <div class:list={['cx-line', { 'is-peak': version === 0 && line.n === PEAK }]} style={`--i:${i};--in:${line.indent};--sk:${SKELETON[i]}`}>
+                  <span class="cx-ln">{line.n}</span>
+                  <code class="cx-src">
+                    {line.indent > 0 && <span class="cx-indent" />}
+                    {line.tokens.map(([kind, text]) => (kind ? <span class={`tk-${kind}`}>{text}</span> : text))}
+                  </code>
+                  <span class:list={['cx-pts', line.points && `p-${line.points}`]}>{line.points && `+${line.points}`}</span>
+                </div>
+              ))}
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    {/* La sugerencia llega como comentario del bot en el PR; al aprobarse, en el mismo lugar queda el merge */}
+    <div class="cx-note">
+      <div class="cx-tip">
+        <span class="cx-avatar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M13.61 6.89A4.4 4.4 0 1 0 13.61 13.11" /></svg>
+        </span>
+        <span class="cx-tip-body">
+          <span class="cx-tip-meta">
+            <b>complexipy</b>
+            <span class="cx-bot">bot</span>
+            <span class="cx-swap">
+              <span class="m1">está revisando…</span>
+              <span class="m2">sugirió un refactor</span>
+            </span>
+          </span>
+          <span class="cx-tip-swap">
+            <span class="cx-tip-sk"><i></i><i></i></span>
+            <span class="cx-tip-text">
+              <b>Extrae el bloque interno:</b> las <span class="cx-nw">líneas 43–47</span> suman 7 de los 21 puntos. Muévelas a <code>check_stock()</code>.
+            </span>
+          </span>
+        </span>
+      </div>
+      <div class="cx-merge">
+        <span class="cx-merge-ico">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m2.5 6.5 2.5 2.5 4.5-6" /></svg>
+        </span>
+        <span class="cx-merge-text">
+          <b>Todos los checks pasaron</b>
+          <span><code>process_payment</code> bajó de 21 a 11.</span>
+        </span>
+        <span class="cx-merge-btn">Merge</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Todo cambia con data-step (lo avanza el script): scan → result → inspect → suggest → rescan → pass.
+     Colores y tipos son los del producto (global.css y ui.tsx de complexipy-platform), en hex para no depender de
+     oklch(). Los estados entran con opacidad y transform, cortos y sin rebote; las alturas quedan reservadas para que
+     la ventana no salte entre pasos. */
+  .cx {
+    --cx-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    --cx-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --cx-ink: #11141a;
+    --cx-text: #1c1f25;
+    --cx-muted: #777a82;
+    --cx-faint: #a5a7ad;
+    --cx-border: #e5e3de;
+    --cx-hairline: #efede9;
+    --cx-surface-strong: #fcfbf9;
+    --cx-surface-muted: #f5f3f0;
+    --cx-paper: #fbfaf7;
+    --cx-accent: #3368d0;
+    --cx-success: #0f766e;
+    --cx-danger: #b42318;
+    --cx-danger-soft: #fef3f2;
+    --cx-warn: #b54708;
+    --cx-rule: #c9c4ba;
+    --cx-indent: 4ch;
+    display: grid;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--cx-text);
+    text-align: left;
+  }
+  .cx p {
+    margin: 0;
+  }
+  .cx code {
+    font-family: var(--cx-mono);
+    font-size: 0.94em;
+  }
+  .cx-nw {
+    white-space: nowrap;
+  }
+
+  /* Variantes que se cruzan en el mismo lugar. c1/c2: antes y después del commit de refactor; v1/v2: la cifra antes
+     y después de analizarlo; m1/m2: lo que dice el bot antes y después de sugerir; when-*: según el paso. Comparten
+     una celda de grid, así el tamaño es el de la más grande y nada se mueve al cambiar. */
+  .cx-swap {
+    display: inline-grid;
+    vertical-align: top;
+  }
+  .cx-swap > * {
+    grid-area: 1 / 1;
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s var(--cx-ease);
+  }
+  .cx-swap > :is(.c2, .v2, .m2, .when-first-scan, .when-rescan, .when-fail, .when-pass) {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  .cx:is([data-step='rescan'], [data-step='pass']) .c1,
+  .cx[data-step='pass'] .v1,
+  .cx:is([data-step='suggest'], [data-step='rescan'], [data-step='pass']) .m1 {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  .cx:is([data-step='rescan'], [data-step='pass']) .c2,
+  .cx[data-step='pass'] .v2,
+  .cx:is([data-step='suggest'], [data-step='rescan'], [data-step='pass']) .m2,
+  .cx[data-step='scan'] .when-first-scan,
+  .cx[data-step='rescan'] .when-rescan,
+  .cx:is([data-step='result'], [data-step='inspect'], [data-step='suggest']) .when-fail,
+  .cx[data-step='pass'] .when-pass {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Encabezado del PR */
+  .cx-hero {
+    display: grid;
+    gap: 3px;
+    padding: 13px 16px 0;
+    background: hsl(0 0% 100%);
+  }
+  .cx-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .cx-pr-ico {
+    color: var(--cx-success);
+  }
+  .cx-title {
+    overflow: hidden;
+    font-size: 1.3em;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--cx-ink);
+  }
+  /* Estado del merge: ícono y texto en su color, sin fondo; solo se ve el del paso */
+  .cx-state > * {
+    display: none;
+  }
+  .cx:is([data-step='scan'], [data-step='rescan']) .cx-state > .when-scan,
+  .cx:is([data-step='result'], [data-step='inspect'], [data-step='suggest']) .cx-state > .when-fail,
+  .cx[data-step='pass'] .cx-state > .when-pass {
+    display: inline-flex;
+    animation: cx-in 0.3s var(--cx-ease);
+  }
+  @keyframes cx-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .cx-state-item {
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .is-scan {
+    color: var(--cx-muted);
+  }
+  .is-fail {
+    color: var(--cx-danger);
+  }
+  .is-pass {
+    color: var(--cx-success);
+  }
+  /* El círculo punteado gira despacio mientras se analiza */
+  .cx:is([data-step='scan'], [data-step='rescan']) .is-scan svg {
+    animation: cx-spin 3s linear infinite;
+  }
+  .cx-ref {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 24px;
+    overflow: hidden;
+    font-size: 0.9em;
+    white-space: nowrap;
+    color: var(--cx-muted);
+  }
+  .cx-ref code {
+    color: var(--cx-text);
+  }
+  .cx-sep {
+    color: var(--cx-faint);
+  }
+  /* Fila del check run, separada del encabezado por una línea fina, como en la lista de checks */
+  .cx-run {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    margin: 9px -16px 0;
+    padding: 8px 16px;
+    border-top: 1px solid var(--cx-border);
+  }
+  .cx-run-ico {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    color: hsl(0 0% 100%);
+    background: var(--cx-surface-muted);
+    transition: background-color 0.3s ease;
+  }
+  .cx-run-ico > * {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .cx:is([data-step='scan'], [data-step='rescan']) .cx-run-ico > .when-scan,
+  .cx:is([data-step='result'], [data-step='inspect'], [data-step='suggest']) .cx-run-ico > .when-fail,
+  .cx[data-step='pass'] .cx-run-ico > .when-pass {
+    opacity: 1;
+  }
+  .cx:is([data-step='result'], [data-step='inspect'], [data-step='suggest']) .cx-run-ico {
+    background: var(--cx-danger);
+  }
+  .cx[data-step='pass'] .cx-run-ico {
+    background: var(--cx-success);
+  }
+  .cx-spin {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--cx-border);
+    border-top-color: var(--cx-accent);
+    border-radius: 50%;
+  }
+  .cx:is([data-step='scan'], [data-step='rescan']) .cx-spin {
+    animation: cx-spin 0.9s linear infinite;
+  }
+  @keyframes cx-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  /* "complexipy" y al lado el mensaje, que en celular puede ocupar dos renglones sin cambiar de alto */
+  .cx-run-text {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px;
+    min-width: 0;
+    color: var(--cx-muted);
+  }
+  .cx-run-text b {
+    font-weight: 600;
+    color: var(--cx-text);
+  }
+  .cx-run-time {
+    font-size: 0.9em;
+    font-variant-numeric: tabular-nums;
+    color: var(--cx-muted);
+  }
+
+  /* Cuerpo sobre el papel del producto, con sus tres bloques como tarjetas */
+  .cx-body {
+    display: grid;
+    gap: 8px;
+    padding: 10px 12px 12px;
+    background: var(--cx-paper);
+    border-top: 1px solid var(--cx-border);
+  }
+
+  /* Tabla de funciones. Cada fila dibuja de dónde venía la función (punto hueco, la base) a dónde llegó (punto
+     lleno) y el tramo entre los dos en su tono. Las columnas van en em con el mismo tamaño de letra en la cabecera y
+     en las filas, así la línea del umbral cae justo en la mitad de la columna del rango (el umbral es la mitad de la
+     escala). */
+  .cx-table {
+    --pad: 12px;
+    --gap: 12px;
+    --c-name: 8.9em;
+    --c-num: 2.6em;
+    --c-delta: 3.7em;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--cx-border);
+    border-radius: 10px;
+    background: hsl(0 0% 100%);
+  }
+  .cx-thead,
+  .cx-fn {
+    display: grid;
+    grid-template-columns: var(--c-name) minmax(0, 1fr) var(--c-num) var(--c-num) var(--c-delta);
+    align-items: center;
+    column-gap: var(--gap);
+    padding: 0 var(--pad);
+  }
+  /* Línea del umbral, de la cabecera a la última fila */
+  .cx-table::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    left: calc(
+      var(--pad) + var(--c-name) + var(--gap) +
+        (100% - 2 * var(--pad) - var(--c-name) - 2 * var(--c-num) - var(--c-delta) - 4 * var(--gap)) / 2
+    );
+    border-left: 1px dashed var(--cx-rule);
+    pointer-events: none;
+  }
+  .cx-thead {
+    height: 26px;
+    background: var(--cx-surface-strong);
+    border-bottom: 1px solid var(--cx-border);
+  }
+  .cx-thead > * {
+    font-size: 0.92em;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--cx-muted);
+  }
+  .cx-th-num {
+    justify-self: end;
+  }
+  /* Rótulo sobre la línea del umbral: el fondo de la cabecera la corta detrás del texto */
+  .cx-limit {
+    position: relative;
+    align-self: stretch;
+  }
+  .cx-limit span {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: 50%;
+    padding: 0 5px;
+    transform: translate(-50%, -50%);
+    background: var(--cx-surface-strong);
+  }
+  .cx-fn {
+    min-height: 32px;
+    border-top: 1px solid var(--cx-hairline);
+    transition: background-color 0.3s ease;
+  }
+  .cx-thead + .cx-fn {
+    border-top: 0;
+  }
+  /* La función que se revisa abajo: la fila se tiñe apenas */
+  .cx:is([data-step='inspect'], [data-step='suggest'], [data-step='rescan'], [data-step='pass']) .cx-fn.is-hot {
+    background: #f5f8fe;
+  }
+  .cx-fn-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* Tono de la fila: rojo si pasa el umbral, tinta si sube sin pasarlo, verde si baja. Tras el commit de refactor
+     la fila que cambió toma el tono de su nuevo valor (f-*). */
+  .cx-fn {
+    --tone: #62666e;
+    --v: var(--head);
+  }
+  .t-over {
+    --tone: #d1453b;
+  }
+  .t-down {
+    --tone: #3d9a62;
+  }
+  .cx[data-step='pass'] .f-up {
+    --tone: #62666e;
+  }
+  .cx[data-step='pass'] .f-down {
+    --tone: #3d9a62;
+  }
+  /* Posición de la cabeza según el paso: en la base mientras analiza, en head después y en fixed tras el refactor */
+  .cx[data-step='scan'] .cx-fn {
+    --v: var(--base);
+  }
+  .cx[data-step='pass'] .cx-fn {
+    --v: var(--fixed);
+  }
+  .cx-range {
+    position: relative;
+    height: 12px;
+  }
+  /* Riel de la escala */
+  .cx-range::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 2px;
+    background: #ece9e3;
+  }
+  /* Tramo entre la base y la cabeza. Es una capa del ancho del rango que se mueve y se escala con transform (en el
+     hilo gráfico): translateX en % de su propio ancho es % del rango. */
+  .cx-seg {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 2px;
+    margin-top: -1px;
+    border-radius: 2px;
+    background: var(--tone);
+    transform-origin: 0 50%;
+    transform: translateX(calc(min(var(--base), var(--v)) / var(--scale) * 100%))
+      scaleX(calc((max(var(--base), var(--v)) - min(var(--base), var(--v))) / var(--scale)));
+    transition:
+      transform 0.7s var(--cx-ease) calc(var(--k) * 70ms),
+      background-color 0.3s ease;
+  }
+  /* Puntos: capas del ancho del rango corridas hasta su valor, con el punto en su borde izquierdo */
+  .cx-pin {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    transform: translateX(calc(var(--x) / var(--scale) * 100%));
+    transition:
+      transform 0.7s var(--cx-ease) calc(var(--k) * 70ms),
+      opacity 0.3s ease;
+  }
+  .cx-pin::after {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    box-sizing: border-box;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-radius: 50%;
+  }
+  .cx-pin-base {
+    --x: var(--base);
+  }
+  .cx-pin-base::after {
+    border: 1.5px solid #b3afa6;
+    background: hsl(0 0% 100%);
+  }
+  .cx-pin-head {
+    --x: var(--v);
+  }
+  .cx-pin-head::after {
+    background: var(--tone);
+    box-shadow: 0 0 0 2px hsl(0 0% 100%);
+    transition: background-color 0.3s ease;
+  }
+  .cx[data-step='scan'] .cx-pin {
+    opacity: 0;
+  }
+  /* Mientras se analiza, el riel late (carga) */
+  .cx[data-step='scan'] .cx-range,
+  .cx[data-step='rescan'] .is-hot .cx-range {
+    animation: cx-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes cx-pulse {
+    50% {
+      opacity: 0.45;
+    }
+  }
+  /* Cifras en números tabulares alineadas a la derecha: antes en gris, ahora en tinta (rojo solo si pasa el
+     umbral) y el cambio en su tono */
+  .cx-num {
+    justify-self: end;
+    font-family: var(--cx-mono);
+    font-size: 0.94em;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.3s ease;
+  }
+  /* Las variantes de una cifra se alinean a la derecha dentro de su celda: +2 y +12 terminan en la misma columna */
+  .cx-num .cx-swap {
+    justify-items: end;
+  }
+  .cx-num.cx-col-base {
+    color: var(--cx-faint);
+  }
+  .cx-now {
+    font-weight: 600;
+    color: var(--cx-text);
+  }
+  .n-over {
+    color: var(--cx-danger);
+  }
+  .cx-delta {
+    font-size: 0.9em;
+  }
+  .d-over {
+    color: var(--cx-danger);
+  }
+  .d-up {
+    color: var(--cx-muted);
+  }
+  .d-down {
+    color: var(--cx-success);
+  }
+  .cx[data-step='scan'] .cx-num {
+    opacity: 0;
+  }
+  .cx[data-step='rescan'] .is-hot :is(.cx-now, .cx-delta) {
+    opacity: 0.35;
+  }
+
+  /* Código */
+  .cx-code {
+    overflow: hidden;
+    border: 1px solid var(--cx-border);
+    border-radius: 10px;
+    background: hsl(0 0% 100%);
+    transition: opacity 0.35s ease;
+  }
+  .cx[data-step='rescan'] .cx-code {
+    opacity: 0.5;
+  }
+  .cx-code-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 12px;
+    font-size: 0.88em;
+    color: var(--cx-muted);
+    background: var(--cx-surface-strong);
+    border-bottom: 1px solid var(--cx-border);
+  }
+  .cx-code-head code {
+    color: var(--cx-text);
+  }
+  /* Todo el bloque en monoespaciada: así ch mide lo mismo en el canal, en la sangría y en las barras de carga */
+  .cx-lines {
+    display: grid;
+    font-family: var(--cx-mono);
+    font-size: 0.9em;
+  }
+  .cx-version {
+    grid-area: 1 / 1;
+    padding: 4px 0;
+    transition: opacity 0.35s ease;
+  }
+  .cx-version.is-after {
+    opacity: 0;
+  }
+  .cx[data-step='pass'] .cx-version.is-before {
+    opacity: 0;
+  }
+  .cx[data-step='pass'] .cx-version.is-after {
+    opacity: 1;
+    transition-delay: 0.2s;
+  }
+  .cx-line {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 1.65em;
+    border-left: 2px solid transparent;
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease;
+  }
+  /* Canal de los números de línea: ancho exacto de dos cifras con el mismo aire a cada lado, alineadas a la derecha */
+  .cx-ln {
+    box-sizing: content-box;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 2ch;
+    padding: 0 10px;
+    margin-right: 12px;
+    font-variant-numeric: tabular-nums;
+    color: var(--cx-faint);
+    border-right: 1px solid var(--cx-hairline);
+  }
+  .cx-src {
+    overflow: hidden;
+    font-size: 1em;
+    white-space: pre;
+    text-overflow: ellipsis;
+    transition: opacity 0.25s ease calc(var(--i) * 35ms);
+  }
+  .cx-indent {
+    display: inline-block;
+    width: calc(var(--in) * var(--cx-indent));
+  }
+  /* Resaltado de sintaxis sobrio, con los colores del tema claro de GitHub */
+  .tk-k {
+    color: #cf222e;
+  }
+  .tk-f {
+    color: #8250df;
+  }
+  /* Puntos que suma cada línea, en su propia columna y en el tono de su severidad, sin fondos */
+  .cx-pts {
+    padding: 0 12px 0 8px;
+    text-align: right;
+    font-size: 0.94em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--cx-muted);
+    transition: opacity 0.25s ease calc(0.15s + var(--i) * 70ms);
+  }
+  .p-2 {
+    color: var(--cx-warn);
+  }
+  .p-3 {
+    color: var(--cx-danger);
+  }
+  /* La línea pico, marcada como en la revisión en línea del producto */
+  .cx:is([data-step='inspect'], [data-step='suggest'], [data-step='rescan']) .cx-line.is-peak {
+    background: var(--cx-danger-soft);
+    border-left-color: var(--cx-danger);
+  }
+  /* Barras de carga en lugar del código mientras la función no se ha revisado */
+  .cx-line::after {
+    content: '';
+    position: absolute;
+    left: calc(2ch + 33px + var(--in) * var(--cx-indent));
+    top: 50%;
+    width: calc(var(--sk) * 1ch);
+    max-width: calc(100% - 2ch - 80px);
+    height: 0.55em;
+    margin-top: -0.275em;
+    border-radius: 9999px;
+    background: var(--cx-surface-muted);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .cx:is([data-step='scan'], [data-step='result']) .is-before .cx-line::after {
+    opacity: 1;
+    animation: cx-pulse 1.1s ease-in-out infinite;
+  }
+  .cx:is([data-step='scan'], [data-step='result']) .is-before :is(.cx-src, .cx-pts) {
+    opacity: 0;
+  }
+
+  /* Comentario del bot y, en el mismo lugar, el aviso de merge */
+  .cx-note {
+    display: grid;
+  }
+  .cx-note > * {
+    grid-area: 1 / 1;
+  }
+  .cx-tip,
+  .cx-merge {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+    padding: 9px 12px 10px;
+    border: 1px solid var(--cx-border);
+    border-radius: 10px;
+    background: hsl(0 0% 100%);
+    transition: opacity 0.35s ease;
+  }
+  /* Avatar del bot: la "C" de la marca del producto en su tinta */
+  /* La "C" va dibujada en SVG y no como letra: una letra queda corrida según las métricas de la fuente. El arco se
+     corre medio píxel a la derecha para que la C, abierta a ese lado, se vea centrada. */
+  .cx-avatar {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 1px;
+    border-radius: 6px;
+    color: hsl(0 0% 100%);
+    background: #171b21;
+  }
+  .cx-avatar svg {
+    display: block;
+  }
+  .cx-tip-body {
+    display: grid;
+    grid-column: span 2;
+    gap: 3px;
+  }
+  .cx-tip-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    white-space: nowrap;
+    color: var(--cx-muted);
+  }
+  .cx-tip-meta b {
+    font-weight: 600;
+    color: var(--cx-text);
+  }
+  .cx-bot {
+    padding: 0 5px;
+    border: 1px solid var(--cx-border);
+    border-radius: 9999px;
+    font-size: 0.84em;
+    line-height: 1.45;
+    color: var(--cx-muted);
+  }
+  .cx-tip-swap {
+    display: grid;
+  }
+  .cx-tip-swap > * {
+    grid-area: 1 / 1;
+    transition:
+      opacity 0.35s ease,
+      transform 0.4s var(--cx-ease);
+  }
+  .cx-tip-text {
+    line-height: 1.45;
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  .cx-tip-text b {
+    font-weight: 600;
+  }
+  .cx:is([data-step='suggest'], [data-step='rescan']) .cx-tip-text {
+    opacity: 1;
+    transform: none;
+  }
+  .cx:is([data-step='suggest'], [data-step='rescan']) .cx-tip-sk {
+    opacity: 0;
+  }
+  .cx-tip-sk {
+    display: grid;
+    align-content: start;
+    gap: 0.6em;
+    padding-top: 0.35em;
+  }
+  .cx-tip-sk i {
+    height: 0.55em;
+    border-radius: 9999px;
+    background: var(--cx-surface-muted);
+    animation: cx-pulse 1.1s ease-in-out infinite;
+  }
+  .cx-tip-sk i:first-child {
+    width: 92%;
+  }
+  .cx-tip-sk i:last-child {
+    width: 58%;
+  }
+  .cx[data-step='pass'] .cx-tip {
+    opacity: 0;
+  }
+  .cx-merge {
+    align-items: center;
+    opacity: 0;
+  }
+  .cx[data-step='pass'] .cx-merge {
+    opacity: 1;
+    transition-delay: 0.25s;
+  }
+  .cx-merge-ico {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: hsl(0 0% 100%);
+    background: var(--cx-success);
+  }
+  .cx-merge-text {
+    display: grid;
+    gap: 1px;
+    color: var(--cx-muted);
+  }
+  .cx-merge-text b {
+    font-weight: 600;
+    color: var(--cx-text);
+  }
+  .cx-merge-text code {
+    color: var(--cx-text);
+  }
+  /* El botón de merge con el verde de GitHub, plano */
+  .cx-merge-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.94em;
+    font-weight: 600;
+    color: hsl(0 0% 100%);
+    background: #1f883d;
+    box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.12);
+  }
+
+  /* Celular: el estado baja debajo del título, la tabla deja la columna Antes (la base se ve en el rango), el
+     rango pasa a su propia fila con una marca corta del umbral y el código usa sangría de 2 caracteres */
+  @media (max-width: 479px) {
+    .cx {
+      --cx-indent: 2ch;
+      font-size: 11px;
+    }
+    .cx-hero {
+      padding: 12px 12px 0;
+    }
+    .cx-head {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .cx-title {
+      white-space: normal;
+    }
+    .cx-state {
+      grid-column: 2;
+    }
+    .cx-run {
+      margin: 7px -12px 0;
+      padding: 8px 12px;
+    }
+    .cx-body {
+      padding: 10px;
+    }
+    .cx-thead,
+    .cx-fn {
+      grid-template-columns: minmax(0, 1fr) var(--c-num) var(--c-delta);
+    }
+    .cx-col-base,
+    .cx-table::before,
+    .cx-limit {
+      display: none;
+    }
+    .cx-fn {
+      row-gap: 5px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+    .cx-range {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .cx-range::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      z-index: 1;
+      border-left: 1px dashed var(--cx-rule);
+    }
+  }
+</style>
+
+<script>
+  // Recorre los pasos mientras al menos un tercio de la vista se ve; fuera de pantalla o con la pestaña oculta
+  // se detiene donde iba. Con movimiento reducido no corre: queda el paso del HTML.
+  const STEPS: [step: string, ms: number][] = [
+    ['scan', 1600],
+    ['result', 2200],
+    ['inspect', 2400],
+    ['suggest', 3200],
+    ['rescan', 1700],
+    ['pass', 3600],
+  ];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const root of reduce ? [] : document.querySelectorAll<HTMLElement>('[data-cx]')) {
+    let index = 0;
+    let timer = 0;
+    let visible = false;
+    // Arranca desde el análisis; a esta altura la tarjeta todavía no se ve
+    root.dataset.step = STEPS[index][0];
+
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = visible && !document.hidden ? window.setTimeout(advance, STEPS[index][1]) : 0;
+    };
+    const advance = () => {
+      index = (index + 1) % STEPS.length;
+      root.dataset.step = STEPS[index][0];
+      schedule();
+    };
+
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        schedule();
+      },
+      { threshold: 0.35 },
+    ).observe(root);
+    document.addEventListener('visibilitychange', schedule);
+  }
+</script>

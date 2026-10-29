@@ -152,20 +152,20 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
     text-transform: uppercase;
     color: hsl(222 30% 48%);
   }
-  /* Como en Plantillas, la otra sección a dos columnas. */
+  /* Título de sección: la misma escala en todo el home (32 a 54 px, 600, −0,025em) */
   h2 {
     margin: 0;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(2.25rem, 3.6vw, 3rem);
-    line-height: 1.05;
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 1.06;
     letter-spacing: -0.025em;
     max-width: 16ch;
     text-wrap: balance;
   }
   .copy p:not(.kicker) {
     margin: 8px 0 0;
-    font-size: clamp(15px, 1.2vw, 17px);
+    font-size: clamp(16px, 1.2vw, 17px);
     line-height: 1.6;
     color: hsl(210 10% 34%);
     max-width: 52ch;

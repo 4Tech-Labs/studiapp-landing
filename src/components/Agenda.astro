@@ -17,7 +17,7 @@ const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel
 const id = isProduct ? 'agenda' : 'contacto';
 ---
 
-<section id={id} aria-labelledby={`${id}-titulo`} class="agenda" data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
+<section id={id} aria-labelledby={`${id}-titulo`} class:list={['agenda', { 'is-company': !isProduct }]} data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
   <div aria-hidden="true" class="glow"></div>
   {
     /* Solo en el home de la empresa: anillos azules que van del 55 % al 95 % del medio ancho, para que enmarquen el
@@ -52,7 +52,7 @@ const id = isProduct ? 'agenda' : 'contacto';
         </>
       ) : (
         <>
-          <p class="kicker">Contacto · Reunión de 30 minutos</p>
+          <p class="kicker">Reunión de 30 minutos</p>
           <h2 id={`${id}-titulo`}>
             <WaveTitle parts={[{ text: 'Hablemos de' }, { text: 'tu próximo proyecto.', accent: true, break: true }]} theme="dark" />
           </h2>
@@ -65,7 +65,8 @@ const id = isProduct ? 'agenda' : 'contacto';
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
-      {isProduct ? <a href="#caracteristicas" class="btn-ghost">Ver características</a> : <a href={mailto} class="btn-ghost">Escríbenos</a>}
+      {/* En el home basta un botón: el correo ya va en la nota de abajo */}
+      {isProduct && <a href="#caracteristicas" class="btn-ghost">Ver características</a>}
     </div>
     {
       SITE.bookingUrl ? (
@@ -125,9 +126,9 @@ const id = isProduct ? 'agenda' : 'contacto';
   .kicker {
     margin: 0 0 24px;
     font-family: var(--font-sans);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: hsl(222 24% 78%);
   }
@@ -145,6 +146,27 @@ const id = isProduct ? 'agenda' : 'contacto';
     font-weight: inherit;
     color: hsl(222 100% 88%);
     letter-spacing: 0;
+  }
+  /* En el home, la escala de las demás secciones: título de 32 a 54 px (−0,025em), párrafo de 17 px (16 px en
+     celular) y botones sin tracking. La landing de StudIApp conserva la suya, con el cierre grande y la entrada en
+     18 px. */
+  .is-company h2 {
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    letter-spacing: -0.025em;
+  }
+  .is-company .lead {
+    font-size: clamp(16px, 1.2vw, 17px);
+  }
+  /* Botón a la medida del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo */
+  .is-company .btn-primary {
+    height: 48px;
+    padding: 0 22px;
+    letter-spacing: 0;
+  }
+  @media (max-width: 479px) {
+    .is-company .btn-primary {
+      height: 44px;
+    }
   }
   .lead {
     margin: 24px 0 0;

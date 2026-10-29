@@ -74,7 +74,7 @@ export const CATALOG: (AvailableProduct | UpcomingProduct)[] = [
     theme: 'purple',
     title: ['Frena la complejidad', 'antes de que llegue a producción'],
     description:
-      'Con la IA escribiendo cada vez más código, revisar un pull request se volvió una caja negra. En segundos te mostramos qué funciones se complicaron y cómo simplificarlas. Construido sobre Complexipy, el open source de nuestro cofundador Robin Quintero, con más de 7 millones de descargas.',
+      'La IA escribe cada vez más código y revisar un pull request se volvió una caja negra. Ahora cada PR llega con su diagnóstico: qué funciones cuesta entender y cómo simplificarlas. Construido sobre Complexipy, el open source de nuestro cofundador Robin Quintero, con más de 7 millones de descargas.',
     descriptionLink: { text: 'Complexipy', href: 'https://github.com/rohaquinlop/complexipy' },
     // Lista de espera de Complexipy Teams (Worker + D1 de Robin); responde con CORS abierto.
     waitlistUrl: 'https://www.complexipy-teams.com/api/waitlist',

@@ -3,6 +3,7 @@ import { CATALOG } from '../data/site';
 import Grainient from './Grainient.astro';
 import GradientASCII from './GradientASCII.astro';
 import WaveTitle from './WaveTitle.astro';
+import ComplexipyPreview from './ComplexipyPreview.astro';
 
 // Catálogo de productos de la empresa (datos en CATALOG). Cada producto es una tarjeta a color que, en escritorio,
 // se queda fija arriba mientras la siguiente se apila encima. Los publicados enlazan a su landing; los que están
@@ -21,6 +22,10 @@ const ASCII_COLORS = {
   purple: ['#6d28d9', '#d6c8fd', '#c4b0fc', '#a78bfa'],
 };
 const ASCII_CHARACTERS = ' .:=+x{}#@';
+
+// Ecos detrás de la etiqueta, como una pila de cartas en la que la tarjeta es la carta número i + 1: dos ecos a la
+// derecha y, desde la segunda, uno a la izquierda por cada tarjeta anterior (hasta dos). El signo es el lado.
+const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k) => -(k + 1)), 1, 2];
 
 ---
 
@@ -46,8 +51,12 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
           <div class="info">
             <div class="main">
               <div class="tagrow">
-                <span class="tag">{p.name}</span>
-                {p.status === 'available' ? <span class="status">Disponible</span> : <span class="status is-soon">Próximo lanzamiento</span>}
+                <span class="tag">
+                  {p.name}
+                  {echoesOf(i).map((o) => (
+                    <i class:list={['echo', o < 0 ? 'is-prev' : `d-${o}`]} style={`--o:${o};--d:${Math.abs(o)}`} aria-hidden="true" />
+                  ))}
+                </span>
               </div>
               <h3>
                 <span class="l1">{p.title[0]}</span> <span class="l2">{p.title[1]}</span>
@@ -145,13 +154,13 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
               </span>
             </a>
           ) : (
-            // Maqueta de un check de complejidad en un pull request (ilustrativa, no son datos reales),
+            // Vista previa animada del check de complejidad en un pull request (ilustrativa, no son datos reales),
             // sobre un degradado de caracteres ASCII que remite al código
             <div class="visual is-ascii" aria-hidden="true">
               <span class="visual-bg">
                 <GradientASCII colors={ASCII_COLORS[p.theme]} shape="horizon" characters={ASCII_CHARACTERS} cellSize={16} density={0.8} grain={0} lightMode />
               </span>
-              <span class="window">
+              <div class="window">
                 <span class="bar">
                   <span class="lights">
                     <i />
@@ -160,40 +169,8 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
                   </span>
                   <span class="bar-title">{p.name}</span>
                 </span>
-                <span class="mock">
-                  <span class="pr">
-                    <span class="pr-num">#128</span> Refactor del módulo de pagos
-                  </span>
-                  <span class="run">
-                    <span class="run-ico">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
-                    </span>
-                    <span>
-                      <b>complexipy</b> · 2 funciones superan el umbral de 15
-                    </span>
-                  </span>
-                  <span class="fns">
-                    <span class="fn">
-                      <code>process_payment</code>
-                      <span class="score">9 → 21</span>
-                      <span class="delta up">+12</span>
-                    </span>
-                    <span class="fn">
-                      <code>validate_cart</code>
-                      <span class="score">17 → 18</span>
-                      <span class="delta up">+1</span>
-                    </span>
-                    <span class="fn">
-                      <code>build_invoice</code>
-                      <span class="score">14 → 11</span>
-                      <span class="delta down">−3</span>
-                    </span>
-                  </span>
-                  <span class="hint">
-                    <b>Sugerencia:</b> extrae la validación de <code>process_payment</code> a una función aparte.
-                  </span>
-                </span>
-              </span>
+                <ComplexipyPreview />
+              </div>
             </div>
           )}
         </li>
@@ -218,18 +195,19 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   }
   .kicker {
     margin: 0 0 16px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: hsl(232 14% 48%);
   }
+  /* Título de sección: la misma escala en todo el home (32 a 54 px, 600, −0,025em) */
   h2 {
     margin: 0;
     font-family: var(--font-display);
     font-weight: 600;
     font-size: clamp(2rem, 4.4vw, 3.4rem);
-    line-height: 1.08;
+    line-height: 1.06;
     letter-spacing: -0.025em;
     color: hsl(232 30% 12%);
     text-wrap: balance;
@@ -237,7 +215,7 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   .lead {
     margin: 18px auto 0;
     max-width: 56ch;
-    font-size: clamp(15px, 1.2vw, 17px);
+    font-size: clamp(16px, 1.2vw, 17px);
     line-height: 1.6;
     color: hsl(232 12% 40%);
     text-wrap: pretty;
@@ -299,14 +277,16 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     padding: clamp(12px, 2.4vw, 36px) clamp(8px, 1.6vw, 24px);
   }
 
-  /* Etiqueta con dos "ecos" detrás */
+  /* Etiqueta con "ecos" detrás (ver echoesOf): al llegar a la tarjeta salen deslizándose desde detrás de la
+     etiqueta y después se mecen despacio. Las dos animaciones van en propiedades distintas (transform y translate)
+     para sumarse, y las dos corren en el hilo gráfico. */
   .tagrow {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px 40px;
+    /* Contexto de apilado propio: los ecos (z-index negativo) quedan detrás de la etiqueta y delante de la tarjeta */
+    isolation: isolate;
   }
   .tag {
+    position: relative;
     display: inline-flex;
     align-items: center;
     height: 36px;
@@ -318,38 +298,47 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     letter-spacing: 0.02em;
     color: hsl(0 0% 100%);
     background: var(--tag);
-    box-shadow:
-      14px 0 0 0 var(--echo-1),
-      28px 0 0 0 var(--echo-2);
+    /* Filo del color de la tarjeta: separa cada capa de la que asoma detrás */
+    box-shadow: 0 0 0 2px var(--bg);
   }
-  .status {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink-soft);
+  .echo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--echo-1);
+    box-shadow: 0 0 0 2px var(--bg);
+    transform: translateX(calc(var(--o) * 14px));
+    transition: transform 0.75s cubic-bezier(0.34, 1.4, 0.64, 1) calc(0.1s + var(--d) * 110ms);
+    animation: echo-sway 2.8s ease-in-out calc(var(--d) * -0.7s) infinite alternate;
   }
-  .status::before {
-    content: '';
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: hsl(152 60% 42%);
-    box-shadow: 0 0 0 3px hsl(152 60% 42% / 0.18);
+  /* El de más lejos va más atrás y más claro; los de la izquierda (tarjetas anteriores), claros como ese */
+  .echo.d-2 {
+    z-index: -2;
   }
-  .status.is-soon::before {
-    background: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  .echo:is(.d-2, .is-prev) {
+    background: var(--echo-2);
+  }
+  @keyframes echo-sway {
+    to {
+      translate: calc(var(--o) * -3px) 0;
+    }
+  }
+  /* Antes de llegar a la tarjeta, escondidos detrás de la etiqueta y quietos (los pone el script) */
+  .tagrow[data-echo='pending'] .echo {
+    transform: none;
+    animation-play-state: paused;
   }
 
+  /* Un escalón por debajo del título de la sección (54 px) y con el peso del titular del hero (500): hero 74 →
+     sección 54 → tarjeta 40. Inter Tight ya es comprimida: con más de −0,02em las letras se juntan. */
   h3 {
     margin: 28px 0 0;
     font-family: var(--font-display);
-    font-size: clamp(2rem, 3.7vw, 3.3rem);
-    font-weight: 600;
-    line-height: 1.04;
-    letter-spacing: -0.035em;
+    font-size: clamp(1.75rem, 2.8vw, 2.5rem);
+    font-weight: 500;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
     text-wrap: balance;
   }
   .l1,
@@ -365,7 +354,7 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   .desc {
     margin: 22px 0 0;
     max-width: 46ch;
-    font-size: clamp(15px, 1.2vw, 17px);
+    font-size: clamp(16px, 1.2vw, 17px);
     line-height: 1.6;
     color: var(--ink-soft);
     text-wrap: pretty;
@@ -395,7 +384,7 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     padding: 0 13px 0 22px;
     border-radius: 9999px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     color: hsl(0 0% 100%);
     background: var(--btn);
     box-shadow: var(--btn-shadow);
@@ -456,7 +445,6 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   @media (max-width: 899px) {
     a.go {
       height: 46px;
-      font-size: 14.5px;
       box-shadow: 0 6px 16px -10px hsl(216 90% 30% / 0.5);
     }
     a.go::before {
@@ -540,9 +528,14 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     position: absolute;
     inset: 0;
   }
-  /* El ASCII deja transparentes las zonas sin luz: debajo va un fondo claro del tono de la tarjeta */
+  /* El ASCII deja transparentes las zonas sin luz: debajo va un fondo claro del tono de la tarjeta.
+     Menos margen que el video: la vista previa de Complexipy necesita el ancho para sus barras y su código. */
   .visual.is-ascii {
+    padding: clamp(16px, 3vw, 40px);
     background: color-mix(in srgb, var(--bg) 60%, hsl(0 0% 100%));
+  }
+  .visual.is-ascii .window {
+    max-width: 560px;
   }
   .window {
     position: relative;
@@ -589,14 +582,16 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   .lights i:nth-child(3) {
     background: #28c840;
   }
+  /* Bloque centrado y no grid: en un grid el texto no recibe los puntos suspensivos y en una ventana angosta se
+     cortaba a la mitad de una letra */
   .bar-title {
     position: absolute;
-    inset: 0 84px;
-    display: grid;
-    place-items: center;
+    inset: 0 76px;
     overflow: hidden;
     font-size: 12px;
     font-weight: 600;
+    line-height: 30px;
+    text-align: center;
     color: hsl(0 0% 38%);
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -689,9 +684,8 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     border: 0;
     border-radius: 9999px;
     font: inherit;
-    font-size: 14.5px;
+    font-size: 15px;
     font-weight: 600;
-    letter-spacing: 0.01em;
     color: hsl(0 0% 100%);
     /* Botón sólido en el tono más oscuro de la tarjeta: sobrio frente al degradado del titular */
     background: var(--ink);
@@ -810,7 +804,7 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
   .wl-legal {
     margin: 10px 0 0;
     padding-left: var(--wl-inset);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
     color: color-mix(in srgb, var(--ink-soft) 85%, transparent);
   }
@@ -840,91 +834,6 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
     .waitlist[data-state='done'] .wl-done {
       animation: none;
     }
-  }
-
-  /* Maqueta de un check de complejidad en un pull request */
-  .mock {
-    display: grid;
-    gap: 14px;
-    padding: clamp(16px, 2.4vw, 26px);
-    font-size: clamp(12px, 1vw, 14px);
-    color: hsl(232 24% 18%);
-  }
-  .mock code {
-    font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-    font-size: 0.95em;
-  }
-  .pr {
-    font-family: var(--font-display);
-    font-size: clamp(15px, 1.3vw, 18px);
-    font-weight: 600;
-    letter-spacing: -0.01em;
-  }
-  .pr-num {
-    font-weight: 400;
-    color: hsl(232 12% 44%);
-  }
-  .run {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: hsl(0 80% 97%);
-    box-shadow: inset 0 0 0 1px hsl(0 70% 90%);
-  }
-  .run-ico {
-    display: grid;
-    place-items: center;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    color: hsl(0 0% 100%);
-    background: hsl(0 65% 52%);
-  }
-  .fns {
-    display: grid;
-    border-radius: 12px;
-    box-shadow: inset 0 0 0 1px hsl(228 30% 92%);
-  }
-  .fn {
-    display: grid;
-    grid-template-columns: 1fr auto 3.2em;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-  }
-  .fn + .fn {
-    border-top: 1px solid hsl(228 30% 93%);
-  }
-  .score {
-    font-variant-numeric: tabular-nums;
-    color: hsl(232 12% 44%);
-  }
-  .delta {
-    justify-self: end;
-    padding: 2px 8px;
-    border-radius: 9999px;
-    font-size: 0.9em;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
-  .delta.up {
-    color: hsl(0 65% 42%);
-    background: hsl(0 80% 95%);
-  }
-  .delta.down {
-    color: hsl(152 60% 26%);
-    background: hsl(152 60% 92%);
-  }
-  .hint {
-    padding: 10px 12px;
-    border-radius: 12px;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-    color: hsl(240 40% 30%);
-    background: hsl(240 85% 97%);
   }
 
   /* Apilado: solo con espacio para que cada tarjeta quepa entera bajo el nav */
@@ -975,6 +884,26 @@ const ASCII_CHARACTERS = ' .:=+x{}#@';
 
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Ecos de las etiquetas: las tarjetas que todavía no se ven los esconden detrás de la etiqueta y, cuando la
+  // etiqueta entra entera en pantalla, salen deslizándose (una sola vez). Sin JS o con movimiento reducido quedan fijos.
+  if (!reduceMotion) {
+    const echoes = new IntersectionObserver(
+      (entries) => {
+        for (const { target, isIntersecting } of entries) {
+          if (!isIntersecting) continue;
+          target.removeAttribute('data-echo');
+          echoes.unobserve(target);
+        }
+      },
+      { threshold: 1 },
+    );
+    for (const row of document.querySelectorAll<HTMLElement>('.catalog .tagrow')) {
+      if (row.getBoundingClientRect().top < innerHeight * 0.9) continue;
+      row.dataset.echo = 'pending';
+      echoes.observe(row);
+    }
+  }
 
   // Videos de vista previa: no se descargan hasta que la tarjeta entra en pantalla, y se pausan al salir.
   // Con movimiento reducido o ahorro de datos se queda el póster.
