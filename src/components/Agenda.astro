@@ -1,5 +1,6 @@
 ---
 import { SITE, PRODUCT } from '../data/site';
+import EdgeSweep from './EdgeSweep.astro';
 import MagicRings from './MagicRings.astro';
 import WaveTitle from './WaveTitle.astro';
 
@@ -53,6 +54,7 @@ const copy = isProduct
     {/* Basta un botón: el correo ya va en la nota de abajo */}
     <div class="ctas">
       <a {...booking} class="btn-primary">
+        <EdgeSweep fill="var(--brand-grad)" edge="hsl(210 100% 75% / 0.35)" />
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
@@ -155,29 +157,31 @@ const copy = isProduct
     align-items: center;
     gap: 12px;
   }
-  /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse. A la medida
-     del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo. */
+  /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse, y por ese filo
+     corre una luz sin parar (EdgeSweep, que también pinta el relleno): es el cierre de la página y el único botón de
+     la sección. A la medida del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo. */
   .btn-primary {
+    position: relative;
+    isolation: isolate;
     display: inline-flex;
     align-items: center;
     gap: 8px;
     height: 48px;
     padding: 0 22px;
     border-radius: 9999px;
-    background: var(--brand-grad);
     color: hsl(0 0% 100%);
     font-size: 15px;
     font-weight: 600;
     white-space: nowrap;
     box-shadow:
       var(--brand-shadow),
-      0 0 0 1px hsl(210 100% 75% / 0.35),
       0 0 32px -6px rgb(26 92 192 / 0.6);
-    transition: filter 0.2s ease;
   }
   .btn-primary:hover {
     color: hsl(0 0% 100%);
-    filter: brightness(1.12);
+  }
+  .btn-primary:active {
+    translate: 0 1px;
   }
   @media (max-width: 479px) {
     .btn-primary {
