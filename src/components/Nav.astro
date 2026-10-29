@@ -30,11 +30,14 @@ const links = isProduct
       { href: '/#respaldo', label: 'Respaldo' },
       { href: '/#contacto', label: 'Contacto', cta: true },
     ];
+// Ancho del hueco del logo pequeño en la píldora (margen 8 + logo de 22 px de alto + padding 16 + gap 2). Arriba la
+// píldora se corre la mitad de este ancho para que los enlaces queden centrados sin el logo (ver .links).
+const slot = 8 + Math.round((logo.width / logo.height) * 22) + 16 + 2;
 ---
 
 <!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se condensa (equivale a scrollY > 60). -->
 <div class="cn-sentinel" aria-hidden="true" data-cn-sentinel></div>
-<header class="cn" data-cn data-cn-notch={isProduct ? '' : undefined}>
+<header class="cn" data-cn data-cn-notch={isProduct ? '' : undefined} style={isProduct ? undefined : `--slot: ${slot}px`}>
   {
     !isProduct && (
       <a href={home.href} aria-label={home.label} class="brand">
@@ -43,6 +46,7 @@ const links = isProduct
     )
   }
   <nav aria-label="Principal" class="links">
+    <span aria-hidden="true" class="glass"></span>
     <a href={home.href} aria-label={home.label} class:list={['pill-logo', { 'has-name': isProduct }]}>
       {
         // Robot más alto que el logo de la empresa (22 px): el dibujo trae mucho margen transparente. Va con el nombre
@@ -104,9 +108,11 @@ const links = isProduct
      2. el logo pequeño entra en la píldora con un leve rebote;
      3. Contacto se llena de azul y se enciende su destello.
      Al volver arriba ocurre lo inverso, más rápido y sin rebote.
-     Rendimiento: el desplazamiento de la barra es transform (no top), el fondo de Contacto anima background-color
-     y sombras (no se intercambian degradados), y los brillos son pseudo-elementos que solo cambian de opacidad.
-     El cambio lo dispara un IntersectionObserver (sin escuchar el scroll). */
+     Rendimiento: todo lo que se mueve durante el cambio es transform, translate u opacidad, que la GPU compone sin
+     recalcular el layout ni repintar. La píldora no cambia de tamaño (el hueco del logo pequeño está siempre
+     reservado y arriba se corre con translate); el vidrio, sus sombras y el relleno de Contacto son capas que solo
+     cambian de opacidad; y los logos no usan blur(), porque un filtro que mueve píxeles saca sus animaciones de la
+     GPU. El cambio lo dispara un IntersectionObserver (sin escuchar el scroll). */
   .cn-sentinel {
     position: absolute;
     top: 0;
@@ -146,7 +152,6 @@ const links = isProduct
     transition:
       opacity 0.35s var(--ease) 0.1s,
       transform 0.45s var(--ease-out) 0.1s,
-      filter 0.35s var(--ease) 0.1s,
       visibility 0s linear 0s;
   }
   .brand :global(img) {
@@ -155,7 +160,9 @@ const links = isProduct
     height: 34px;
   }
 
-  /* Píldora de enlaces: siempre en la columna del centro, aunque no haya logo grande (StudIApp) */
+  /* Píldora de enlaces: siempre en la columna del centro, aunque no haya logo grande (StudIApp). Mide lo mismo en
+     los dos estados: el hueco del logo pequeño existe siempre y, arriba, la píldora se corre la mitad de ese hueco
+     (--slot) a la izquierda para centrar los enlaces. Al condensarse vuelve a su sitio con translate. */
   .links {
     grid-column: 2;
     position: relative;
@@ -163,15 +170,10 @@ const links = isProduct
     display: flex;
     align-items: center;
     gap: 2px;
-    padding: 5px;
-    /* Radio finito (no 9999px) para que la transformación en notch interpole suave. */
-    border-radius: 26px;
+    padding: 9px 8px 7px;
     border: 1px solid transparent;
-    transition:
-      background 0.3s var(--ease),
-      box-shadow 0.3s var(--ease),
-      border-radius 0.35s var(--ease-out),
-      padding 0.35s var(--ease-out);
+    translate: calc(var(--slot, 0px) / -2) 0;
+    transition: translate 0.35s var(--ease-out);
   }
   .links a {
     padding: 8px 13px;
@@ -193,24 +195,29 @@ const links = isProduct
       0 2px 8px -3px hsl(232 50% 30% / 0.18);
   }
 
-  /* Logo pequeño dentro de la píldora: colapsado (ancho 0 y fuera del orden de tabulación) hasta que la nav se condensa.
-     El contenedor abre el espacio; la imagen entra aparte (escala, opacidad y desenfoque), que es lo que se ve. */
+  /* Logo pequeño dentro de la píldora: su hueco está siempre (ver .links), pero arriba va oculto y fuera del orden de
+     tabulación. La imagen entra aparte con escala y opacidad; el divisor es un pseudo-elemento que solo cambia de
+     opacidad, centrado: 16 px antes (este padding) y ~15 px después (gap + padding del enlace). */
   .links .pill-logo {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    max-width: 0;
-    margin: 0;
-    padding: 0;
+    margin: 0 0 0 8px;
+    padding: 0 16px 0 0;
     border-radius: 0;
-    border-right: 0 solid hsl(232 20% 40% / 0);
-    overflow: hidden;
     visibility: hidden;
-    transition:
-      max-width 0.35s var(--ease-out) 0.05s,
-      margin 0.35s var(--ease-out) 0.05s,
-      padding 0.35s var(--ease-out) 0.05s,
-      border-color 0.2s var(--ease),
-      visibility 0s linear 0.4s;
+    transition: visibility 0s linear 0.35s;
+  }
+  .links .pill-logo::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    background: hsl(232 20% 40% / 0.15);
+    opacity: 0;
+    transition: opacity 0.2s var(--ease);
   }
   .links .pill-logo:hover {
     background: none;
@@ -224,41 +231,41 @@ const links = isProduct
     height: 22px;
     opacity: 0;
     transform: scale(0.6);
-    filter: blur(4px);
     transition:
       opacity 0.2s var(--ease-in),
-      transform 0.25s var(--ease-in),
-      filter 0.2s var(--ease-in);
+      transform 0.25s var(--ease-in);
   }
 
-  /* Contacto: enlace normal arriba; en el notch se llena con el azul de la marca (la acción principal).
-     Mismo número de sombras en ambos estados para que interpolen. */
+  /* Contacto: enlace normal arriba; en el notch se llena con el azul de la marca (la acción principal). El relleno y
+     sus sombras son un pseudo-elemento que solo cambia de opacidad: animar background-color y box-shadow repintaba
+     el botón en cada cuadro. */
   .links .nav-cta {
     position: relative;
     isolation: isolate;
     margin-left: 4px;
-    background-color: rgb(1 68 160 / 0);
-    box-shadow:
-      inset 0 10px 12px -10px hsl(0 0% 100% / 0),
-      inset 0 1px 1px hsl(0 0% 100% / 0),
-      0 0 0 1px rgb(1 58 140 / 0),
-      0 6px 14px -6px rgb(1 68 160 / 0);
     transition:
-      background-color 0.25s var(--ease),
       color 0.25s var(--ease),
-      box-shadow 0.25s var(--ease),
       transform 0.25s var(--ease),
       filter 0.2s ease;
   }
-  .cn[data-scrolled] .links .nav-cta,
-  .cn[data-scrolled] .links .nav-cta:hover {
-    color: hsl(0 0% 100%);
+  .links .nav-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
     background-color: var(--brand);
     box-shadow:
       inset 0 10px 12px -10px hsl(0 0% 100% / 0.45),
       inset 0 1px 1px hsl(0 0% 100% / 0.3),
       0 0 0 1px rgb(1 58 140 / 1),
       0 6px 14px -6px rgb(1 68 160 / 0.6);
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  .cn[data-scrolled] .links .nav-cta,
+  .cn[data-scrolled] .links .nav-cta:hover {
+    color: hsl(0 0% 100%);
   }
   .cn[data-scrolled] .links .nav-cta:hover {
     filter: brightness(1.12);
@@ -417,19 +424,41 @@ const links = isProduct
   }
 
   /* Vidrio líquido solo con CSS (sin filtros SVG de refracción, que son costosos): un único backdrop-filter,
-     fondo translúcido en degradado, filo especular (borde con máscara) y un brillo suave arriba. */
-  .links::before,
-  .links::after {
+     fondo translúcido en degradado, filo especular (borde con máscara) y un brillo suave arriba. Es una capa propia
+     con la forma final del notch que solo cambia de opacidad: no se repinta ni se rasteriza de nuevo al condensarse. */
+  .glass {
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: 0 0 22px 22px;
+    pointer-events: none;
+    /* 75 % a 65 %: con el desenfoque, lo de atrás se ve difuminado y los enlaces se leen bien. */
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.75) 0%, hsl(220 60% 98% / 0.65) 100%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
+    backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
+    box-shadow:
+      inset 0 -1px 1px hsl(0 0% 100% / 0.6),
+      inset 0 -8px 16px -10px hsl(215 80% 60% / 0.18),
+      0 1px 2px hsl(232 40% 20% / 0.06),
+      0 14px 34px -14px hsl(232 50% 30% / 0.32);
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  /* Sin soporte de backdrop-filter no hay difuminado: la barra va casi sólida para que el texto se lea. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass {
+      background: hsl(0 0% 100% / 0.94);
+    }
+  }
+  .glass::before,
+  .glass::after {
     content: '';
     position: absolute;
     pointer-events: none;
     border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.25s var(--ease);
-    z-index: -1;
   }
   /* Filo de luz en los lados y abajo, más intenso en las esquinas, como el reflejo en un borde curvo. */
-  .links::before {
+  .glass::before {
     inset: 0;
     padding: 0 1px 1px;
     background: linear-gradient(
@@ -446,7 +475,7 @@ const links = isProduct
     mask-composite: exclude;
   }
   /* Brillo especular que baja desde el borde de la ventana. */
-  .links::after {
+  .glass::after {
     inset: 0 10% 50% 10%;
     background: radial-gradient(ellipse 60% 100% at 50% 0%, hsl(0 0% 100% / 0.7), transparent 75%);
   }
@@ -461,67 +490,35 @@ const links = isProduct
   .cn[data-scrolled] .brand {
     opacity: 0;
     transform: translateX(14px) scale(0.6);
-    filter: blur(4px);
     visibility: hidden;
     pointer-events: none;
     transition:
       opacity 0.25s var(--ease-in),
       transform 0.35s var(--ease-in),
-      filter 0.25s var(--ease-in),
       visibility 0s linear 0.35s;
   }
+  /* La píldora vuelve al centro (los enlaces se corren a la derecha para dejar sitio al logo) y aparece el vidrio. */
   .cn[data-scrolled] .links {
     align-self: start;
-    padding: 9px 8px 7px;
-    border-radius: 0 0 22px 22px;
-    /* 75 % a 65 %: con el desenfoque, lo de atrás se ve difuminado y los enlaces se leen bien. */
-    background: linear-gradient(180deg, hsl(0 0% 100% / 0.75) 0%, hsl(220 60% 98% / 0.65) 100%);
-    -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
-    backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
-    box-shadow:
-      inset 0 -1px 1px hsl(0 0% 100% / 0.6),
-      inset 0 -8px 16px -10px hsl(215 80% 60% / 0.18),
-      0 1px 2px hsl(232 40% 20% / 0.06),
-      0 14px 34px -14px hsl(232 50% 30% / 0.32);
-    transition:
-      background 0.4s var(--ease),
-      box-shadow 0.4s var(--ease),
-      border-radius 0.55s var(--ease-out),
-      padding 0.55s var(--ease-out);
+    translate: none;
+    transition: translate 0.55s var(--ease-out);
   }
-  /* Sin soporte de backdrop-filter no hay difuminado: la barra va casi sólida para que el texto se lea. */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .cn[data-scrolled] .links {
-      background: hsl(0 0% 100% / 0.94);
-    }
-  }
-  .cn[data-scrolled] .links::before,
-  .cn[data-scrolled] .links::after {
+  .cn[data-scrolled] .glass {
     opacity: 1;
-    transition: opacity 0.4s var(--ease) 0.15s;
+    transition: opacity 0.4s var(--ease);
   }
-  /* 2. El logo pequeño abre su espacio y entra con un leve rebote. */
+  /* 2. El logo pequeño aparece en su hueco con un leve rebote, y después el divisor. */
   .cn[data-scrolled] .pill-logo {
-    max-width: 80px;
-    /* Divisor centrado: 16 px antes (este padding) y ~15 px después (gap + padding del enlace). */
-    margin: 0 0 0 8px;
-    padding-right: 16px;
-    border-right-width: 1px;
-    border-right-color: hsl(232 20% 40% / 0.15);
     visibility: visible;
-    transition:
-      max-width 0.5s var(--ease-out) 0.1s,
-      margin 0.5s var(--ease-out) 0.1s,
-      padding 0.5s var(--ease-out) 0.1s,
-      border-color 0.3s var(--ease) 0.35s,
-      visibility 0s linear 0s;
+    transition: visibility 0s linear 0s;
+  }
+  .cn[data-scrolled] .pill-logo::after {
+    opacity: 1;
+    transition: opacity 0.3s var(--ease) 0.35s;
   }
   /* StudIApp: robot y nombre. El margen transparente del robot ya separa el dibujo del texto. */
   .pill-logo.has-name {
     gap: 3px;
-  }
-  .cn[data-scrolled] .pill-logo.has-name {
-    max-width: 160px;
   }
   .pill-name {
     font-family: var(--font-display);
@@ -534,20 +531,20 @@ const links = isProduct
     opacity: 1;
     /* Ajuste óptico: la estela debajo de las letras sube el peso visual del logo; 2 px abajo lo alinea con el texto. */
     transform: translateY(2px);
-    filter: none;
     transition:
       opacity 0.35s var(--ease) 0.2s,
-      transform 0.55s var(--spring) 0.2s,
-      filter 0.35s var(--ease) 0.2s;
+      transform 0.55s var(--spring) 0.2s;
   }
   /* 3. Contacto se llena de azul con un pequeño pulso y después se enciende el destello. */
   .cn[data-scrolled] .links .nav-cta {
     animation: ctaPop 0.5s var(--spring) 0.3s backwards;
     transition:
-      background-color 0.4s var(--ease) 0.3s,
       color 0.3s var(--ease) 0.3s,
-      box-shadow 0.4s var(--ease) 0.3s,
       filter 0.2s ease;
+  }
+  .cn[data-scrolled] .links .nav-cta::before {
+    opacity: 1;
+    transition: opacity 0.4s var(--ease) 0.3s;
   }
   .cn[data-scrolled] .cta-ring {
     opacity: 1;
@@ -590,7 +587,7 @@ const links = isProduct
     }
     .links {
       gap: 4px;
-      padding: 4px;
+      padding: 7px 6px 6px;
     }
     .links a:not(.pill-logo, .nav-cta) {
       display: none;
@@ -627,10 +624,7 @@ const links = isProduct
     .pill-name {
       font-size: 14px;
     }
-    .cn[data-scrolled] .links {
-      padding: 7px 6px 6px;
-    }
-    .cn[data-scrolled] .pill-logo {
+    .links .pill-logo {
       margin-left: 6px;
       padding-right: 10px;
     }
@@ -651,6 +645,16 @@ const links = isProduct
       update();
     }).observe(sentinel);
     mobile.addEventListener('change', update);
+
+    // La entrada (cnIn) se quita al terminar: mientras siga asignada, Chrome trata la transición de transform del
+    // notch como incompatible con ella y la mueve en el hilo principal en vez de componerla en la GPU.
+    const endIntro = (e: AnimationEvent) => {
+      if (e.target !== nav) return;
+      nav.style.animation = 'none';
+      nav.removeEventListener('animationend', endIntro);
+    };
+    if (nav.getAnimations().every((a) => a.playState === 'finished')) nav.style.animation = 'none';
+    else nav.addEventListener('animationend', endIntro);
   }
 
   // Menú de celular: abre y cierra con el botón; se cierra con Escape, al tocar fuera, al elegir un enlace o al pasar a escritorio.
