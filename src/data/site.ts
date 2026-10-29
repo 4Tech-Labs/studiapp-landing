@@ -240,7 +240,7 @@ export const TEAM: TeamMember[] = [
   { name: 'Kaner Murillo Conrado', role: 'Cofundador & CEO', linkedin: 'https://www.linkedin.com/in/kaner-murillo/', photo: 'kaner-murillo.jpg' },
   { name: 'Robin Quintero', role: 'Cofundador & CISO', linkedin: 'https://www.linkedin.com/in/robin-hafid/', photo: 'robin-quintero.jpg' },
   { name: 'Juan Camilo Dorado', role: 'Cofundador & CTO', linkedin: 'https://www.linkedin.com/in/camilodorado/', photo: 'juan-camilo-dorado.jpg' },
-  { name: 'Josue Ruano', role: 'Cofundador & CPO', linkedin: 'https://www.linkedin.com/in/josue-ruano-958a38219/', photo: 'josue-ruano.jpg' },
+  { name: 'Josué Ruano', role: 'Cofundador & CPO', linkedin: 'https://www.linkedin.com/in/josue-ruano-958a38219/', photo: 'josue-ruano.jpg' },
 ];
 
 /** Parámetros compartidos por las cuatro páginas legales. */

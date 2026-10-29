@@ -11,7 +11,7 @@ const photos = import.meta.glob<{ default: ImageMetadata }>('../assets/team/*.{j
 const photoOf = (file?: string) => (file ? photos[`../assets/team/${file}`]?.default : undefined);
 
 // Nombre y primer apellido: con 4 o más palabras (dos nombres y dos apellidos) el primer apellido es la penúltima;
-// con menos, la última ("Juan Camilo Dorado" → JD, "Josue Ruano" → JR).
+// con menos, la última ("Juan Camilo Dorado" → JD, "Josué Ruano" → JR).
 const initials = (name: string) => {
   const w = name.split(' ');
   if (w.length < 2) return w[0][0];
