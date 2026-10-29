@@ -1,0 +1,91 @@
+---
+import VideoPlayer from './VideoPlayer.astro';
+import { INCLUSION } from '../data/site';
+---
+
+<!-- Misma tarjeta que Plantillas, espejada: el video a la izquierda en escritorio, el copy primero en móvil y en el DOM. -->
+<section id="inclusion" aria-labelledby="inclusion-titulo" class="inclusion" data-screen-label="Inclusión">
+  <div class="wrap">
+    <div class="copy">
+      <h2 id="inclusion-titulo">{INCLUSION.title[0]} <span class="accent">{INCLUSION.title[1]}</span></h2>
+      <p>{INCLUSION.text}</p>
+    </div>
+    <div class="art">
+      <div class="media-box">
+        <VideoPlayer label={INCLUSION.label} webm={INCLUSION.video.webm} mp4={INCLUSION.video.mp4} poster={INCLUSION.video.poster} />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .inclusion {
+    margin-top: var(--gap);
+    border-radius: var(--radius);
+    background: hsl(0 0% 100%);
+    box-shadow: inset 0 0 0 1px hsl(0 0% 93%);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+  }
+  .wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse; /* al envolver, el copy queda arriba */
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: clamp(16px, 3vw, 48px);
+    padding: clamp(16px, 2.4vw, 32px);
+  }
+  .copy {
+    flex: 1 1 min(340px, 100%);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    padding: clamp(24px, 4vw, 64px) clamp(8px, 3.5vw, 64px);
+  }
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.25rem, 3.6vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    max-width: 16ch;
+    text-wrap: balance;
+  }
+  .accent {
+    color: var(--accent);
+  }
+  .copy p {
+    margin: 8px 0 0;
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.6;
+    color: hsl(210 10% 34%);
+    max-width: 44ch;
+    text-wrap: pretty;
+  }
+  .art {
+    flex: 1.15 1 min(460px, 100%);
+    min-width: 0;
+    align-self: center; /* caja 16:9 centrada: sin franjas alrededor del video */
+    display: flex;
+  }
+  .media-box {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 64, 163, 0.07),
+      0 10px 26px -18px rgba(0, 64, 163, 0.28);
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    background: hsl(220 24% 96%);
+  }
+</style>

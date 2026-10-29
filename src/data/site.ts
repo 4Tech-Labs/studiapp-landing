@@ -157,6 +157,14 @@ export const FEATURES: Feature[] = [
   },
 ];
 
+/** Sección de inclusión (DUA y PIAR) de /studiapp. Reusa el video de la pestaña hasta tener uno propio. */
+export const INCLUSION: { title: [string, string]; text: string; label: string; video: VideoSources } = {
+  title: ['Educación inclusiva', 'desde la primera planeación'], // la 2.ª parte va en color de acento
+  text: 'StudIApp aplica los principios del DUA en cada planeación y genera el PIAR de cada estudiante en el formato que define tu colegio, incluso si es uno propio. Ajustes razonables listos para revisar, sin duplicar el trabajo del docente.',
+  label: 'dua y piar',
+  video: { mp4: '/videos/dua-y-piar-v1.mp4', poster: '/videos/dua-y-piar-v1-poster.webp' },
+};
+
 export interface FaqItem {
   question: string;
   answer: string;
@@ -183,7 +191,7 @@ export const FAQ: FaqItem[] = [
   },
   {
     question: '¿Cómo me ayuda con DUA y PIAR?',
-    answer: 'Le das al copiloto el contexto de tu grupo y te ayuda a aplicar DUA y PIAR para adaptar tus clases a cada necesidad, sin trabajo doble.',
+    answer: 'Le das al copiloto el contexto de tu grupo y te ayuda a aplicar DUA y PIAR para adaptar tus clases a cada necesidad y generar el PIAR en el formato de tu colegio, sin trabajo doble.',
   },
   {
     question: '¿Cómo empiezo?',
