@@ -210,6 +210,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     --b400: #0144a0;
     --b500: #012c6b;
     --r: 16px;
+    --ring-peak: #fff;
     display: inline-block;
     margin-top: 34px;
     border-radius: var(--r);
@@ -260,23 +261,24 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     transform: translate(8px, -8px);
     transition: all 0.3s ease;
   }
+  /* Luz que recorre el borde: una franja de 120 px que pasa por el centro y gira (el borde de 3 px de .wrap es lo
+     único que deja ver, .content tapa el resto). No es un elemento que gira con transform sino un degradado cuyo
+     ángulo (--ring-a, registrado con @property) se anima: así se pinta junto con el botón, con bordes suavizados. Con
+     transform, Safari de iPhone lo pasaba a una capa de GPU y, como el botón está inclinado, recortaba el aro sin
+     antialiasing y la luz se veía pixelada. Sin @property (Safari < 16.4) la luz queda quieta. Sin valor de respaldo
+     en var(): con var(--ring-a, 90deg) Chrome dejaba el degradado fijo en 90deg mientras el ángulo giraba. */
   .outline {
     position: absolute;
     inset: 0;
-    overflow: hidden;
     border-radius: inherit;
-    opacity: 1;
-    transition: all 0.4s ease;
-  }
-  .outline::before {
-    content: '';
-    position: absolute;
-    inset: 2px;
-    width: 120px;
-    height: 400px;
-    margin: auto;
-    background: linear-gradient(to right, transparent 0%, white 50%, transparent 100%);
-    animation: spin 3s linear infinite;
+    background: linear-gradient(
+      var(--ring-a),
+      transparent calc(50% - 60px),
+      var(--ring-peak) 50%,
+      transparent calc(50% + 60px)
+    );
+    animation: ringSpin 3s linear infinite;
+    transition: opacity 0.4s ease;
   }
   .content {
     position: relative;
@@ -347,10 +349,12 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     border-radius: 1px;
     background-color: var(--white);
   }
+  /* La flecha se mueve con el mismo truco que la luz: se animan --arrow-x, --head-a y --head-b (no transform), por la
+     misma razón. */
   .arrow span {
     position: relative;
     width: 22px;
-    transform: scale(0.9);
+    transform: translateX(var(--arrow-x, 0px)) scale(0.9);
     background: linear-gradient(to bottom, var(--white), var(--b100));
     box-shadow: -2px 2px 5px var(--b400);
     animation: swingArrow 1.8s ease-in-out infinite;
@@ -366,13 +370,13 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
   }
   .arrow span::before {
     top: 1px;
-    transform: rotate(44deg);
+    transform: rotate(var(--head-a, 44deg));
     box-shadow: 1px -2px 3px -1px var(--b400);
     animation: rotateArrowLine 1s linear infinite;
   }
   .arrow span::after {
     bottom: 1px;
-    transform: rotate(316deg);
+    transform: rotate(var(--head-b, 316deg));
     box-shadow: -2px 2px 3px 0 var(--b400);
     background: linear-gradient(200deg, var(--white), var(--b100));
     animation: rotateArrowLine2 1s linear infinite;
@@ -436,9 +440,34 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     animation: splash 0.8s cubic-bezier(0.3, 0, 0, 1) forwards 0.05s;
   }
 
-  @keyframes spin {
+  /* Registradas para que se interpolen de forma continua (sin registrar saltarían de un valor al otro). */
+  @property --ring-a {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 90deg;
+  }
+  @property --arrow-x {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: 0px;
+  }
+  @property --head-a {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 44deg;
+  }
+  @property --head-b {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 316deg;
+  }
+  /* 90deg es la franja vertical (degradado hacia la derecha); una vuelta completa en 3 s, como antes. */
+  @keyframes ringSpin {
+    from {
+      --ring-a: 90deg;
+    }
     to {
-      transform: rotate(360deg);
+      --ring-a: 450deg;
     }
   }
   @keyframes charAppear {
@@ -474,23 +503,23 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
   }
   @keyframes swingArrow {
     50% {
-      transform: translateX(4px) scale(0.9);
+      --arrow-x: 4px;
     }
   }
   @keyframes rotateArrowLine {
     50% {
-      transform: rotate(30deg);
+      --head-a: 30deg;
     }
     80% {
-      transform: rotate(55deg);
+      --head-a: 55deg;
     }
   }
   @keyframes rotateArrowLine2 {
     50% {
-      transform: rotate(330deg);
+      --head-b: 330deg;
     }
     80% {
-      transform: rotate(300deg);
+      --head-b: 300deg;
     }
   }
   @keyframes splash {
@@ -543,6 +572,17 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     .line {
       display: inline;
     }
+    /* En celular la luz del borde es más sutil: a pantalla completa de un teléfono el blanco puro se veía muy fuerte. */
+    .cta {
+      --ring-peak: rgb(255 255 255 / 0.6);
+    }
+  }
+  /* Fuera de pantalla las animaciones del botón se pausan: ahora corren en el hilo principal (ver .outline). */
+  .ch[data-away] .outline,
+  .ch[data-away] .arrow span,
+  .ch[data-away] .arrow span::before,
+  .ch[data-away] .arrow span::after {
+    animation-play-state: paused;
   }
 </style>
 
@@ -580,6 +620,7 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
     };
     new IntersectionObserver(([entry]) => {
       inView = entry.isIntersecting;
+      hero.toggleAttribute('data-away', !inView);
       setup();
     }).observe(hero);
     mq.addEventListener('change', setup);
