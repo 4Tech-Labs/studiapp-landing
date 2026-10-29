@@ -7,6 +7,7 @@ import { INCLUSION } from '../data/site';
 <section id="inclusion" aria-labelledby="inclusion-titulo" class="inclusion" data-screen-label="Inclusión">
   <div class="wrap">
     <div class="copy">
+      <p class="kicker">DUA y PIAR</p>
       <h2 id="inclusion-titulo">{INCLUSION.title[0]} <span class="accent">{INCLUSION.title[1]}</span></h2>
       <p>{INCLUSION.text}</p>
     </div>
@@ -48,6 +49,16 @@ import { INCLUSION } from '../data/site';
     gap: 16px;
     padding: clamp(24px, 4vw, 64px) clamp(8px, 3.5vw, 64px);
   }
+  /* Misma etiqueta que "Características" y "Preguntas frecuentes". */
+  .kicker {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(222 30% 48%);
+  }
   h2 {
     margin: 0;
     font-family: var(--font-display);
@@ -61,7 +72,7 @@ import { INCLUSION } from '../data/site';
   .accent {
     color: var(--accent);
   }
-  .copy p {
+  .copy p:not(.kicker) {
     margin: 8px 0 0;
     font-size: clamp(15px, 1.2vw, 17px);
     line-height: 1.6;
