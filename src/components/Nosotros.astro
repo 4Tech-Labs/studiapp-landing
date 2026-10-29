@@ -38,11 +38,9 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
       <p class="kicker">Quiénes somos</p>
       <h2 id="nosotros-titulo"><WaveTitle parts={[{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }]} /></h2>
       <p>
-        <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software. Construimos aplicaciones web y móviles a la medida y automatizamos las tareas repetitivas de tu operación.
-      </p>
-      <p>
-        También creamos productos propios: <a href={PRODUCT.path}>{PRODUCT.name}</a>, para la planeación docente, y{' '}
-        {complexipy ? <a href={`#${complexipy.id}`}>{complexipy.name}</a> : 'Complexipy Platform'}, construida sobre el open source de nuestro cofundador con más de 7 millones de descargas.
+        <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software que construye aplicaciones web y móviles a la medida, automatiza procesos operativos y desarrolla productos propios como{' '}
+        <a href={PRODUCT.path}>{PRODUCT.name}</a>, para la planeación curricular, y{' '}
+        {complexipy ? <a href={`#${complexipy.id}`}>{complexipy.name}</a> : 'Complexipy Platform'}, basada en el proyecto open source de nuestro cofundador con más de 7 millones de descargas.
       </p>
     </div>
 
@@ -112,15 +110,23 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
 </section>
 
 <style>
+  /* overflow: clip y no hidden: hidden vuelve la sección un contenedor de scroll y la ola del título (WaveTitle)
+     seguiría el scroll de la sección, que nunca se mueve, en vez del de la página */
   .nosotros {
     position: relative;
-    overflow: hidden;
+    overflow: clip;
     isolation: isolate;
     margin-top: var(--gap);
     border-radius: var(--radius);
     background: linear-gradient(180deg, hsl(220 44% 96.5%) 0%, hsl(220 40% 98%) 100%);
     padding: clamp(56px, 7vw, 96px) clamp(20px, 4vw, 48px);
     scroll-margin-top: 14px;
+  }
+  /* Safari < 16 no conoce overflow: clip (tampoco las animaciones ligadas al scroll: ahí la ola va por JavaScript) */
+  @supports not (overflow: clip) {
+    .nosotros {
+      overflow: hidden;
+    }
   }
   .waves {
     position: absolute;

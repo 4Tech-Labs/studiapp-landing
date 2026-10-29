@@ -38,9 +38,11 @@ import WaveTitle from './WaveTitle.astro';
 </section>
 
 <style>
+  /* overflow: clip y no hidden: hidden vuelve la sección un contenedor de scroll y la ola del título (WaveTitle)
+     seguiría el scroll de la sección, que nunca se mueve, en vez del de la página */
   .respaldo {
     position: relative;
-    overflow: hidden;
+    overflow: clip;
     margin-top: var(--gap);
     border-radius: var(--radius);
     background:
@@ -50,6 +52,12 @@ import WaveTitle from './WaveTitle.astro';
     box-shadow: inset 0 0 0 1px hsl(220 28% 92%);
     padding: clamp(64px, 8vw, 112px) clamp(20px, 4vw, 48px);
     scroll-margin-top: 14px;
+  }
+  /* Safari < 16 no conoce overflow: clip (tampoco las animaciones ligadas al scroll: ahí la ola va por JavaScript) */
+  @supports not (overflow: clip) {
+    .respaldo {
+      overflow: hidden;
+    }
   }
   /* Capa de la cuadrícula animada (ShapeGrid se desvanece sola hacia los bordes). */
   .grid-bg {

@@ -104,11 +104,13 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
 }
 
 <style>
+  /* overflow: clip y no hidden: hidden vuelve la sección un contenedor de scroll y la ola del título (WaveTitle)
+     seguiría el scroll de la sección, que nunca se mueve, en vez del de la página */
   .team {
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --arc: 50deg; /* giro máximo de las tarjetas en los bordes del riel */
     position: relative;
-    overflow: hidden;
+    overflow: clip;
     margin-top: var(--gap);
     border-radius: var(--radius);
     background: hsl(234 48% 6%);
@@ -119,6 +121,12 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
     gap: clamp(40px, 5vw, 64px);
     padding: clamp(64px, 7vw, 104px) 0 clamp(56px, 6vw, 88px);
     scroll-margin-top: 14px;
+  }
+  /* Safari < 16 no conoce overflow: clip (tampoco las animaciones ligadas al scroll: ahí la ola va por JavaScript) */
+  @supports not (overflow: clip) {
+    .team {
+      overflow: hidden;
+    }
   }
   .glow {
     position: absolute;

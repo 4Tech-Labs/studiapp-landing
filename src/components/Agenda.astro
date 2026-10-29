@@ -81,11 +81,13 @@ const id = isProduct ? 'agenda' : 'contacto';
 </section>
 
 <style>
+  /* overflow: clip y no hidden: hidden vuelve la sección un contenedor de scroll y la ola del título (WaveTitle)
+     seguiría el scroll de la sección, que nunca se mueve, en vez del de la página */
   .agenda {
     position: relative;
     margin-top: var(--gap);
     border-radius: var(--radius);
-    overflow: hidden;
+    overflow: clip;
     background: hsl(222 30% 6%);
     color: hsl(0 0% 100%);
     display: flex;
@@ -94,6 +96,12 @@ const id = isProduct ? 'agenda' : 'contacto';
     text-align: center;
     padding: clamp(72px, 8vw, 112px) clamp(24px, 5vw, 64px);
     scroll-margin-top: 14px;
+  }
+  /* Safari < 16 no conoce overflow: clip (tampoco las animaciones ligadas al scroll: ahí la ola va por JavaScript) */
+  @supports not (overflow: clip) {
+    .agenda {
+      overflow: hidden;
+    }
   }
   .glow {
     position: absolute;
