@@ -1,6 +1,10 @@
 ---
 import VideoPlayer from './VideoPlayer.astro';
+import Grainient from './Grainient.astro';
 import { INCLUSION } from '../data/site';
+
+// Misma paleta azul y ajustes del fondo de la tarjeta de StudIApp en el catálogo del home (Catalog.astro).
+const GRAINIENT_BLUE = ['#eef5ff', '#cfe0ff', '#9ec0ff', '#7b93f5', '#5b6ee8'];
 ---
 
 <!-- Misma tarjeta que Plantillas, espejada: el video a la izquierda en escritorio, el copy primero en móvil y en el DOM. -->
@@ -12,6 +16,9 @@ import { INCLUSION } from '../data/site';
       <p>{INCLUSION.text}</p>
     </div>
     <div class="art">
+      <span class="art-bg" aria-hidden="true">
+        <Grainient colors={GRAINIENT_BLUE} angle={55} flow={0.8} silk={0.35} grainAmount={0} dpr={1} />
+      </span>
       <div class="media-box">
         <VideoPlayer label={INCLUSION.label} webm={INCLUSION.video.webm} mp4={INCLUSION.video.mp4} poster={INCLUSION.video.poster} />
       </div>
@@ -80,28 +87,37 @@ import { INCLUSION } from '../data/site';
     max-width: 44ch;
     text-wrap: pretty;
   }
-  /* Panel tintado a la altura del copy (como el del mosaico de Plantillas): el video blanco no se pierde sobre la tarjeta blanca. */
+  /* Panel a la altura del copy con el fondo de la tarjeta de StudIApp en el catálogo: Grainient azul animado;
+     este degradado queda de respaldo sin WebGL2. El video flota encima como la ventana del catálogo. */
+  /* Más ancho y menos margen que la tarjeta del catálogo: el video trae texto de interfaz y necesita tamaño. */
   .art {
-    flex: 1.15 1 min(460px, 100%);
+    position: relative;
+    flex: 1.6 1 min(460px, 100%);
     min-width: 0;
     align-self: stretch;
     display: flex;
     align-items: center;
-    padding: clamp(10px, 1.6vw, 20px);
+    overflow: hidden;
+    padding: clamp(16px, 2.4vw, 32px);
     border-radius: 24px;
-    background: linear-gradient(180deg, hsl(220 44% 96.5%) 0%, hsl(220 40% 98%) 100%);
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 64, 163, 0.08),
-      0 14px 34px -20px rgba(0, 64, 163, 0.3);
+    background:
+      radial-gradient(ellipse 70% 60% at 70% 75%, hsl(212 95% 80% / 0.55), transparent 70%),
+      linear-gradient(55deg, #eef5ff 0%, #9ec0ff 55%, #7b93f5 100%);
+  }
+  .art-bg {
+    position: absolute;
+    inset: 0;
   }
   .media-box {
+    position: relative;
+    z-index: 1;
     width: 100%;
     aspect-ratio: 16 / 9;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
     box-shadow:
-      inset 0 0 0 1px rgba(0, 64, 163, 0.07),
-      0 10px 26px -18px rgba(0, 64, 163, 0.28);
+      0 0 0 1px hsl(232 30% 40% / 0.08),
+      0 30px 60px -30px hsl(232 50% 30% / 0.45);
     display: flex;
     align-items: stretch;
     justify-content: stretch;
