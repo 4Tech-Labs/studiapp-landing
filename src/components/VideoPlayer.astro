@@ -439,8 +439,19 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
       }
     };
 
+    // En pantallas táctiles, tocar el video con la barra oculta solo la muestra (como YouTube): pausar ahí sería
+    // inesperado. Se lee en captura, antes de que showBar quite el data-idle.
+    let revealTap = false;
+    root.addEventListener(
+      'pointerdown',
+      (e) => (revealTap = e.pointerType !== 'mouse' && root.dataset.idle === '1'),
+      true,
+    );
     root.querySelectorAll('[data-toggle]').forEach((b) => b.addEventListener('click', toggle));
-    video.addEventListener('click', toggle);
+    video.addEventListener('click', () => {
+      if (revealTap) revealTap = false;
+      else toggle();
+    });
     mute.addEventListener('click', () => {
       video.muted = !video.muted;
       paint();
@@ -459,7 +470,9 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
     };
     for (const ev of ['pointermove', 'pointerdown', 'keydown']) root.addEventListener(ev, showBar);
     root.addEventListener('focusin', showBar);
-    root.addEventListener('pointerleave', () => {
+    // Solo con mouse: con el dedo el navegador lanza pointerleave apenas se levanta y la barra se ocultaba al instante.
+    root.addEventListener('pointerleave', (e) => {
+      if (e.pointerType !== 'mouse') return;
       clearTimeout(idleTimer);
       if (!video.paused && !video.ended) root.dataset.idle = '1';
     });
