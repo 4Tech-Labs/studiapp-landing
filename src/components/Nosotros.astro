@@ -73,7 +73,9 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
     </div>
 
     {/* Ficha de la empresa como credencial de vidrio (ReflectiveCard en modo glass): logo y NIT arriba, razón social
-        en el centro y el contacto como pie, todo dentro de la tarjeta. Un clic en el correo o el teléfono lo copia. */}
+        en el centro y el contacto como pie, todo dentro de la tarjeta. Un clic en el correo o el teléfono lo copia.
+        En reposo queda un poco inclinada hacia la luz de arriba a la derecha y con el brillo encendido: así se ve el
+        efecto también en celular, donde no hay hover. */}
     <div class="side">
       <div class="credential">
         <ReflectiveCard
@@ -83,6 +85,9 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
           glare={0.6}
           tiltStrength={10}
           radius={26}
+          restX={0.45}
+          restY={-0.35}
+          restLight={0.6}
         >
           <div class="id">
             <div class="id-top">

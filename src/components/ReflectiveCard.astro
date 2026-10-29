@@ -18,6 +18,11 @@ interface Props {
   tiltStrength?: number;
   intro?: boolean;
   radius?: number;
+  /** Pose de reposo, sin cursor encima: inclinación en la escala del cursor (−1..1, 1 = borde derecho o inferior) y
+   *  brillo (0..1). Por defecto queda plana y sin brillo. */
+  restX?: number;
+  restY?: number;
+  restLight?: number;
   /** Fondo bajo el metal (cualquier valor de background). En el tema oscuro el metal se suma encima en modo screen,
    *  así que un fondo de color (p. ej. azul marino) tiñe la tarjeta y los reflejos quedan por encima. */
   base?: string;

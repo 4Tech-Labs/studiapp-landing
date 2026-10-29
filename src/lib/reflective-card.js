@@ -4,7 +4,8 @@
  * Port a JavaScript sin React del componente <ReflectiveCard /> de React Bits (https://reactbits.dev),
  * para no cargar React en un sitio que no lo usa. El shader de la placa y la física de la inclinación son los del
  * original; se quitó el reflejo de video y de cámara (sin ellos el original refleja un estudio suave, que es lo que
- * queda), así que no hay pasadas de captura ni de desenfoque.
+ * queda), así que no hay pasadas de captura ni de desenfoque. Sin cursor encima la placa vuelve a una pose de reposo
+ * (restX, restY, restLight): plana y sin brillo por defecto, como el original.
  *
  * mountReflectiveCard(root, options) espera dentro de root un .rc-body con un canvas, y devuelve una función que
  * libera todo (listeners, observers, programa).
@@ -371,6 +372,9 @@ const readSettings = ({
   tiltStrength = 12,
   intro = true,
   radius = 24,
+  restX = 0,
+  restY = 0,
+  restLight = 0,
 } = {}) => ({
   tint: parseColor(tint).map((channel) => Math.pow(channel, 2.2)),
   metalness: clamp(metalness, 0, 1),
@@ -387,6 +391,9 @@ const readSettings = ({
   radius: Math.max(0, radius),
   theme: theme === 'light' ? 1 : 0,
   intro,
+  restX: clamp(restX, -1, 1),
+  restY: clamp(restY, -1, 1),
+  restLight: clamp(restLight, 0, 1),
 });
 
 export function mountReflectiveCard(root, options) {
@@ -398,10 +405,11 @@ export function mountReflectiveCard(root, options) {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let renderer = createRenderer(canvas);
   if (renderer) root.setAttribute('data-rc-ready', '');
-  const x = { p: 0, v: 0, target: 0 };
-  const y = { p: 0, v: 0, target: 0 };
-  const light = { p: 0, target: 0 };
-  const pointer = { x: 0, y: 0 };
+  const x = { p: s.restX, v: 0, target: s.restX };
+  const y = { p: s.restY, v: 0, target: s.restY };
+  const light = { p: s.restLight, target: s.restLight };
+  // Centro del brillo en la escala del cursor (−1..1); se pasa a píxeles al dibujar, así sobrevive a un resize.
+  const pointer = { x: s.restX, y: s.restY, tx: s.restX, ty: s.restY };
   const size = { width: body.offsetWidth, height: body.offsetHeight, scale: 1 };
   let presence = 1;
   let presenceStart = 0;
@@ -453,6 +461,10 @@ export function mountReflectiveCard(root, options) {
     }
     const tau = light.target > light.p ? 0.18 : slow ? 0.9 : 0.45;
     light.p += (light.target - light.p) * (1 - Math.exp(-dt / tau));
+    // El brillo se desliza hacia el cursor (o de vuelta a la pose de reposo) en vez de saltar.
+    const glide = 1 - Math.exp(-dt / (slow ? 0.3 : 0.08));
+    pointer.x += (pointer.tx - pointer.x) * glide;
+    pointer.y += (pointer.ty - pointer.y) * glide;
     if (presence < 1) presence = clamp((now - presenceStart) / 650, 0, 1);
 
     const moving =
@@ -461,6 +473,8 @@ export function mountReflectiveCard(root, options) {
       Math.abs(x.v) > 0.0005 ||
       Math.abs(y.v) > 0.0005 ||
       Math.abs(light.target - light.p) > 0.002 ||
+      Math.abs(pointer.tx - pointer.x) > 0.001 ||
+      Math.abs(pointer.ty - pointer.y) > 0.001 ||
       presence < 1;
     if (!moving) {
       x.p = x.target;
@@ -468,6 +482,8 @@ export function mountReflectiveCard(root, options) {
       x.v = 0;
       y.v = 0;
       light.p = light.target;
+      pointer.x = pointer.tx;
+      pointer.y = pointer.ty;
     }
     write();
 
@@ -479,8 +495,8 @@ export function mountReflectiveCard(root, options) {
         rotateX: y.p * angle,
         rotateY: -x.p * angle,
         glare: s.glare * light.p,
-        pointerX: pointer.x,
-        pointerY: pointer.y,
+        pointerX: pointer.x * size.width * 0.5,
+        pointerY: pointer.y * size.height * 0.5,
         settings: s,
       });
     }
@@ -494,10 +510,12 @@ export function mountReflectiveCard(root, options) {
     raf = requestAnimationFrame(frame);
   };
 
-  const aim = (nx, ny, on = true) => {
+  const aim = (nx, ny, glow) => {
     x.target = clamp(nx, -1, 1);
     y.target = clamp(ny, -1, 1);
-    light.target = on ? 1 : 0;
+    pointer.tx = nx;
+    pointer.ty = ny;
+    light.target = glow;
     slowUntil = 0;
     wake();
   };
@@ -507,12 +525,10 @@ export function mountReflectiveCard(root, options) {
     if (!rect.width || !rect.height) return;
     const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
-    pointer.x = nx * size.width * 0.5;
-    pointer.y = ny * size.height * 0.5;
-    aim(nx, ny);
+    aim(nx, ny, 1);
   };
 
-  const release = () => aim(0, 0, false);
+  const release = () => aim(s.restX, s.restY, s.restLight);
 
   const onEnter = (event) => {
     if (event.pointerType === 'mouse') aimAt(event);
@@ -575,13 +591,14 @@ export function mountReflectiveCard(root, options) {
   };
   document.addEventListener('visibilitychange', onVisibility);
 
-  // Intro: la tarjeta aparece subiendo y la luz la recorre una vez desde la esquina superior derecha.
+  // Intro: la tarjeta aparece subiendo y la luz la recorre una vez desde la esquina superior derecha hasta la pose
+  // de reposo.
   if (s.intro && !reduced) {
     x.p = 0.62;
     y.p = -0.55;
     light.p = 1;
-    pointer.x = 0.62 * size.width * 0.5;
-    pointer.y = -0.55 * size.height * 0.5;
+    pointer.x = 0.62;
+    pointer.y = -0.55;
     presence = 0;
     presenceStart = performance.now();
     slowUntil = performance.now() + INTRO_MS;
