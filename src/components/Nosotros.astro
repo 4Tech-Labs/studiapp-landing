@@ -9,6 +9,14 @@ import WaveTitle from './WaveTitle.astro';
 // Identifica a la empresa dueña del sitio y de los productos del catálogo.
 // Los datos salen de COMPANY, los mismos que usan las páginas legales. La credencial lleva solo lo esencial
 // (razón social, ciudad y NIT); la dirección y la fecha de constitución están en las páginas legales y en el JSON-LD.
+// En la landing de StudIApp (variant product) va antes de Contacto con el mismo diseño: dice quién está detrás del
+// producto y lleva al sitio de la empresa.
+interface Props {
+  variant?: 'company' | 'product';
+}
+
+const { variant = 'company' } = Astro.props;
+const isProduct = variant === 'product';
 // El otro producto propio, enlazado a su tarjeta en la sección Productos del home.
 const complexipy = CATALOG.find((p) => p.id === 'complexipy-platform');
 // "Cali, Valle del Cauca, Colombia" → "Cali, Colombia".
@@ -16,7 +24,12 @@ const place = COMPANY.domicile.split(',').map((part) => part.trim());
 const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMPANY.domicile;
 ---
 
-<section id="quienes-somos" aria-labelledby="nosotros-titulo" class="nosotros" data-screen-label="Quiénes somos">
+<section
+  id={isProduct ? 'empresa' : 'quienes-somos'}
+  aria-labelledby="nosotros-titulo"
+  class="nosotros"
+  data-screen-label={isProduct ? COMPANY.name : 'Quiénes somos'}
+>
   {/* Olas azules en tinta suave (lightMode) en la mitad inferior; sin WebGL2 queda el degradado de la sección. */}
   <div aria-hidden="true" class="waves">
     <GradientWaves
@@ -35,13 +48,28 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
   </div>
   <div class="wrap">
     <div class="copy">
-      <p class="kicker">Quiénes somos</p>
-      <h2 id="nosotros-titulo"><WaveTitle parts={[{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }]} /></h2>
+      <p class="kicker">{isProduct ? 'Quién está detrás' : 'Quiénes somos'}</p>
+      <h2 id="nosotros-titulo">
+        <WaveTitle
+          parts={isProduct
+            ? [{ text: 'Un producto de' }, { text: COMPANY.name, accent: true, break: true }]
+            : [{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }]}
+        />
+      </h2>
       <p>
         <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software que construye aplicaciones web y móviles a la medida, automatiza procesos operativos y desarrolla productos propios como{' '}
-        <a href={PRODUCT.path}>{PRODUCT.name}</a>, para la planeación curricular, y{' '}
-        {complexipy ? <a href={`#${complexipy.id}`}>{complexipy.name}</a> : 'Complexipy Platform'}, basada en el proyecto open source de nuestro cofundador con más de 7 millones de descargas.
+        {/* En la landing de StudIApp el nombre va sin enlace: ya estás ahí */}
+        {isProduct ? PRODUCT.name : <a href={PRODUCT.path}>{PRODUCT.name}</a>}, para la planeación curricular, y{' '}
+        {complexipy ? <a href={`/#${complexipy.id}`}>{complexipy.name}</a> : 'Complexipy Platform'}, basada en el proyecto open source de nuestro cofundador con más de 7 millones de descargas.
       </p>
+      {
+        isProduct && (
+          <a href="/" class="go">
+            Conoce {COMPANY.name}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </a>
+        )
+      }
     </div>
 
     {/* Ficha de la empresa como credencial de vidrio (ReflectiveCard en modo glass): logo y NIT arriba, razón social
@@ -187,7 +215,37 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  /* Columna derecha: la credencial centrada. */
+  /* Enlace al sitio de la empresa (solo en la landing de StudIApp). De texto y no botón: la acción principal de esa
+     página es el botón de Contacto, que viene justo después. */
+  .go {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--brand);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 4px;
+    transition: text-decoration-color 0.2s ease;
+  }
+  .go:hover {
+    color: var(--brand);
+    text-decoration-color: currentColor;
+  }
+  .go svg {
+    transition: transform 0.2s ease;
+  }
+  .go:hover svg {
+    transform: translateX(3px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .go:hover svg {
+      transform: none;
+    }
+  }  /* Columna derecha: la credencial centrada. */
   .side {
     flex: 1 1 min(380px, 100%);
     min-width: 0;

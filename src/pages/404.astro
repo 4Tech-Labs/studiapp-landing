@@ -1,12 +1,12 @@
 ---
 import Base from '../layouts/Base.astro';
-import CompanyNav from '../components/CompanyNav.astro';
+import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../data/site';
 ---
 
 <Base title={`Página no encontrada | ${SITE.name}`} noindex>
-  <CompanyNav />
+  <Nav />
   <main class="notfound">
     <h1>Página no encontrada</h1>
     <p>La dirección que abriste no existe o cambió de lugar.</p>

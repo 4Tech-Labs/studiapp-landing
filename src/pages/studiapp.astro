@@ -4,6 +4,7 @@ import Nav from '../components/Nav.astro';
 import Hero from '../components/Hero.astro';
 import Features from '../components/Features.astro';
 import Plantillas from '../components/Plantillas.astro';
+import Nosotros from '../components/Nosotros.astro';
 import Agenda from '../components/Agenda.astro';
 import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
@@ -12,11 +13,12 @@ import { PRODUCT } from '../data/site';
 
 <!-- Landing de StudIApp, el primer producto del catálogo. La información de la empresa vive en el home (/). -->
 <Base title={PRODUCT.title} description={PRODUCT.description} product>
-  <Nav />
+  <Nav variant="product" />
   <main>
     <Hero />
     <Features />
     <Plantillas />
+    <Nosotros variant="product" />
     <Agenda />
     <Faq />
   </main>

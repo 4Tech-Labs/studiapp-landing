@@ -15,58 +15,47 @@ const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}`;
 // Con agendador, el botón lo abre en otra pestaña y el correo queda como alternativa en la nota.
 const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel: 'noopener' } : { href: mailto };
 const id = isProduct ? 'agenda' : 'contacto';
+// Las dos variantes tienen el mismo diseño; solo cambian los textos.
+const copy = isProduct
+  ? {
+      title: [{ text: 'Optimiza tu tiempo y enfócate en lo más importante:' }, { text: 'tus estudiantes.', accent: true, break: true }],
+      lead: 'Menos horas en formatos y planeaciones, más horas en el aula. Te mostramos cómo funciona con las plantillas de tu colegio.',
+    }
+  : {
+      title: [{ text: 'Hablemos de' }, { text: 'tu próximo proyecto.', accent: true, break: true }],
+      lead: 'Cuéntanos qué quieres construir y te proponemos cómo hacerlo: software a la medida, aplicaciones o soluciones con IA.',
+    };
 ---
 
-<section id={id} aria-labelledby={`${id}-titulo`} class:list={['agenda', { 'is-company': !isProduct }]} data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
+<section id={id} aria-labelledby={`${id}-titulo`} class="agenda" data-screen-label={isProduct ? 'Agenda una reunión' : 'Contacto'}>
   <div aria-hidden="true" class="glow"></div>
-  {
-    /* Solo en el home de la empresa: anillos azules que van del 55 % al 95 % del medio ancho, para que enmarquen el
-       texto por los lados en vez de pasar por detrás del titular. */
-    !isProduct && (
-      <div aria-hidden="true" class="rings">
-        <MagicRings
-          color="#8fb3ff"
-          colorTwo="#2f5bd9"
-          ringCount={6}
-          span={[0.55, 0.95]}
-          expansion={0.05}
-          lineThickness={1.6}
-          glow={0.9}
-          hoverScale={1.04}
-          parallax={0.03}
-        />
-      </div>
-    )
-  }
+  {/* Anillos azules que van del 55 % al 95 % del medio ancho, para que enmarquen el texto por los lados en vez de
+      pasar por detrás del titular. */}
+  <div aria-hidden="true" class="rings">
+    <MagicRings
+      color="#8fb3ff"
+      colorTwo="#2f5bd9"
+      ringCount={6}
+      span={[0.55, 0.95]}
+      expansion={0.05}
+      lineThickness={1.6}
+      glow={0.9}
+      hoverScale={1.04}
+      parallax={0.03}
+    />
+  </div>
   <div class="inner">
-    {
-      isProduct ? (
-        <>
-          <p class="kicker">Agenda hoy · Reunión de 30 minutos</p>
-          <h2 id={`${id}-titulo`}>
-            Optimiza tu tiempo y enfócate en lo más importante:
-            <br />
-            <span class="serif">tus estudiantes.</span>
-          </h2>
-          <p class="lead">Menos horas en formatos y planeaciones, más horas en el aula. Te mostramos cómo funciona con las plantillas de tu colegio.</p>
-        </>
-      ) : (
-        <>
-          <p class="kicker">Reunión de 30 minutos</p>
-          <h2 id={`${id}-titulo`}>
-            <WaveTitle parts={[{ text: 'Hablemos de' }, { text: 'tu próximo proyecto.', accent: true, break: true }]} theme="dark" />
-          </h2>
-          <p class="lead">Cuéntanos qué quieres construir y te proponemos cómo hacerlo: software a la medida, aplicaciones o soluciones con IA.</p>
-        </>
-      )
-    }
+    <p class="kicker">Reunión de 30 minutos</p>
+    <h2 id={`${id}-titulo`}>
+      <WaveTitle parts={copy.title} theme="dark" />
+    </h2>
+    <p class="lead">{copy.lead}</p>
+    {/* Basta un botón: el correo ya va en la nota de abajo */}
     <div class="ctas">
       <a {...booking} class="btn-primary">
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
-      {/* En el home basta un botón: el correo ya va en la nota de abajo */}
-      {isProduct && <a href="#caracteristicas" class="btn-ghost">Ver características</a>}
     </div>
     {
       SITE.bookingUrl ? (
@@ -140,45 +129,19 @@ const id = isProduct ? 'agenda' : 'contacto';
     text-transform: uppercase;
     color: hsl(222 24% 78%);
   }
+  /* La escala de los títulos de sección del home (32 a 54 px, 600, −0,025em), también en la landing de StudIApp */
   h2 {
     margin: 0;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: clamp(2.125rem, 5.8vw, 4.6rem);
-    line-height: 1.06;
-    letter-spacing: -0.015em;
-    text-wrap: balance;
-  }
-  .serif {
-    font-family: var(--font-display);
-    font-weight: inherit;
-    color: hsl(222 100% 88%);
-    letter-spacing: 0;
-  }
-  /* En el home, la escala de las demás secciones: título de 32 a 54 px (−0,025em), párrafo de 17 px (16 px en
-     celular) y botones sin tracking. La landing de StudIApp conserva la suya, con el cierre grande y la entrada en
-     18 px. */
-  .is-company h2 {
     font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 1.06;
     letter-spacing: -0.025em;
-  }
-  .is-company .lead {
-    font-size: clamp(16px, 1.2vw, 17px);
-  }
-  /* Botón a la medida del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo */
-  .is-company .btn-primary {
-    height: 48px;
-    padding: 0 22px;
-    letter-spacing: 0;
-  }
-  @media (max-width: 479px) {
-    .is-company .btn-primary {
-      height: 44px;
-    }
+    text-wrap: balance;
   }
   .lead {
     margin: 24px 0 0;
-    font-size: clamp(16px, 1.35vw, 18px);
+    font-size: clamp(16px, 1.2vw, 17px);
     line-height: 1.6;
     color: hsl(222 12% 80%);
     max-width: 560px;
@@ -192,19 +155,19 @@ const id = isProduct ? 'agenda' : 'contacto';
     align-items: center;
     gap: 12px;
   }
-  /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse. */
+  /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse. A la medida
+     del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo. */
   .btn-primary {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 54px;
-    padding: 0 26px;
+    height: 48px;
+    padding: 0 22px;
     border-radius: 9999px;
     background: var(--brand-grad);
     color: hsl(0 0% 100%);
     font-size: 15px;
     font-weight: 600;
-    letter-spacing: -0.01em;
     white-space: nowrap;
     box-shadow:
       var(--brand-shadow),
@@ -216,26 +179,10 @@ const id = isProduct ? 'agenda' : 'contacto';
     color: hsl(0 0% 100%);
     filter: brightness(1.12);
   }
-  .btn-ghost {
-    display: inline-flex;
-    align-items: center;
-    height: 54px;
-    padding: 0 26px;
-    border-radius: 9999px;
-    border: 1px solid hsl(0 0% 100% / 0.36);
-    color: hsl(0 0% 100%);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    white-space: nowrap;
-    transition:
-      border-color 0.2s ease,
-      background 0.2s ease;
-  }
-  .btn-ghost:hover {
-    border-color: hsl(0 0% 100% / 0.7);
-    background: hsl(0 0% 100% / 0.06);
-    color: hsl(0 0% 100%);
+  @media (max-width: 479px) {
+    .btn-primary {
+      height: 44px;
+    }
   }
   .note {
     margin: 24px 0 0;

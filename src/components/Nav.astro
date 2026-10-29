@@ -1,24 +1,113 @@
 ---
+import { Image } from 'astro:assets';
+import logo from '../assets/4techlabs-logo-4tl.png';
+import { COMPANY, PRODUCT } from '../data/site';
 import LottieLogo from './LottieLogo.astro';
-import { PRODUCT, COMPANY } from '../data/site';
+
+// Nav del sitio: logo a la izquierda y enlaces al centro.
+// Al hacer scroll la barra se vuelve un notch de vidrio pegado arriba: el logo pasa a la píldora y Contacto se vuelve botón.
+// En celular la píldora solo muestra Contacto y un botón de menú (hamburguesa) que despliega el resto de enlaces.
+// La empresa y la landing de StudIApp comparten el diseño; cambian el logo y los enlaces (variant). La de StudIApp va
+// siempre en notch, también arriba del todo: no tiene logo grande y el robot animado va en la píldora.
+interface Props {
+  /** 'company': sitio de 4Tech Labs. 'product': landing de StudIApp. */
+  variant?: 'company' | 'product';
+}
+
+const { variant = 'company' } = Astro.props;
+const isProduct = variant === 'product';
+const home = isProduct ? { href: `${PRODUCT.path}#inicio`, label: `${PRODUCT.name}, inicio` } : { href: '/', label: `${COMPANY.name}, inicio` };
+const links = isProduct
+  ? [
+      { href: `${PRODUCT.path}#caracteristicas`, label: 'Características' },
+      { href: '/', label: COMPANY.name },
+      { href: `${PRODUCT.path}#agenda`, label: 'Contacto', cta: true },
+    ]
+  : [
+      { href: '/#productos', label: 'Productos' },
+      { href: '/#quienes-somos', label: 'Nosotros' },
+      { href: '/#equipo', label: 'Equipo' },
+      { href: '/#respaldo', label: 'Respaldo' },
+      { href: '/#contacto', label: 'Contacto', cta: true },
+    ];
 ---
 
-<!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se encoge (equivale a scrollY > 60). -->
-<div class="nav-sentinel" aria-hidden="true" data-nav-sentinel></div>
-<header>
-  <nav aria-label="Principal" class="nav" data-nav>
-    <a href={`${PRODUCT.path}#inicio`} aria-label={`${PRODUCT.name}, inicio`} class="brand"><LottieLogo width={22} height={31} />{PRODUCT.name}</a>
-    <span aria-hidden="true" class="sep"></span>
-    <div class="links">
-      <a href={`${PRODUCT.path}#caracteristicas`} class="link">Características</a>
-      <a href="/" class="link">{COMPANY.name}</a>
-      <a href={`${PRODUCT.path}#agenda`} class="cta"><span aria-hidden="true" class="shine"></span>Contacto</a>
-    </div>
+<!-- Centinela de 60 px en el tope del documento: cuando sale del viewport la nav se condensa (equivale a scrollY > 60). -->
+<div class="cn-sentinel" aria-hidden="true" data-cn-sentinel></div>
+<header class="cn" data-cn data-cn-notch={isProduct ? '' : undefined}>
+  {
+    !isProduct && (
+      <a href={home.href} aria-label={home.label} class="brand">
+        <Image src={logo} alt="" height={34} densities={[1, 2]} loading="eager" />
+      </a>
+    )
+  }
+  <nav aria-label="Principal" class="links">
+    <a href={home.href} aria-label={home.label} class:list={['pill-logo', { 'has-name': isProduct }]}>
+      {
+        // Robot más alto que el logo de la empresa (22 px): el dibujo trae mucho margen transparente. Va con el nombre
+        // porque en la landing de StudIApp es el único logo de la nav.
+        isProduct ? (
+          <>
+            <LottieLogo width={21} height={30} />
+            <span class="pill-name">{PRODUCT.name}</span>
+          </>
+        ) : (
+          <Image src={logo} alt="" height={22} densities={[1, 2]} loading="eager" />
+        )
+      }
+    </a>
+    {
+      links.map((l) =>
+        l.cta ? (
+          <a href={l.href} class="nav-cta">
+            <span aria-hidden="true" class="cta-ring" />
+            <span aria-hidden="true" class="cta-ring cta-halo" />
+            {l.label}
+          </a>
+        ) : (
+          <a href={l.href}>{l.label}</a>
+        ),
+      )
+    }
+    <button type="button" class="menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="cn-menu" data-cn-menu-btn>
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+        <path class="line" d="M7 16 27 16"></path>
+      </svg>
+    </button>
   </nav>
+  <div id="cn-menu" class="menu" data-cn-menu>
+    {
+      links
+        .filter((l) => !l.cta)
+        .map((l) => (
+          <a href={l.href} data-cn-menu-link>
+            {l.label}
+          </a>
+        ))
+    }
+  </div>
 </header>
+<script is:inline>
+  // Celular y landing de StudIApp: la nav es siempre el notch. Se marca aquí, antes de pintar, para que no se vea
+  // primero la versión desplegada.
+  (function () {
+    var cn = document.querySelector('[data-cn]');
+    if (cn.hasAttribute('data-cn-notch') || matchMedia('(max-width: 899px)').matches) cn.setAttribute('data-scrolled', '');
+  })();
+</script>
 
 <style>
-  .nav-sentinel {
+  /* Coreografía al condensarse (al bajar), en tres tiempos:
+     1. el logo grande se encoge y se desvanece hacia la píldora mientras la barra sube al borde (notch);
+     2. el logo pequeño entra en la píldora con un leve rebote;
+     3. Contacto se llena de azul y se enciende su destello.
+     Al volver arriba ocurre lo inverso, más rápido y sin rebote.
+     Rendimiento: el desplazamiento de la barra es transform (no top), el fondo de Contacto anima background-color
+     y sombras (no se intercambian degradados), y los brillos son pseudo-elementos que solo cambian de opacidad.
+     El cambio lo dispara un IntersectionObserver (sin escuchar el scroll). */
+  .cn-sentinel {
     position: absolute;
     top: 0;
     left: 0;
@@ -27,127 +116,564 @@ import { PRODUCT, COMPANY } from '../data/site';
     pointer-events: none;
     visibility: hidden;
   }
-  .nav {
+  .cn {
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+    --top: calc(var(--gap) + 10px);
     position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    top: var(--top);
+    left: calc(var(--gap) + clamp(14px, 2.4vw, 36px));
+    right: calc(var(--gap) + clamp(14px, 2.4vw, 36px));
     z-index: 50;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: clamp(16px, 2vw, 24px);
-    height: 66px;
-    padding: 16px clamp(20px, 2.4vw, 28px) 0 clamp(16px, 2vw, 22px);
-    max-width: calc(100% - 48px);
-    background: hsl(0 0% 100%);
-    border-radius: 0 0 24px 24px;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
-    transition:
-      top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      padding-top 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      border-radius 0.35s ease,
-      box-shadow 0.35s ease,
-      background 0.35s ease;
+    height: 52px;
+    /* backwards y no both: una animación de opacidad/transform retenida al terminar convierte la nav en
+       "backdrop root" y Chrome deja de difuminar lo que hay detrás de la píldora. */
+    animation: cnIn 0.7s 0.1s var(--ease) backwards;
+    transition: transform 0.4s var(--ease-out);
   }
-  .nav[data-scrolled] {
-    top: 22px;
-    height: 50px;
-    padding-top: 0;
-    background: hsl(0 0% 100% / 0.82);
-    -webkit-backdrop-filter: blur(14px) saturate(1.4);
-    backdrop-filter: blur(14px) saturate(1.4);
-    border-radius: 24px;
-    box-shadow:
-      0 10px 30px -12px rgba(0, 0, 0, 0.18),
-      0 0 0 1px rgba(0, 0, 0, 0.04);
-  }
+
+  /* Logo grande */
   .brand {
+    justify-self: start;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-family: var(--font-display);
+    transform-origin: right center;
+    transition:
+      opacity 0.35s var(--ease) 0.1s,
+      transform 0.45s var(--ease-out) 0.1s,
+      filter 0.35s var(--ease) 0.1s,
+      visibility 0s linear 0s;
+  }
+  .brand :global(img) {
+    display: block;
+    width: auto;
+    height: 34px;
+  }
+
+  /* Píldora de enlaces: siempre en la columna del centro, aunque no haya logo grande (StudIApp) */
+  .links {
+    grid-column: 2;
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 5px;
+    /* Radio finito (no 9999px) para que la transformación en notch interpole suave. */
+    border-radius: 26px;
+    border: 1px solid transparent;
+    transition:
+      background 0.3s var(--ease),
+      box-shadow 0.3s var(--ease),
+      border-radius 0.35s var(--ease-out),
+      padding 0.35s var(--ease-out);
+  }
+  .links a {
+    padding: 8px 13px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    color: hsl(232 18% 22%);
+    white-space: nowrap;
+    transition: background 0.2s ease;
+  }
+  .links a:hover {
+    color: hsl(232 30% 10%);
+    background: hsl(232 40% 50% / 0.07);
+  }
+  .cn[data-scrolled] .links a:not(.pill-logo, .nav-cta):hover {
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.75), hsl(0 0% 100% / 0.35));
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.9),
+      0 2px 8px -3px hsl(232 50% 30% / 0.18);
+  }
+
+  /* Logo pequeño dentro de la píldora: colapsado (ancho 0 y fuera del orden de tabulación) hasta que la nav se condensa.
+     El contenedor abre el espacio; la imagen entra aparte (escala, opacidad y desenfoque), que es lo que se ve. */
+  .links .pill-logo {
+    display: inline-flex;
+    align-items: center;
+    max-width: 0;
+    margin: 0;
+    padding: 0;
+    border-radius: 0;
+    border-right: 0 solid hsl(232 20% 40% / 0);
+    overflow: hidden;
+    visibility: hidden;
+    transition:
+      max-width 0.35s var(--ease-out) 0.05s,
+      margin 0.35s var(--ease-out) 0.05s,
+      padding 0.35s var(--ease-out) 0.05s,
+      border-color 0.2s var(--ease),
+      visibility 0s linear 0.4s;
+  }
+  .links .pill-logo:hover {
+    background: none;
+  }
+  /* Hijo directo: el logo de la empresa. El robot de StudIApp (LottieLogo) trae su propio tamaño y su imagen de
+     respaldo va adentro, así que estas reglas no lo tocan. */
+  .pill-logo > :global(img) {
+    display: block;
+    flex-shrink: 0;
+    width: auto;
+    height: 22px;
+    opacity: 0;
+    transform: scale(0.6);
+    filter: blur(4px);
+    transition:
+      opacity 0.2s var(--ease-in),
+      transform 0.25s var(--ease-in),
+      filter 0.2s var(--ease-in);
+  }
+
+  /* Contacto: enlace normal arriba; en el notch se llena con el azul de la marca (la acción principal).
+     Mismo número de sombras en ambos estados para que interpolen. */
+  .links .nav-cta {
+    position: relative;
+    isolation: isolate;
+    margin-left: 4px;
+    background-color: rgb(1 68 160 / 0);
+    box-shadow:
+      inset 0 10px 12px -10px hsl(0 0% 100% / 0),
+      inset 0 1px 1px hsl(0 0% 100% / 0),
+      0 0 0 1px rgb(1 58 140 / 0),
+      0 6px 14px -6px rgb(1 68 160 / 0);
+    transition:
+      background-color 0.25s var(--ease),
+      color 0.25s var(--ease),
+      box-shadow 0.25s var(--ease),
+      transform 0.25s var(--ease),
+      filter 0.2s ease;
+  }
+  .cn[data-scrolled] .links .nav-cta,
+  .cn[data-scrolled] .links .nav-cta:hover {
+    color: hsl(0 0% 100%);
+    background-color: var(--brand);
+    box-shadow:
+      inset 0 10px 12px -10px hsl(0 0% 100% / 0.45),
+      inset 0 1px 1px hsl(0 0% 100% / 0.3),
+      0 0 0 1px rgb(1 58 140 / 1),
+      0 6px 14px -6px rgb(1 68 160 / 0.6);
+  }
+  .cn[data-scrolled] .links .nav-cta:hover {
+    filter: brightness(1.12);
+  }
+
+  /* Botón de menú (solo celular), adaptado de un diseño de Uiverse: las líneas de arriba y abajo son un solo trazo
+     que, al abrir, se recorre (stroke-dashoffset) mientras el ícono gira -45° y forma una X. */
+  .menu-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 34px;
+    margin-left: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: none;
+    color: hsl(232 30% 12%);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .menu-btn svg {
+    height: 26px;
+    transition: transform 0.6s var(--ease);
+  }
+  .menu-btn .line {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+    transition:
+      stroke-dasharray 0.6s var(--ease),
+      stroke-dashoffset 0.6s var(--ease);
+  }
+  .menu-btn .line-top-bottom {
+    stroke-dasharray: 12 63;
+  }
+  .cn[data-open] .menu-btn svg {
+    transform: rotate(-45deg);
+  }
+  .cn[data-open] .menu-btn .line-top-bottom {
+    stroke-dasharray: 20 300;
+    stroke-dashoffset: -32.42;
+  }
+  .menu-btn:hover {
+    background: hsl(232 40% 50% / 0.07);
+  }
+
+  /* Panel del menú: tarjeta de vidrio bajo la píldora; entra con opacidad y transform (sin layout). */
+  .menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    width: min(320px, calc(100vw - 2 * var(--gap) - 20px));
+    display: none;
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.86) 0%, hsl(220 60% 98% / 0.8) 100%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.8);
+    backdrop-filter: blur(18px) saturate(1.8);
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.95),
+      0 0 0 1px hsl(232 30% 40% / 0.06),
+      0 24px 48px -20px hsl(232 50% 30% / 0.35);
+    opacity: 0;
+    transform: translate(-50%, -8px) scale(0.97);
+    transform-origin: top center;
+    visibility: hidden;
+    transition:
+      opacity 0.2s var(--ease),
+      transform 0.25s var(--ease),
+      visibility 0s linear 0.25s;
+  }
+  .cn[data-open] .menu {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    visibility: visible;
+    transition:
+      opacity 0.25s var(--ease),
+      transform 0.4s var(--spring),
+      visibility 0s linear 0s;
+  }
+  .menu a {
+    display: flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 14px;
     font-size: 16px;
+    font-weight: 500;
+    color: hsl(232 24% 18%);
+    transition: background 0.2s ease;
+  }
+  .menu a:hover,
+  .menu a:focus-visible {
+    color: hsl(232 30% 10%);
+    background: hsl(232 40% 50% / 0.07);
+  }
+
+  /* Destello que recorre el borde del botón: un arco de luz (.cta-ring) y su halo difuso (.cta-halo). Cada capa
+     es un anillo (la máscara deja solo el borde) con un degradado cónico adentro que gira con transform: corre en
+     el hilo gráfico, sin repintar en cada cuadro (animar el ángulo del degradado repintaba las dos capas siempre,
+     también arriba del todo, donde no se ven). Solo gira en el notch; fuera de él queda en pausa. */
+  .cta-ring {
+    position: absolute;
+    inset: -2.5px;
+    padding: 2.5px;
+    border-radius: inherit;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.15s var(--ease);
+  }
+  .cta-halo {
+    inset: -6px;
+    padding: 6px;
+    z-index: -1;
+    filter: blur(5px);
+  }
+  /* Cuadrado centrado en el botón que cubre todo el anillo mientras gira: 150 % del ancho alcanza la diagonal de
+     cualquier píldora. Girarlo equivale a mover el ángulo inicial del degradado. */
+  .cta-ring::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150%;
+    aspect-ratio: 1;
+    background: conic-gradient(
+      transparent 0deg,
+      hsl(205 100% 80% / 0.15) 20deg,
+      hsl(210 100% 82% / 0.55) 120deg,
+      hsl(210 100% 88% / 0.85) 190deg,
+      hsl(0 0% 100%) 225deg,
+      transparent 240deg,
+      transparent 360deg
+    );
+    transform: translate(-50%, -50%);
+    animation: navCtaSpin 3s linear infinite paused;
+  }
+  .cn[data-scrolled] .cta-ring::before {
+    animation-play-state: running;
+  }
+  @keyframes navCtaSpin {
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  /* Vidrio líquido solo con CSS (sin filtros SVG de refracción, que son costosos): un único backdrop-filter,
+     fondo translúcido en degradado, filo especular (borde con máscara) y un brillo suave arriba. */
+  .links::before,
+  .links::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.25s var(--ease);
+    z-index: -1;
+  }
+  /* Filo de luz en los lados y abajo, más intenso en las esquinas, como el reflejo en un borde curvo. */
+  .links::before {
+    inset: 0;
+    padding: 0 1px 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(0 0% 100% / 0.95) 0%,
+      hsl(0 0% 100% / 0.25) 35%,
+      hsl(215 70% 80% / 0.2) 65%,
+      hsl(0 0% 100% / 0.8) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+  /* Brillo especular que baja desde el borde de la ventana. */
+  .links::after {
+    inset: 0 10% 50% 10%;
+    background: radial-gradient(ellipse 60% 100% at 50% 0%, hsl(0 0% 100% / 0.7), transparent 75%);
+  }
+
+  /* ---------- Estado condensado (notch) ---------- */
+  .cn[data-scrolled] {
+    /* Sube hasta el borde de la ventana con transform (se compone en la GPU; top obligaría a recalcular el layout). */
+    transform: translateY(calc(-1 * var(--top)));
+    transition: transform 0.55s var(--ease-out);
+  }
+  /* 1. El logo grande se encoge hacia la píldora y se desvanece. */
+  .cn[data-scrolled] .brand {
+    opacity: 0;
+    transform: translateX(14px) scale(0.6);
+    filter: blur(4px);
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.25s var(--ease-in),
+      transform 0.35s var(--ease-in),
+      filter 0.25s var(--ease-in),
+      visibility 0s linear 0.35s;
+  }
+  .cn[data-scrolled] .links {
+    align-self: start;
+    padding: 9px 8px 7px;
+    border-radius: 0 0 22px 22px;
+    /* 75 % a 65 %: con el desenfoque, lo de atrás se ve difuminado y los enlaces se leen bien. */
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.75) 0%, hsl(220 60% 98% / 0.65) 100%);
+    -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
+    backdrop-filter: blur(18px) saturate(1.8) brightness(1.04);
+    box-shadow:
+      inset 0 -1px 1px hsl(0 0% 100% / 0.6),
+      inset 0 -8px 16px -10px hsl(215 80% 60% / 0.18),
+      0 1px 2px hsl(232 40% 20% / 0.06),
+      0 14px 34px -14px hsl(232 50% 30% / 0.32);
+    transition:
+      background 0.4s var(--ease),
+      box-shadow 0.4s var(--ease),
+      border-radius 0.55s var(--ease-out),
+      padding 0.55s var(--ease-out);
+  }
+  /* Sin soporte de backdrop-filter no hay difuminado: la barra va casi sólida para que el texto se lea. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .cn[data-scrolled] .links {
+      background: hsl(0 0% 100% / 0.94);
+    }
+  }
+  .cn[data-scrolled] .links::before,
+  .cn[data-scrolled] .links::after {
+    opacity: 1;
+    transition: opacity 0.4s var(--ease) 0.15s;
+  }
+  /* 2. El logo pequeño abre su espacio y entra con un leve rebote. */
+  .cn[data-scrolled] .pill-logo {
+    max-width: 80px;
+    /* Divisor centrado: 16 px antes (este padding) y ~15 px después (gap + padding del enlace). */
+    margin: 0 0 0 8px;
+    padding-right: 16px;
+    border-right-width: 1px;
+    border-right-color: hsl(232 20% 40% / 0.15);
+    visibility: visible;
+    transition:
+      max-width 0.5s var(--ease-out) 0.1s,
+      margin 0.5s var(--ease-out) 0.1s,
+      padding 0.5s var(--ease-out) 0.1s,
+      border-color 0.3s var(--ease) 0.35s,
+      visibility 0s linear 0s;
+  }
+  /* StudIApp: robot y nombre. El margen transparente del robot ya separa el dibujo del texto. */
+  .pill-logo.has-name {
+    gap: 3px;
+  }
+  .cn[data-scrolled] .pill-logo.has-name {
+    max-width: 160px;
+  }
+  .pill-name {
+    font-family: var(--font-display);
+    font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: var(--ink);
-    white-space: nowrap;
+    color: hsl(232 30% 12%);
   }
-  .sep {
-    width: 1px;
-    height: 16px;
-    background: hsl(0 0% 88%);
-    flex-shrink: 0;
+  .cn[data-scrolled] .pill-logo > :global(img) {
+    opacity: 1;
+    /* Ajuste óptico: la estela debajo de las letras sube el peso visual del logo; 2 px abajo lo alinea con el texto. */
+    transform: translateY(2px);
+    filter: none;
+    transition:
+      opacity 0.35s var(--ease) 0.2s,
+      transform 0.55s var(--spring) 0.2s,
+      filter 0.35s var(--ease) 0.2s;
   }
-  .links {
-    display: flex;
-    align-items: center;
-    gap: clamp(14px, 2.2vw, 28px);
+  /* 3. Contacto se llena de azul con un pequeño pulso y después se enciende el destello. */
+  .cn[data-scrolled] .links .nav-cta {
+    animation: ctaPop 0.5s var(--spring) 0.3s backwards;
+    transition:
+      background-color 0.4s var(--ease) 0.3s,
+      color 0.3s var(--ease) 0.3s,
+      box-shadow 0.4s var(--ease) 0.3s,
+      filter 0.2s ease;
   }
-  .link {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: hsl(210 14% 32%);
-    white-space: nowrap;
-    padding: 12px 0;
+  .cn[data-scrolled] .cta-ring {
+    opacity: 1;
+    transition: opacity 0.5s var(--ease) 0.6s;
   }
-  .link:hover {
-    color: var(--ink);
+  .cn[data-scrolled] .cta-halo {
+    opacity: 0.85;
   }
-  .cta {
-    position: relative;
-    overflow: hidden;
-    display: inline-flex;
-    align-items: center;
-    height: 34px;
-    padding: 0 18px;
-    border-radius: 9999px;
-    color: hsl(0 0% 100%);
-    background: var(--accent-grad);
-    box-shadow: var(--accent-shadow);
-    font-family: var(--font-sans);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transition: filter 0.2s ease;
-  }
-  .cta:hover {
-    color: hsl(0 0% 100%);
-    filter: brightness(0.92);
-  }
-  .shine {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 46%;
-    height: 100%;
-    background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.26) 50%, rgba(255, 255, 255, 0) 100%);
-    animation: ctaShine 5s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @media (max-width: 639px) {
-    .nav {
-      gap: 12px;
-      padding-left: 14px;
-      padding-right: 14px;
-      max-width: calc(100% - 24px);
+
+  @keyframes ctaPop {
+    from {
+      transform: scale(0.92);
     }
-    .sep,
-    .link {
+    to {
+      transform: none;
+    }
+  }
+  @keyframes cnIn {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Tablet y celular: siempre en notch (lo fija el script), compacto, con el logo, Contacto y el botón de menú; el resto de enlaces va en el panel.
+     Todo mide 30 px de alto y comparte el mismo eje vertical; el botón Contacto es más chico que en escritorio. */
+  @media (max-width: 899px) {
+    .cn {
+      --top: calc(var(--gap) + 8px);
+      left: calc(var(--gap) + 10px);
+      right: calc(var(--gap) + 10px);
+      height: 46px;
+    }
+    .brand :global(img) {
+      height: 28px;
+    }
+    .links {
+      gap: 4px;
+      padding: 4px;
+    }
+    .links a:not(.pill-logo, .nav-cta) {
       display: none;
+    }
+    .links .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      height: 30px;
+      /* 6 px + el gap de 4 px: deja el divisor a 10 px del botón, igual que del logo. */
+      margin-left: 6px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+    /* Halo más ceñido: el de escritorio se ve grueso en un botón tan pequeño. */
+    .cta-halo {
+      inset: -4px;
+      padding: 4px;
+    }
+    .menu-btn {
+      display: inline-flex;
+      width: 32px;
+      height: 30px;
+      margin-left: 0;
+    }
+    .menu-btn svg {
+      height: 22px;
+    }
+    .menu {
+      display: flex;
+    }
+    .pill-logo > :global(img) {
+      height: 18px;
+    }
+    .pill-name {
+      font-size: 14px;
+    }
+    .cn[data-scrolled] .links {
+      padding: 7px 6px 6px;
+    }
+    .cn[data-scrolled] .pill-logo {
+      margin-left: 6px;
+      padding-right: 10px;
     }
   }
 </style>
 
 <script>
-  const nav = document.querySelector<HTMLElement>('[data-nav]');
-  const sentinel = document.querySelector<HTMLElement>('[data-nav-sentinel]');
+  const nav = document.querySelector<HTMLElement>('[data-cn]');
+  const sentinel = document.querySelector<HTMLElement>('[data-cn-sentinel]');
+  // Escritorio: notch al bajar más de 60 px. Celular y landing de StudIApp (data-cn-notch): notch siempre.
+  const mobile = matchMedia('(max-width: 899px)');
   if (nav && sentinel) {
-    new IntersectionObserver(([entry]) => nav.toggleAttribute('data-scrolled', !entry.isIntersecting)).observe(sentinel);
+    const alwaysNotch = nav.hasAttribute('data-cn-notch');
+    let atTop = true;
+    const update = () => nav.toggleAttribute('data-scrolled', alwaysNotch || !atTop || mobile.matches);
+    new IntersectionObserver(([entry]) => {
+      atTop = entry.isIntersecting;
+      update();
+    }).observe(sentinel);
+    mobile.addEventListener('change', update);
+  }
+
+  // Menú de celular: abre y cierra con el botón; se cierra con Escape, al tocar fuera, al elegir un enlace o al pasar a escritorio.
+  const btn = document.querySelector<HTMLButtonElement>('[data-cn-menu-btn]');
+  const menu = document.querySelector<HTMLElement>('[data-cn-menu]');
+  if (nav && btn && menu) {
+    const setOpen = (open: boolean) => {
+      nav.toggleAttribute('data-open', open);
+      btn.setAttribute('aria-expanded', String(open));
+      btn.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+    };
+    const isOpen = () => nav.hasAttribute('data-open');
+    btn.addEventListener('click', () => setOpen(!isOpen()));
+    menu.querySelectorAll('[data-cn-menu-link]').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) {
+        setOpen(false);
+        btn.focus();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (isOpen() && !nav.contains(e.target as Node)) setOpen(false);
+    });
+    mobile.addEventListener('change', (e) => !e.matches && setOpen(false));
   }
 </script>

@@ -87,15 +87,6 @@ button {
     transform: none;
   }
 }
-@keyframes ctaShine {
-  0% {
-    transform: translateX(-220%) skewX(-18deg);
-  }
-  55%,
-  100% {
-    transform: translateX(420%) skewX(-18deg);
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,
