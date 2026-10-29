@@ -588,7 +588,11 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
       --tilt: 0deg;
     }
     /* Aro: el conic-gradient de Contacto en un cuadrado más grande que el botón que gira con rotate (sin inclinación
-       la capa de GPU se ve nítida); .content tapa todo salvo el filo de 3 px de .wrap. */
+       la capa de GPU se ve nítida); .content tapa todo salvo el filo de .wrap. En celular la luz de 3 px con estela
+       larga se veía muy ancha: el filo baja a 2 px y la estela empieza más tarde (un arco corto). */
+    .wrap {
+      padding: 2px;
+    }
     .outline {
       overflow: hidden;
       background: none;
@@ -605,27 +609,27 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
       translate: -50% -50%;
       background: conic-gradient(
         transparent 0deg,
-        hsl(205 100% 80% / 0.15) 20deg,
-        hsl(210 100% 82% / 0.55) 120deg,
-        hsl(210 100% 88% / 0.85) 190deg,
-        hsl(0 0% 100%) 225deg,
-        transparent 240deg,
+        transparent 110deg,
+        hsl(210 100% 82% / 0.3) 170deg,
+        hsl(210 100% 88% / 0.7) 215deg,
+        hsl(0 0% 100%) 232deg,
+        transparent 245deg,
         transparent 360deg
       );
       animation: ringTurn 3s linear infinite;
     }
     /* Halo: el mismo arco, fuera del botón y difuminado. Va en la misma posición que .wrap (corrida 8 px) y la sigue al
-       presionar; la máscara deja solo el anillo de 6 px alrededor. */
+       presionar; la máscara deja solo un anillo de 4 px alrededor, tenue, como el halo de Contacto en celular. */
     .halo {
       display: block;
       position: absolute;
-      inset: -6px;
-      padding: 6px;
-      border-radius: calc(var(--r) + 6px);
+      inset: -4px;
+      padding: 4px;
+      border-radius: calc(var(--r) + 4px);
       overflow: hidden;
       pointer-events: none;
-      opacity: 0.85;
-      filter: blur(5px);
+      opacity: 0.5;
+      filter: blur(4px);
       -webkit-mask:
         linear-gradient(#000 0 0) content-box,
         linear-gradient(#000 0 0);
