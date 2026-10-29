@@ -187,6 +187,23 @@ const state = hasSrc ? 'ready' : poster ? 'poster' : 'empty';
   .vp-btn svg {
     display: block;
   }
+  /* Zona táctil de 44 px sin agrandar los controles: el pseudo-elemento recibe el toque y cae dentro del padding de la barra. */
+  .vp-btn,
+  .vp-icon,
+  .vp-track {
+    position: relative;
+  }
+  .vp-btn::after,
+  .vp-icon::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+  }
+  .vp-track::after {
+    content: '';
+    position: absolute;
+    inset: -18px 0;
+  }
   .ic-play {
     margin-left: 2px;
   }
