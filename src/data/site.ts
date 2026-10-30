@@ -249,7 +249,7 @@ export const LEGAL = {
    * Fecha de entrada en vigencia (AAAA-MM-DD): el día en que se publican. Se cambia también al publicar una versión nueva.
    * Vacía = las páginas muestran "[fecha por definir]", llevan noindex y no entran al sitemap.
    */
-  effectiveDate: '', // TODO: fecha de publicación
+  effectiveDate: '2026-10-30',
   /** Meses que se conservan los datos de contacto desde la última comunicación. */
   retentionMonths: 24,
 };
