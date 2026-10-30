@@ -5,7 +5,8 @@
  * para no cargar React en un sitio que no lo usa. Los shaders y la lógica son los del original;
  * lo único que cambia es que las opciones se leen una vez al montar en vez de llegar como props.
  *
- * mountGhostFibers(container, options) devuelve una función que libera todo (listeners, texturas, programas).
+ * createGhostFibers(canvas, options, input) dibuja en un <canvas> o en un OffscreenCanvas dentro de un worker, sin tocar
+ * el DOM: el tamaño, el puntero y si se ve llegan en `input` (ver ghost-fibers-mount.js, que lo monta en la página).
  */
 
 const MAX_RENDER_DIM = 2400;
@@ -442,17 +443,24 @@ const COMPOSITE_UNIFORMS = ['uScene', 'uBloom', 'uGlow', 'uBrightness', 'uLightM
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
+// Un worker sin requestAnimationFrame (Safari viejo) avanza con un temporizador de ~60 fps.
+const nextFrame = globalThis.requestAnimationFrame ? (callback) => requestAnimationFrame(callback) : (callback) => setTimeout(() => callback(performance.now()), 16);
+const cancelFrame = globalThis.cancelAnimationFrame ? (id) => cancelAnimationFrame(id) : (id) => clearTimeout(id);
+
 const compile = (gl, type, source) => {
   const shader = gl.createShader(type);
   if (!shader) return null;
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
-  if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
-  gl.deleteShader(shader);
-  return null;
+  return shader;
 };
 
-const link = (gl, vertexSource, fragmentSource, names) => {
+/**
+ * Pide compilar y enlazar un programa sin esperar el resultado. Consultar COMPILE_STATUS o LINK_STATUS bloquea el
+ * hilo principal hasta que el driver termina (en Windows, con D3D, más de un segundo en un celular de gama media):
+ * por eso el estado se lee recién en `ready`, cuando KHR_parallel_shader_compile dice que ya terminó.
+ */
+const startLink = (gl, vertexSource, fragmentSource, names) => {
   const vertex = compile(gl, gl.VERTEX_SHADER, vertexSource);
   const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
   const program = gl.createProgram();
@@ -460,15 +468,16 @@ const link = (gl, vertexSource, fragmentSource, names) => {
   gl.attachShader(program, vertex);
   gl.attachShader(program, fragment);
   gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  const uniforms = {};
-  for (const name of names) uniforms[name] = gl.getUniformLocation(program, name);
-  return { program, uniforms };
+  return { program, vertex, fragment, names, uniforms: {} };
+};
+
+/** Cierra un programa de startLink: true si enlazó, y entonces ya tiene sus uniforms. */
+const finishLink = (gl, entry) => {
+  gl.deleteShader(entry.vertex);
+  gl.deleteShader(entry.fragment);
+  if (!gl.getProgramParameter(entry.program, gl.LINK_STATUS)) return false;
+  for (const name of entry.names) entry.uniforms[name] = gl.getUniformLocation(entry.program, name);
+  return true;
 };
 
 const frustum = (fov, aspect, near, far) => {
@@ -594,9 +603,12 @@ const settingsFrom = ({
   dpr,
 });
 
-export function mountGhostFibers(container, options) {
-  const canvas = container.querySelector('canvas');
-  const gl = canvas?.getContext('webgl2', {
+/**
+ * `input` es de quien llama y lo actualiza antes de cada aviso: { width, height, dpr, pointer: { x, y, inside },
+ * visible, hidden, reduce }. Devuelve null si no hay WebGL2 con GPU; si no, { resize, wake, show, pulse, destroy }.
+ */
+export function createGhostFibers(canvas, options, input) {
+  const gl = canvas.getContext('webgl2', {
     alpha: true,
     premultipliedAlpha: true,
     antialias: false,
@@ -605,17 +617,24 @@ export function mountGhostFibers(container, options) {
     // Sin aceleración por GPU (WebGL por software) no se monta: trabaría la página y queda el fondo CSS.
     failIfMajorPerformanceCaveat: true,
   });
-  if (!canvas || !gl) return () => {};
+  if (!gl) return null;
   const s = settingsFrom(options);
+  // El bloom no cambia durante el montaje: en modo claro sus tres programas ni se compilan.
+  const blooming = s.glow > 0.001 && !s.lightMode;
 
   const floatTargets = !!gl.getExtension('EXT_color_buffer_float');
-  const dots = link(gl, DOT_VERTEX, DOT_FRAGMENT, DOT_UNIFORMS);
-  const dust = link(gl, DUST_VERTEX, DOT_FRAGMENT, DUST_UNIFORMS);
-  const bright = link(gl, FULLSCREEN, BRIGHT_FRAGMENT, PASS_UNIFORMS);
-  const down = link(gl, FULLSCREEN, DOWN_FRAGMENT, PASS_UNIFORMS);
-  const up = link(gl, FULLSCREEN, UP_FRAGMENT, PASS_UNIFORMS);
-  const composite = link(gl, FULLSCREEN, COMPOSITE_FRAGMENT, COMPOSITE_UNIFORMS);
-  if (!dots || !dust || !bright || !down || !up || !composite) return () => {};
+  const parallel = gl.getExtension('KHR_parallel_shader_compile');
+  const dots = startLink(gl, DOT_VERTEX, DOT_FRAGMENT, DOT_UNIFORMS);
+  const dust = startLink(gl, DUST_VERTEX, DOT_FRAGMENT, DUST_UNIFORMS);
+  const bright = blooming ? startLink(gl, FULLSCREEN, BRIGHT_FRAGMENT, PASS_UNIFORMS) : null;
+  const down = blooming ? startLink(gl, FULLSCREEN, DOWN_FRAGMENT, PASS_UNIFORMS) : null;
+  const up = blooming ? startLink(gl, FULLSCREEN, UP_FRAGMENT, PASS_UNIFORMS) : null;
+  const composite = startLink(gl, FULLSCREEN, COMPOSITE_FRAGMENT, COMPOSITE_UNIFORMS);
+  const programs = [dots, dust, bright, down, up, composite].filter(Boolean);
+  if (!dots || !dust || !composite || (blooming && (!bright || !down || !up))) {
+    programs.forEach((entry) => gl.deleteProgram(entry.program));
+    return null;
+  }
 
   const format = floatTargets ? gl.RGBA16F : gl.RGBA8;
   const makeTarget = () => ({ texture: null, framebuffer: gl.createFramebuffer(), width: 0, height: 0 });
@@ -639,11 +658,12 @@ export function mountGhostFibers(container, options) {
   const chain = Array.from({ length: BLOOM_LEVELS }, makeTarget);
   const vao = gl.createVertexArray();
 
-  const probe = document.createElement('canvas');
+  // En el worker no hay document: ahí el canvas de prueba es un OffscreenCanvas.
+  const probe = typeof document === 'undefined' ? new OffscreenCanvas(1, 1) : document.createElement('canvas');
   probe.width = 1;
   probe.height = 1;
   const probeContext = probe.getContext('2d', { willReadFrequently: true });
-  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const { reduce } = input;
   const state = {
     time: 0,
     roll: 0,
@@ -657,7 +677,6 @@ export function mountGhostFibers(container, options) {
     glow: [0.55, 0.36, 0.96],
     line: [1, 0.85, 0.98],
     secondary: [0.44, 0.29, 0.77],
-    pointer: { x: 0, y: 0, inside: false },
     hover: { x: 0, y: 0, presence: 0, placed: false },
     look: { x: 0, y: 0, vx: 0, vy: 0 },
     focus: CAMERA + s.focusDepth * 3,
@@ -666,7 +685,8 @@ export function mountGhostFibers(container, options) {
   };
   let raf = 0;
   let last = 0;
-  let visible = true;
+  let linked = false;
+  let poll = 0;
   let alive = true;
   let lost = false;
   let remount = null;
@@ -747,6 +767,7 @@ export function mountGhostFibers(container, options) {
   };
 
   const render = () => {
+    if (!linked) return;
     resolveColors();
     const camera = cameraFor();
     state.camera = camera;
@@ -836,7 +857,6 @@ export function mountGhostFibers(container, options) {
     }
     gl.disable(gl.BLEND);
 
-    const blooming = s.glow > 0.001 && !s.lightMode;
     gl.bindVertexArray(vao);
     if (blooming) {
       chain.forEach((target, index) => {
@@ -883,9 +903,9 @@ export function mountGhostFibers(container, options) {
   };
 
   const resize = () => {
-    const width = Math.max(1, container.clientWidth);
-    const height = Math.max(1, container.clientHeight);
-    const baseDpr = Math.min(s.dpr || window.devicePixelRatio || 1, 2);
+    const width = Math.max(1, input.width);
+    const height = Math.max(1, input.height);
+    const baseDpr = Math.min(s.dpr || input.dpr || 1, 2);
     const longest = Math.max(width, height) * baseDpr;
     const ratio = longest > MAX_RENDER_DIM ? (baseDpr * MAX_RENDER_DIM) / longest : baseDpr;
     const pixelWidth = Math.max(1, Math.round(width * ratio));
@@ -902,7 +922,7 @@ export function mountGhostFibers(container, options) {
 
   const frame = (now) => {
     raf = 0;
-    if (!alive || lost || !visible || document.hidden) return;
+    if (!alive || lost || !input.visible || input.hidden) return;
     const elapsed = last ? (now - last) / 1000 : 1 / 60;
     const dt = Math.min(0.05, elapsed);
     last = now;
@@ -919,7 +939,8 @@ export function mountGhostFibers(container, options) {
     state.pulse.age += dt;
     state.pulse.strength = Math.max(0, 1 - state.pulse.age / 1.8) ** 2;
 
-    const { pointer, hover, look } = state;
+    const { hover, look } = state;
+    const { pointer } = input;
     const active = s.mouseInteraction && pointer.inside && !reduce;
     if (active && !hover.placed) {
       hover.x = pointer.x;
@@ -953,42 +974,40 @@ export function mountGhostFibers(container, options) {
       Math.abs(lookY - look.y) > 0.0002 ||
       Math.abs(focusGoal - state.focus) > 0.001 ||
       state.pulse.strength > 0.001;
-    if (moving || settling) raf = requestAnimationFrame(frame);
+    if (moving || settling) raf = nextFrame(frame);
     else last = 0;
   };
 
   const wake = () => {
-    if (!raf && alive && !lost && visible && !document.hidden) raf = requestAnimationFrame(frame);
+    if (!raf && linked && alive && !lost && input.visible && !input.hidden) raf = nextFrame(frame);
   };
 
-  const onPointerMove = (event) => {
-    const rect = container.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    state.pointer.x = x;
-    state.pointer.y = y;
-    state.pointer.inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
+  // Espera a que el driver termine los programas sin bloquear (un vistazo por cuadro) y recién ahí dibuja; sin
+  // KHR_parallel_shader_compile la primera consulta espera la compilación, como antes. Mientras tanto queda el fondo CSS.
+  const whenLinked = () => {
+    poll = 0;
+    if (!alive || lost) return;
+    if (parallel && !programs.every((entry) => gl.getProgramParameter(entry.program, parallel.COMPLETION_STATUS_KHR))) {
+      poll = nextFrame(whenLinked);
+      return;
+    }
+    if (!programs.every((entry) => finishLink(gl, entry))) return;
+    linked = true;
+    resize();
     wake();
   };
 
-  const onPointerDown = (event) => {
-    if (!s.mouseInteraction || !s.pulseOnClick || event.button !== 0 || reduce) return;
-    if (event.target instanceof Element && event.target.closest('a, button, input, textarea, select, label, [role="button"]')) return;
-    const rect = container.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+  // Pulso al hacer clic: quien llama ya descartó los clics sobre enlaces y botones y pasa el punto en el contenedor.
+  const pulse = (x, y) => {
+    if (!s.mouseInteraction || !s.pulseOnClick || reduce) return;
+    if (x < 0 || y < 0 || x > input.width || y > input.height) return;
     const near = nearestOnRibbon(x, y);
     if (near) state.pulse = { s: near.s, age: 0, strength: 1, ribbon: near.ribbon };
     wake();
   };
 
-  const onPointerLeave = () => {
-    state.pointer.inside = false;
-    wake();
-  };
-
-  const onVisibility = () => {
+  // Al volver a verse (o a la pestaña) el reloj arranca de nuevo, sin un salto por el tiempo oculto.
+  const show = () => {
     last = 0;
     wake();
   };
@@ -998,42 +1017,21 @@ export function mountGhostFibers(container, options) {
   const onLost = (event) => {
     event.preventDefault();
     lost = true;
-    cancelAnimationFrame(raf);
+    cancelFrame(raf);
     raf = 0;
   };
   const onRestored = () => {
     destroy();
-    remount = mountGhostFibers(container, { ...options, intro: false });
+    remount = createGhostFibers(canvas, { ...options, intro: false }, input);
   };
   canvas.addEventListener('webglcontextlost', onLost);
   canvas.addEventListener('webglcontextrestored', onRestored);
-
-  const resizeObserver = new ResizeObserver(resize);
-  resizeObserver.observe(container);
-  const intersection = new IntersectionObserver((entries) => {
-    visible = entries.some((entry) => entry.isIntersecting);
-    if (visible) {
-      last = 0;
-      wake();
-    }
-  });
-  intersection.observe(container);
-  window.addEventListener('pointermove', onPointerMove, { passive: true });
-  window.addEventListener('pointerdown', onPointerDown);
-  document.documentElement.addEventListener('pointerleave', onPointerLeave);
-  document.addEventListener('visibilitychange', onVisibility);
-  resize();
-  wake();
+  whenLinked();
 
   function destroy() {
     alive = false;
-    cancelAnimationFrame(raf);
-    resizeObserver.disconnect();
-    intersection.disconnect();
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerdown', onPointerDown);
-    document.documentElement.removeEventListener('pointerleave', onPointerLeave);
-    document.removeEventListener('visibilitychange', onVisibility);
+    cancelFrame(raf);
+    cancelFrame(poll);
     canvas.removeEventListener('webglcontextlost', onLost);
     canvas.removeEventListener('webglcontextrestored', onRestored);
     // Tras una pérdida de contexto los objetos murieron con él: borrarlos solo da avisos de WebGL.
@@ -1043,11 +1041,15 @@ export function mountGhostFibers(container, options) {
       if (target.texture) gl.deleteTexture(target.texture);
       gl.deleteFramebuffer(target.framebuffer);
     });
-    [dots, dust, bright, down, up, composite].forEach((entry) => gl.deleteProgram(entry.program));
+    programs.forEach((entry) => gl.deleteProgram(entry.program));
   }
 
-  return () => {
-    if (remount) remount();
-    else destroy();
+  // Tras recuperar el contexto, los avisos van a la instancia nueva.
+  return {
+    resize: () => (remount ? remount.resize() : resize()),
+    wake: () => (remount ? remount.wake() : wake()),
+    show: () => (remount ? remount.show() : show()),
+    pulse: (x, y) => (remount ? remount.pulse(x, y) : pulse(x, y)),
+    destroy: () => (remount ? remount.destroy() : destroy()),
   };
 }

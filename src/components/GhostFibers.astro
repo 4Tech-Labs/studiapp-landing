@@ -71,6 +71,7 @@ const options = Object.fromEntries(Object.entries(props).filter(([key]) => !key.
 <script>
   import { lazyMount } from '../lib/lazy-mount';
 
-  // Se monta (contexto WebGL + shaders) cuando el hero está en pantalla; su JavaScript se descarga recién ahí.
-  lazyMount('[data-ghost-fibers]', () => import('../lib/ghost-fibers.js').then((m) => m.mountGhostFibers));
+  // Se monta (contexto WebGL + shaders, en un worker si se puede) cuando el hero está en pantalla; su JavaScript se
+  // descarga recién ahí.
+  lazyMount('[data-ghost-fibers]', () => import('../lib/ghost-fibers-mount.js').then((m) => m.mountGhostFibers));
 </script>
