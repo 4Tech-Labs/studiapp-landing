@@ -5,8 +5,10 @@ import { SITE, COMPANY } from '../data/site';
 
 // Verificado en producción y en el código: el sitio no instala cookies ni usa almacenamiento del navegador.
 // Cloudflare solo instala cookies si se activan funciones como Bot Fight Mode o si muestra una verificación de seguridad.
-// Si se agrega analítica, un chat o un video incrustado de terceros, este texto deja de ser cierto.
+// Si se agrega analítica con cookies, un chat o un video incrustado de terceros, este texto deja de ser cierto.
+// Cloudflare Web Analytics (SITE.analyticsToken) no usa cookies ni almacenamiento del navegador: solo cambia un párrafo.
 const mail = `mailto:${SITE.email}`;
+const analytics = Boolean(SITE.analyticsToken);
 ---
 
 <Legal title="Política de cookies" description="El sitio de StudIApp no usa cookies ni herramientas de seguimiento. Aquí explicamos por qué y cuál es la única excepción de seguridad.">
@@ -22,9 +24,17 @@ const mail = `mailto:${SITE.email}`;
     <p>
       Este sitio no instala cookies en tu navegador, ni propias ni de terceros, con una única excepción de seguridad que explicamos más abajo. Tampoco usamos tecnologías similares, como el almacenamiento local del navegador, píxeles de seguimiento o técnicas para identificar tu dispositivo.
     </p>
-    <p>
-      No integramos herramientas de analítica, redes sociales ni publicidad, y las fuentes, imágenes y videos se cargan desde este mismo sitio. Por eso ninguna de esas plataformas puede instalar cookies a través de él.
-    </p>
+    {
+      analytics ? (
+        <p>
+          Para contar las visitas usamos Cloudflare Web Analytics, que no instala cookies ni guarda nada en tu navegador: solo nos muestra cifras agregadas que no permiten identificarte. No integramos herramientas de redes sociales ni publicidad, y las fuentes, imágenes y videos se cargan desde este mismo sitio. Por eso ninguna de esas plataformas puede instalar cookies a través de él.
+        </p>
+      ) : (
+        <p>
+          No integramos herramientas de analítica, redes sociales ni publicidad, y las fuentes, imágenes y videos se cargan desde este mismo sitio. Por eso ninguna de esas plataformas puede instalar cookies a través de él.
+        </p>
+      )
+    }
     <p>Por la misma razón no verás un aviso para aceptar cookies: no hay nada que aceptar.</p>
   </LegalSection>
 

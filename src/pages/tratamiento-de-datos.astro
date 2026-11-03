@@ -34,6 +34,9 @@ const t = toc([
   ['responsable', 'Responsable del tratamiento'],
 ]);
 const mail = `mailto:${SITE.email}`;
+// WhatsApp y la analítica solo se nombran si están activos en site.ts (SITE.whatsapp, SITE.analyticsToken).
+const whatsapp = Boolean(SITE.whatsapp);
+const analytics = Boolean(SITE.analyticsToken);
 ---
 
 <Legal
@@ -72,7 +75,7 @@ const mail = `mailto:${SITE.email}`;
   <LegalSection {...t.get('datos')}>
     <LegalSection {...t.get('al-escribirnos')}>
       <p>
-        Si agendas una reunión con nuestro agendador o nos escribes para cualquier consulta, tratamos los datos que decidas compartir: tu nombre, tu correo electrónico, la fecha y hora que elijas para la reunión y, si los incluyes, tu cargo, la institución educativa a la que perteneces, tu teléfono y el contenido de tu mensaje. Los usamos únicamente para:
+        Si agendas una reunión con nuestro agendador o nos escribes{whatsapp && ' por correo o por WhatsApp'} para cualquier consulta, tratamos los datos que decidas compartir: tu nombre, tu correo electrónico{whatsapp && ' o tu número de WhatsApp y el nombre de tu perfil'}, la fecha y hora que elijas para la reunión y, si los incluyes, tu cargo, la institución educativa a la que perteneces, tu teléfono y el contenido de tu mensaje. Los usamos únicamente para:
       </p>
       <ol class="alpha">
         <li>Responder tu mensaje y atender tu solicitud.</li>
@@ -91,13 +94,20 @@ const mail = `mailto:${SITE.email}`;
       <p>
         Como ocurre con cualquier sitio web, tu navegador envía automáticamente algunos datos técnicos al cargar la página: dirección IP, tipo de navegador y dispositivo, página solicitada, y fecha y hora de la visita. Nuestro proveedor de alojamiento los procesa para entregarte el sitio y protegerlo frente a ataques y usos abusivos. StudIApp no usa estos datos para identificarte, elaborar perfiles ni con fines comerciales.
       </p>
+      {
+        analytics && (
+          <p>
+            Además, contamos las visitas con Cloudflare Web Analytics, un servicio que no usa cookies ni guarda nada en tu navegador. Solo nos muestra cifras agregadas, como las páginas vistas, el país de origen, el tipo de dispositivo y los tiempos de carga, que no permiten identificarte.
+          </p>
+        )
+      }
     </LegalSection>
 
     <LegalSection {...t.get('lo-que-no-hacemos')}>
       <ul>
         <li>No usamos cookies ni tecnologías similares, salvo la excepción de seguridad que se explica en la <a href="/politica-de-cookies">Política de cookies</a>.</li>
         <li>
-          No usamos herramientas de analítica web, píxeles de seguimiento ni servicios de redes sociales o publicidad, por lo que esas plataformas no reciben información sobre tu visita.
+          {analytics ? 'Fuera de ese conteo agregado de visitas, no usamos' : 'No usamos'} herramientas de analítica web, píxeles de seguimiento ni servicios de redes sociales o publicidad, por lo que esas plataformas no reciben información sobre tu visita.
         </li>
         <li>No vendemos, alquilamos ni cedemos tus datos personales.</li>
       </ul>
@@ -109,12 +119,12 @@ const mail = `mailto:${SITE.email}`;
       Tratamos tus datos con tu autorización previa, expresa e informada. Cuando nos escribes o agendas una reunión por iniciativa propia, ese acto es una conducta inequívoca que nos permite concluir razonablemente que nos autorizas a tratar tus datos para las finalidades de la <SectionRef to={t.get('al-escribirnos')} />, conforme al artículo 2.2.2.25.2.4 del Decreto 1074 de 2015. El silencio nunca se entenderá como autorización.
     </p>
     <p>
-      El tratamiento técnico de la <SectionRef to={t.get('al-visitar')} /> se inicia cuando accedes al sitio y es indispensable para mostrártelo. Lo limitamos a esa finalidad y a la seguridad del sitio.
+      El tratamiento técnico de la <SectionRef to={t.get('al-visitar')} /> se inicia cuando accedes al sitio y es indispensable para mostrártelo. Lo limitamos a esa finalidad{analytics ? ', a la seguridad del sitio y al conteo agregado de visitas' : ' y a la seguridad del sitio'}.
     </p>
   </LegalSection>
 
   <LegalSection {...t.get('con-quien-compartimos')}>
-    <p>Solo compartimos tus datos con los proveedores tecnológicos que necesitamos para operar el sitio, el correo y el agendador de reuniones:</p>
+    <p>Solo compartimos tus datos con los proveedores tecnológicos que necesitamos para operar el sitio, el correo{whatsapp ? ', el agendador de reuniones y WhatsApp' : ' y el agendador de reuniones'}:</p>
     <div class="table-wrap">
       <table>
         <thead>
@@ -127,7 +137,7 @@ const mail = `mailto:${SITE.email}`;
         <tbody>
           <tr>
             <td>Cloudflare, Inc.</td>
-            <td>Alojamiento y protección del sitio web; recepción y reenvío del correo dirigido a nuestro dominio (Email Routing)</td>
+            <td>Alojamiento y protección del sitio web; recepción y reenvío del correo dirigido a nuestro dominio (Email Routing){analytics && '; conteo agregado de visitas, sin cookies (Web Analytics)'}</td>
             <td>Estados Unidos</td>
           </tr>
           <tr>
@@ -140,11 +150,20 @@ const mail = `mailto:${SITE.email}`;
             <td>Agendador de reuniones (Notion Calendar): recibe tu nombre, tu correo y la fecha y hora que eliges</td>
             <td>Estados Unidos</td>
           </tr>
+          {
+            whatsapp && (
+              <tr>
+                <td>WhatsApp LLC (Meta)</td>
+                <td>Mensajería (WhatsApp): recibe tu número, el nombre de tu perfil y los mensajes que nos envías por ese canal</td>
+                <td>Estados Unidos</td>
+              </tr>
+            )
+          }
         </tbody>
       </table>
     </div>
     <p>
-      Esto implica una transmisión internacional de datos. Estados Unidos figura entre los países que la Superintendencia de Industria y Comercio reconoce con un nivel adecuado de protección (Circular Externa 005 de 2017). Cloudflare trata los datos por nuestra cuenta y está obligado por contrato a protegerlos, tanto en el alojamiento del sitio como en el reenvío del correo; el buzón donde finalmente se almacenan los mensajes, el calendario y las videollamadas se rigen por los términos y la política de privacidad de Google, y el agendador, por los de Notion.
+      Esto implica una transmisión internacional de datos. Estados Unidos figura entre los países que la Superintendencia de Industria y Comercio reconoce con un nivel adecuado de protección (Circular Externa 005 de 2017). Cloudflare trata los datos por nuestra cuenta y está obligado por contrato a protegerlos, tanto en el alojamiento del sitio como en el reenvío del correo; el buzón donde finalmente se almacenan los mensajes, el calendario y las videollamadas se rigen por los términos y la política de privacidad de Google{whatsapp ? '; el agendador, por los de Notion, y los mensajes de WhatsApp, por los de WhatsApp.' : ', y el agendador, por los de Notion.'}
     </p>
     <p>También podremos entregar tus datos a una autoridad pública o judicial que los solicite en ejercicio de sus funciones legales.</p>
   </LegalSection>

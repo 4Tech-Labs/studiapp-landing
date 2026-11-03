@@ -15,6 +15,9 @@ const subject = isProduct ? `Agenda una reunión con ${PRODUCT.name}` : 'Contact
 const mailto = `mailto:${SITE.email}?subject=${encodeURIComponent(subject)}`;
 // Con agendador, el botón lo abre en otra pestaña y el correo queda como alternativa en la nota.
 const booking = SITE.bookingUrl ? { href: SITE.bookingUrl, target: '_blank', rel: 'noopener' } : { href: mailto };
+// WhatsApp abre el chat con un primer mensaje según la página, para que sepamos de dónde llega.
+const whatsappText = isProduct ? `Hola, quiero conocer ${PRODUCT.name}.` : 'Hola, quiero contarles sobre un proyecto.';
+const whatsapp = SITE.whatsapp && `https://wa.me/${SITE.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappText)}`;
 const id = isProduct ? 'agenda' : 'contacto';
 // Las dos variantes tienen el mismo diseño; solo cambian los textos.
 const copy = isProduct
@@ -51,13 +54,21 @@ const copy = isProduct
       <WaveTitle parts={copy.title} theme="dark" />
     </h2>
     <p class="lead">{copy.lead}</p>
-    {/* Basta un botón: el correo ya va en la nota de abajo */}
+    {/* Agendar es la acción principal; WhatsApp, la vía rápida, va como botón secundario. El correo va en la nota. */}
     <div class="ctas">
       <a {...booking} class="btn-primary">
         <EdgeSweep fill="var(--brand-grad)" edge="hsl(210 100% 75% / 0.35)" />
         Agenda una reunión
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
+      {
+        whatsapp && (
+          <a href={whatsapp} target="_blank" rel="noopener" class="btn-secondary">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+            Escríbenos por WhatsApp
+          </a>
+        )
+      }
     </div>
     {
       SITE.bookingUrl ? (
@@ -158,8 +169,8 @@ const copy = isProduct
     gap: 12px;
   }
   /* Botón principal en el azul de la marca; sobre el fondo oscuro lleva un filo claro para despegarse, y por ese filo
-     corre una luz sin parar (EdgeSweep, que también pinta el relleno): es el cierre de la página y el único botón de
-     la sección. A la medida del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo. */
+     corre una luz sin parar (EdgeSweep, que también pinta el relleno): es el cierre de la página y la acción principal
+     de la sección. A la medida del de Productos (48 px de alto); en celular, 44 px, el mínimo cómodo para el dedo. */
   .btn-primary {
     position: relative;
     isolation: isolate;
@@ -183,8 +194,35 @@ const copy = isProduct
   .btn-primary:active {
     translate: 0 1px;
   }
+  /* Secundario: vidrio claro con filo, sin luz ni relleno, para que no compita con Agenda. Mismo alto. */
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 22px;
+    border-radius: 9999px;
+    background: hsl(0 0% 100% / 0.06);
+    box-shadow: inset 0 0 0 1px hsl(222 60% 85% / 0.28);
+    color: hsl(0 0% 100%);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .btn-secondary:hover {
+    color: hsl(0 0% 100%);
+    background: hsl(0 0% 100% / 0.12);
+    box-shadow: inset 0 0 0 1px hsl(222 60% 90% / 0.45);
+  }
+  .btn-secondary:active {
+    translate: 0 1px;
+  }
   @media (max-width: 479px) {
-    .btn-primary {
+    .btn-primary,
+    .btn-secondary {
       height: 44px;
     }
   }

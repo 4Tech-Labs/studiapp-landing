@@ -7,6 +7,10 @@ import { SITE, COMPANY, LEGAL } from '../data/site';
 // Funciona como aviso de privacidad: art. 2.2.2.25.3.3 del Decreto 1074 de 2015 (responsable y contacto, tratamiento y
 // finalidad, derechos, y cómo consultar la política de tratamiento y sus cambios). Debe coincidir con tratamiento-de-datos.
 const mail = `mailto:${SITE.email}`;
+// WhatsApp y la analítica solo se nombran si están activos en site.ts (SITE.whatsapp, SITE.analyticsToken).
+const whatsapp = Boolean(SITE.whatsapp);
+const analytics = Boolean(SITE.analyticsToken);
+const providers = whatsapp ? 'cuatro' : 'tres';
 ---
 
 <Legal title="Política de privacidad" description="Resumen de cómo StudIApp trata tus datos personales cuando visitas el sitio o nos escribes, y cómo ejercer tus derechos.">
@@ -16,7 +20,7 @@ const mail = `mailto:${SITE.email}`;
 
   <LegalSection id="que-datos" title="Qué datos tratamos">
     <ul>
-      <li><strong>Si nos escribes o agendas una reunión:</strong> tu nombre, tu correo electrónico, la fecha y hora que elijas y lo que decidas incluir en tu mensaje, como tu cargo, tu institución o tu teléfono.</li>
+      <li><strong>Si nos escribes o agendas una reunión:</strong> tu nombre, tu correo electrónico{whatsapp && ' o tu número de WhatsApp'}, la fecha y hora que elijas y lo que decidas incluir en tu mensaje, como tu cargo, tu institución o tu teléfono.</li>
       <li><strong>Si visitas el sitio:</strong> los datos técnicos que tu navegador envía al cargar cualquier página web, como tu dirección IP y el tipo de navegador.</li>
     </ul>
     <p>Te pedimos no enviarnos información de estudiantes ni datos sensibles, como datos de salud: no los necesitamos para atenderte.</p>
@@ -26,12 +30,19 @@ const mail = `mailto:${SITE.email}`;
     <ul>
       <li>Para responder tu mensaje, coordinar la reunión que nos pidas y hacer seguimiento a tu solicitud.</li>
       <li>Para mostrarte el sitio y protegerlo frente a ataques.</li>
+      {analytics && <li>Para saber cuántas visitas recibe cada página, en cifras agregadas que no te identifican.</li>}
     </ul>
   </LegalSection>
 
   <LegalSection id="lo-que-no-hacemos" title="Lo que no hacemos">
     <ul>
-      <li>No usamos cookies ni herramientas de analítica o seguimiento (ver <a href="/politica-de-cookies">Política de cookies</a>).</li>
+      {
+        analytics ? (
+          <li>No usamos cookies ni herramientas de seguimiento. Contamos las visitas sin cookies y solo en cifras agregadas (ver <a href="/politica-de-cookies">Política de cookies</a>).</li>
+        ) : (
+          <li>No usamos cookies ni herramientas de analítica o seguimiento (ver <a href="/politica-de-cookies">Política de cookies</a>).</li>
+        )
+      }
       <li>No vendemos, alquilamos ni cedemos tus datos.</li>
       <li>No te enviamos boletines ni publicidad sin tu autorización expresa.</li>
       <li>No recolectamos de forma intencional datos de menores de edad.</li>
@@ -40,7 +51,7 @@ const mail = `mailto:${SITE.email}`;
 
   <LegalSection id="con-quien" title="Con quién los compartimos">
     <p>
-      Con tres proveedores tecnológicos: Cloudflare, que aloja y protege el sitio y reenvía el correo que llega a nuestro dominio; Google, en cuyo buzón (Gmail) recibimos y respondemos los mensajes y en cuyo calendario se crean las reuniones (con Google Meet), y Notion, cuyo agendador (Notion Calendar) recibe los datos de la reunión que reservas. Los tres están en Estados Unidos, un país que la Superintendencia de Industria y Comercio reconoce con un nivel adecuado de protección de datos. Fuera de eso, solo los entregaríamos a una autoridad que los solicite en ejercicio de sus funciones legales.
+      Con {providers} proveedores tecnológicos: Cloudflare, que aloja y protege el sitio{analytics && ', cuenta las visitas'} y reenvía el correo que llega a nuestro dominio; Google, en cuyo buzón (Gmail) recibimos y respondemos los mensajes y en cuyo calendario se crean las reuniones (con Google Meet){whatsapp ? ';' : ', y'} Notion, cuyo agendador (Notion Calendar) recibe los datos de la reunión que reservas{whatsapp && ', y WhatsApp, de Meta, por donde recibimos y respondemos los mensajes que nos envías por ese canal'}. Los {providers} están en Estados Unidos, un país que la Superintendencia de Industria y Comercio reconoce con un nivel adecuado de protección de datos. Fuera de eso, solo los entregaríamos a una autoridad que los solicite en ejercicio de sus funciones legales.
     </p>
   </LegalSection>
 

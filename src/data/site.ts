@@ -10,6 +10,16 @@ export const SITE = {
   email: 'hola@4techlabs.com', // reenviado a fourtechlabs@gmail.com con Cloudflare Email Routing
   /** Agendador de reuniones (enlace recurrente de Notion Calendar). Vacío = el botón de Agenda abre un correo. */
   bookingUrl: 'https://calendar.notion.com/meet/4techlabs/demo',
+  /**
+   * Número de WhatsApp del botón de Contacto (abre wa.me con un mensaje listo). Vacío = el botón no se muestra.
+   * Las políticas de privacidad y de tratamiento de datos nombran WhatsApp solo si hay número: al cambiarlo, cambia LEGAL.effectiveDate.
+   */
+  whatsapp: '+57 320 551 8633',
+  /**
+   * Token de Cloudflare Web Analytics (Analytics & Logs → Web Analytics, configuración manual). Es público: va en el HTML.
+   * Vacío = no se carga el beacon y las políticas dicen que no hay analítica. Al llenarlo o vaciarlo, cambia LEGAL.effectiveDate.
+   */
+  analyticsToken: '',
   themeColor: '#0040a3',
   ogImage: '/og-4techlabs.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
