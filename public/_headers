@@ -9,7 +9,14 @@
 /videos/*
   Cache-Control: public, max-age=31536000, immutable
 
+# HSTS: después de la primera visita por HTTPS el navegador ya no intenta HTTP (un año, también www). Sin preload:
+# entrar a la lista de los navegadores es difícil de revertir. La redirección de http:// a https:// la hace Cloudflare
+# (SSL/TLS → Edge Certificates → Always Use HTTPS): HSTS no actúa en la primera visita.
+# La CSP de scripts y estilos va en un <meta> por página (security.csp en astro.config.ts); frame-ancestors no puede
+# ir en un <meta>, así que va aquí.
 /*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: frame-ancestors 'self'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()

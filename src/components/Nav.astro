@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import logo from '../assets/4techlabs-logo.png';
 import { COMPANY, PRODUCT } from '../data/site';
+import { NOTCH_SCRIPT } from '../lib/nav-notch';
 import LottieLogo from './LottieLogo.astro';
 
 // Nav del sitio: logo a la izquierda y enlaces al centro.
@@ -100,14 +101,8 @@ const slot = 8 + Math.round((logo.width / logo.height) * PILL_H) + 16 + 2;
     }
   </div>
 </header>
-<script is:inline>
-  // Celular y landing de StudIApp: la nav es siempre el notch. Se marca aquí, antes de pintar, para que no se vea
-  // primero la versión desplegada.
-  (function () {
-    var cn = document.querySelector('[data-cn]');
-    if (cn.hasAttribute('data-cn-notch') || matchMedia('(max-width: 899px)').matches) cn.setAttribute('data-scrolled', '');
-  })();
-</script>
+<!-- Marca el notch antes de pintar (ver src/lib/nav-notch.ts) -->
+<script is:inline set:html={NOTCH_SCRIPT} />
 
 <style>
   /* Coreografía al condensarse (al bajar), en tres tiempos:

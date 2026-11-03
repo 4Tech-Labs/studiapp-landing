@@ -1,6 +1,7 @@
 import { defineConfig, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { SITE, LEGAL, LEGAL_LINKS } from './src/data/site';
+import { NOTCH_SCRIPT_HASH } from './src/lib/nav-notch';
 
 export default defineConfig({
   site: SITE.url,
@@ -14,6 +15,32 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   image: { responsiveStyles: false },
+  // No hay Markdown con código: sin Shiki, cuyos estilos inline chocan con la CSP (y Astro avisa en cada build).
+  markdown: { syntaxHighlight: false },
+  // Content-Security-Policy en un <meta> por página, con los hashes de los scripts y estilos que genera Astro.
+  // Al agregar un servicio externo (script, fetch, iframe, imagen), hay que sumarlo aquí o el navegador lo bloquea.
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' data:",
+        "media-src 'self'",
+        "font-src 'self'",
+        // El worker de las fibras del hero (GhostFibers)
+        "worker-src 'self'",
+        // Lista de espera de Complexipy (Catalog) y el beacon de Cloudflare Web Analytics
+        "connect-src 'self' https://www.complexipy-teams.com https://cloudflareinsights.com",
+        "form-action 'self' https://www.complexipy-teams.com",
+        "base-uri 'self'",
+        "object-src 'none'",
+        'upgrade-insecure-requests',
+      ],
+      // El script inline de la nav (is:inline) no recibe hash automático: lo calcula src/lib/nav-notch.ts
+      scriptDirective: { resources: ["'self'", 'https://static.cloudflareinsights.com'], hashes: [NOTCH_SCRIPT_HASH] },
+      // Los componentes pasan variables en atributos style (style={`--i:${i}`}): esos atributos no llevan hash.
+      styleDirective: { resources: ["'self'", { resource: "'unsafe-inline'", kind: 'attribute' }] },
+    },
+  },
   vite: {
     build: {
       // Vite 8 compila el CSS para Safari 16.4+ y reescribe las media queries en sintaxis de rango (width<=899px),
