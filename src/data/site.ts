@@ -14,7 +14,7 @@ export const SITE = {
    * Número de WhatsApp del botón de Contacto (abre wa.me con un mensaje listo). Vacío = el botón no se muestra.
    * Las políticas de privacidad y de tratamiento de datos nombran WhatsApp solo si hay número: al cambiarlo, cambia LEGAL.effectiveDate.
    */
-  whatsapp: '+57 320 551 8633',
+  whatsapp: '', // apagado por ahora; para activarlo: '+57 320 551 8633'
   /**
    * Token de Cloudflare Web Analytics (Analytics & Logs → Web Analytics, configuración manual). Es público: va en el HTML.
    * Vacío = no se carga el beacon y las políticas dicen que no hay analítica. Al llenarlo o vaciarlo, cambia LEGAL.effectiveDate.
