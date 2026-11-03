@@ -49,10 +49,11 @@ export default defineConfig({
   ],
   integrations: [
     sitemap({
-      // /og solo existe para generar la imagen Open Graph. Las páginas legales entran cuando tienen fecha de vigencia (antes llevan noindex).
+      // /og y /og-studiapp solo existen para generar las imágenes Open Graph. Las páginas legales entran cuando tienen
+      // fecha de vigencia (antes llevan noindex).
       filter: (page) => {
         const path = new URL(page).pathname.replace(/\.html$/, '');
-        if (path === '/og') return false;
+        if (path === '/og' || path === '/og-studiapp') return false;
         return Boolean(LEGAL.effectiveDate) || !LEGAL_LINKS.some((l) => l.href === path);
       },
       // URLs públicas sin .html (ver build.format)

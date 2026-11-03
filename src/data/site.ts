@@ -11,7 +11,7 @@ export const SITE = {
   /** Agendador de reuniones (enlace recurrente de Notion Calendar). Vacío = el botón de Agenda abre un correo. */
   bookingUrl: 'https://calendar.notion.com/meet/4techlabs/demo',
   themeColor: '#0040a3',
-  ogImage: '/og.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
+  ogImage: '/og-4techlabs.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
 
 /** StudIApp, el primer producto del catálogo. Su landing vive en `path` y usa estos textos para título, descripción y JSON-LD. */
@@ -22,6 +22,7 @@ export const PRODUCT = {
   description:
     'Planea el año escolar en minutos con IA. Planeaciones en las plantillas de tu colegio, con contexto institucional, DUA y PIAR. Agenda una reunión.',
   tagline: 'Planeaciones escolares con IA, en las plantillas de tu colegio.',
+  ogImage: '/studiapp-og.jpg', // 1200×630 en public/ (se genera desde la página /og-studiapp)
 };
 
 export interface CatalogItem {

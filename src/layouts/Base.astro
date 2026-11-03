@@ -15,10 +15,12 @@ const { title = SITE.title, description = SITE.description, noindex = false, pro
 // Con build.format 'file' el pathname llega como /pagina.html; la URL pública es /pagina (Cloudflare sirve el .html sin extensión).
 const cleanPath = Astro.url.pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
 const canonical = new URL(cleanPath, SITE.url).href;
-const ogImage = new URL(SITE.ogImage, SITE.url).href;
 const id = (h: string) => `${SITE.url}/#${h}`;
 // Iconos de la pestaña: el "4" del logo 4TL en el sitio de la empresa; el robot en la página de StudIApp.
 const iconPrefix = product ? '/studiapp-' : '/';
+// Imagen al compartir: la de la empresa, o la de StudIApp en su página.
+const ogImage = new URL(product ? PRODUCT.ogImage : SITE.ogImage, SITE.url).href;
+const ogImageAlt = product ? `${PRODUCT.name}: ${PRODUCT.tagline}` : `${COMPANY.name}: convertimos tus ideas en software a la medida`;
 // Perfiles de la empresa en redes: enlazan la organización con su página de LinkedIn, etc.
 const sameAs = Object.values(SOCIAL).filter(Boolean);
 const team = TEAM.map((m) => ({ '@type': 'Person', name: m.name, jobTitle: m.role, ...(m.linkedin && { sameAs: [m.linkedin] }) }));
@@ -100,10 +102,12 @@ const jsonLd = {
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     <Font cssVariable="--font-display" preload />
     <Font cssVariable="--font-sans" preload />
