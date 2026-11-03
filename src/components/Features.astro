@@ -3,6 +3,7 @@ import VideoPlayer from './VideoPlayer.astro';
 import { FEATURES, FEATURES_DEFAULT_TAB } from '../data/site';
 
 const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
+const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
 <section id="caracteristicas" aria-labelledby="caracteristicas-titulo" class="features" data-screen-label="Características">
@@ -33,7 +34,7 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
     </div>
   </div>
 
-  <div class="panels">
+  <div class="panels" data-panels>
     {
       FEATURES.map((f, i) => (
         <div role="tabpanel" id={`feat-panel-${i}`} aria-labelledby={`feat-tab-${i}`} hidden={i !== active} class="panel">
@@ -44,9 +45,36 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
               </div>
             </div>
             <div class="text">
+              <div class="step">
+                <span class="count">
+                  <span aria-hidden="true">
+                    <b>{pad(i + 1)}</b> / {pad(FEATURES.length)}
+                  </span>
+                  <span class="sr">
+                    Característica {i + 1} de {FEATURES.length}
+                  </span>
+                </span>
+                <div class="arrows">
+                  <button type="button" class="arrow" data-step="-1" aria-label="Característica anterior" disabled={i === 0}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6" /></svg>
+                  </button>
+                  <button type="button" class="arrow" data-step="1" aria-label="Característica siguiente" disabled={i === FEATURES.length - 1}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
+                  </button>
+                </div>
+              </div>
               <h3>{f.title}</h3>
               <p>{f.text}</p>
             </div>
+          </div>
+          <div class="pager">
+            <div class="dots" aria-hidden="true">
+              {FEATURES.map((_, k) => <span class="dot" data-go={k} data-active={k === i ? '' : undefined} />)}
+            </div>
+            <button type="button" class="next" data-go={(i + 1) % FEATURES.length}>
+              {i < FEATURES.length - 1 ? `Siguiente: ${FEATURES[i + 1].tab}` : `Volver a: ${FEATURES[0].tab}`}
+              <span aria-hidden="true">{i < FEATURES.length - 1 ? '→' : '↺'}</span>
+            </button>
           </div>
         </div>
       ))
@@ -175,6 +203,7 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
   .panels {
     width: 100%;
     max-width: 1200px;
+    overflow: clip; /* el panel entra deslizándose: sin esto la página se ensancha un instante en celular */
     background: rgba(255, 255, 255, 0.5);
     -webkit-backdrop-filter: blur(14px) saturate(1.6);
     backdrop-filter: blur(14px) saturate(1.6);
@@ -190,6 +219,37 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
     flex-wrap: wrap;
     align-items: stretch;
     gap: 10px;
+  }
+  /* Al cambiar de característica el panel nuevo entra desde el lado hacia el que se avanza (data-enter lo pone el
+     script) y el texto llega un instante después. Mostrar un panel oculto reinicia la animación por sí solo; el panel
+     inicial no lleva data-enter y aparece quieto. */
+  .panel[data-enter] .grid {
+    --from: 28px;
+    animation: panel-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .panel[data-enter='prev'] .grid {
+    --from: -28px;
+  }
+  .panel[data-enter] .text > :not(.step) {
+    animation: text-in 0.5s 0.06s ease both;
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateX(var(--from));
+    }
+  }
+  @keyframes text-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .panel[data-enter] .grid,
+    .panel[data-enter] .text > :not(.step) {
+      animation: none;
+    }
   }
   .media {
     flex: 1 1 52%;
@@ -239,13 +299,129 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
     color: hsl(210 10% 38%);
     text-wrap: pretty;
   }
+
+  /* Cuando el riel no cabe (celular) casi todo queda escondido: el contador dice cuántas hay, las flechas y los puntos
+     llevan a las demás y "Siguiente" nombra la que sigue. En escritorio las pestañas se ven todas y esto sobra. */
+  .features:not([data-overflow]) .step,
+  .features:not([data-overflow]) .pager {
+    display: none;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  /* Contador de progreso: el número actual manda (azul, grande) y el total queda de referencia, en gris. */
+  .count {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    color: hsl(220 14% 62%);
+  }
+  .count b {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .arrows {
+    display: flex;
+    gap: 8px;
+  }
+  /* Fondo azul claro y sin borde: con borde fino sobre blanco parecían apagadas. En los extremos (primera ‹, última ›)
+     se atenúan de verdad; volver al inicio lo ofrece "Volver a" bajo el video. */
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: hsl(218 80% 95%);
+    color: var(--accent);
+    cursor: pointer;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.15s ease;
+  }
+  .arrow:not(:disabled):active {
+    background: hsl(218 75% 89%);
+    transform: scale(0.94);
+  }
+  .arrow:disabled {
+    background: hsl(220 20% 96%);
+    color: hsl(220 14% 76%);
+    cursor: default;
+  }
+  .pager {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 12px 0 4px;
+  }
+  .dots {
+    display: flex;
+    justify-content: center;
+  }
+  .dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+  .dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: hsl(220 40% 82%);
+    transition:
+      width 0.3s ease,
+      background-color 0.3s ease;
+  }
+  .dot[data-active]::before {
+    width: 18px;
+    background: var(--accent);
+  }
+  .next {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: none;
+    background: transparent;
+    color: var(--accent);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+  }
 </style>
 
 <script>
   const list = document.querySelector<HTMLElement>('[data-tabs]');
   const rail = document.querySelector<HTMLElement>('[data-rail]');
   const pill = list?.querySelector<HTMLElement>('[data-pill]');
-  if (list && rail && pill) {
+  const box = document.querySelector<HTMLElement>('[data-panels]');
+  const section = list?.closest<HTMLElement>('section');
+  if (list && rail && pill && box && section) {
     const tabs = Array.from(list.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
     const panels = tabs.map((t) => document.getElementById(t.getAttribute('aria-controls')!));
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -277,9 +453,12 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
       reveal(p, animate);
     };
 
-    const select = (i: number, focus = false) => {
+    // dir: hacia dónde se avanza (1 adelante, -1 atrás). Sin él se deduce del orden; las flechas, "Siguiente" y el
+    // deslizar lo pasan porque al dar la vuelta (de la última a la primera) el orden diría lo contrario.
+    const select = (i: number, focus = false, dir = Math.sign(i - active)) => {
       if (i === active) return;
       panels[active]?.querySelector('[data-video-player]')?.dispatchEvent(new CustomEvent('player:pause'));
+      panels[i]?.setAttribute('data-enter', dir < 0 ? 'prev' : 'next');
       tabs.forEach((t, k) => {
         const on = k === i;
         t.setAttribute('aria-selected', String(on));
@@ -299,12 +478,65 @@ const active = Math.min(Math.max(FEATURES_DEFAULT_TAB, 0), FEATURES.length - 1);
       if (d === undefined) return;
       e.preventDefault();
       const n = tabs.length;
-      select(d === 'home' ? 0 : d === 'end' ? n - 1 : (active + d + n) % n, true);
+      if (d === 'home' || d === 'end') select(d === 'home' ? 0 : n - 1, true);
+      else select((active + d + n) % n, true, d);
     });
 
-    // Desvanecido en el borde por el que quedan pestañas ocultas: indica que el riel se desliza.
+    // Controles del panel (contador, flechas, puntos, "Siguiente"). Si el cambio llega con el panel metido bajo el
+    // menú fijo, sube hasta el riel para que la nueva característica se lea desde su título.
+    const NAV_SPACE = 110;
+    const go = (i: number, dir?: number) => {
+      const n = tabs.length;
+      select((i + n) % n, false, dir);
+      if (box.getBoundingClientRect().top < NAV_SPACE) {
+        window.scrollBy({ top: rail.getBoundingClientRect().top - NAV_SPACE, behavior: reduce ? 'auto' : 'smooth' });
+      }
+    };
+    box.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest<HTMLElement>('[data-step],[data-go]');
+      if (!t) return;
+      const step = t.dataset.step;
+      if (step) go(active + Number(step), Number(step));
+      else go(Number(t.dataset.go), t.matches('.next') ? 1 : undefined);
+      // La flecha tocada quedó en el panel oculto: el foco pasa a la misma flecha del nuevo, para seguir con el teclado;
+      // si en el nuevo está atenuada (se llegó a un extremo), a la otra.
+      if (step) {
+        const same = panels[active]?.querySelector<HTMLButtonElement>(`[data-step="${step}"]`);
+        const other = panels[active]?.querySelector<HTMLButtonElement>(`[data-step="${-Number(step)}"]`);
+        (same && !same.disabled ? same : other)?.focus({ preventScroll: true });
+      }
+    });
+
+    // Deslizar el panel con el dedo cambia de característica; no cuenta si empieza en la barra del video (adelantar) ni
+    // en pantalla completa.
+    let start: { x: number; y: number } | null = null;
+    box.addEventListener(
+      'touchstart',
+      (e) => {
+        const ok = e.touches.length === 1 && section.hasAttribute('data-overflow') && !document.fullscreenElement;
+        start = ok && !(e.target as HTMLElement).closest('.vp-bar') ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
+      },
+      { passive: true },
+    );
+    box.addEventListener(
+      'touchend',
+      (e) => {
+        if (!start) return;
+        const dx = e.changedTouches[0].clientX - start.x;
+        const dy = e.changedTouches[0].clientY - start.y;
+        start = null;
+        const next = active + (dx < 0 ? 1 : -1);
+        // Igual que las flechas, no da la vuelta: en los extremos el gesto no hace nada.
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && next >= 0 && next < tabs.length) go(next, dx < 0 ? 1 : -1);
+      },
+      { passive: true },
+    );
+
+    // Desvanecido en el borde por el que quedan pestañas ocultas: indica que el riel se desliza. Si el riel no cabe,
+    // la sección muestra además los controles del panel.
     const fades = () => {
       const max = rail.scrollWidth - rail.clientWidth;
+      section.toggleAttribute('data-overflow', max > 1);
       rail.toggleAttribute('data-fade-start', max > 1 && rail.scrollLeft > 1);
       rail.toggleAttribute('data-fade-end', max > 1 && rail.scrollLeft < max - 1);
     };
