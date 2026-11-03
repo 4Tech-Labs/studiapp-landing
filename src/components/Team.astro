@@ -95,6 +95,10 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
           })}
         </ul>
 
+        <div class="dots" aria-hidden="true" data-reveal style={`--i:${TEAM.length + 1}`}>
+          {TEAM.map(() => <span class="dot" data-team-dot />)}
+        </div>
+
         <button type="button" class="arrow next" aria-label="Siguiente" data-team-next>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6" /></svg>
         </button>
@@ -109,6 +113,8 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
   .team {
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
     --arc: 50deg; /* giro máximo de las tarjetas en los bordes del riel */
+    --shade: 0.7; /* sombra de profundidad en el borde lejano de una tarjeta girada al máximo */
+    --card-w: clamp(200px, 17vw, 236px);
     position: relative;
     overflow: clip;
     margin-top: var(--gap);
@@ -218,7 +224,7 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
   .card {
     position: relative;
     flex: none;
-    width: clamp(200px, 17vw, 236px);
+    width: var(--card-w);
     aspect-ratio: 4 / 5;
     border-radius: 20px;
     overflow: hidden;
@@ -280,8 +286,8 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
     inset: 0;
     pointer-events: none;
     background:
-      linear-gradient(90deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0) * -1) * 0.7))),
-      linear-gradient(270deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0)) * 0.7)));
+      linear-gradient(90deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0) * -1) * var(--shade)))),
+      linear-gradient(270deg, transparent 30%, hsl(234 60% 4% / calc(max(0, var(--t, 0)) * var(--shade))));
     transition: opacity 0.5s ease;
   }
   .photo {
@@ -546,6 +552,62 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
       display: inline-flex;
     }
   }
+
+  /* Celular: coverflow. Con tarjeta y media a la vista el arco no se lee y solo quedan tarjetas torcidas. La tarjeta
+     se centra (el padding deja centrar también la primera y la última) y así queda plana (--t = 0), con una vecina
+     asomando a cada lado; el giro y la sombra bajan para que la vecina se vea y su nombre se lea. */
+  @media (max-width: 639px) {
+    .team {
+      --arc: 22deg;
+      --shade: 0.35;
+    }
+    .rail {
+      padding-inline: calc(50% - var(--card-w) / 2);
+      scroll-padding: 0;
+    }
+    .card {
+      scroll-snap-align: center;
+    }
+  }
+
+  /* Puntos: en táctil no hay flechas y la tarjeta que asoma, girada por el arco, parece parte de la composición;
+     los puntos dicen cuántas personas hay y en cuál va el riel. Bajan hasta el aire inferior de la sección (el borde
+     cercano de las tarjetas giradas casi llena el del riel) y se centran con left/right, no con translate, que lo usa
+     la entrada escalonada. */
+  .dots {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -22px;
+    z-index: 4;
+    display: none;
+    justify-content: center;
+  }
+  .team[data-overflow] .dots {
+    display: flex;
+  }
+  .dot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+  .dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: hsl(230 60% 80% / 0.35);
+    transition:
+      width 0.3s var(--ease-out),
+      background-color 0.3s ease;
+  }
+  .dot[data-active]::before {
+    width: 18px;
+    background: hsl(0 0% 100% / 0.9);
+  }
   @media (prefers-reduced-motion: reduce) {
     .card {
       transition: none;
@@ -594,6 +656,7 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
     };
     // Arco 3D: --t de cada tarjeta según dónde queda su centro respecto al centro visible del riel (-1 a 1).
     const cards = [...rail.querySelectorAll<HTMLElement>('.card')];
+    const dots = [...section.querySelectorAll<HTMLElement>('[data-team-dot]')];
     // Radio del cilindro: la cuerda entre centros vecinos (ancho + gap) abarca el ángulo que cambia el giro entre ellos.
     // Primero se leen todas las medidas y después se escriben las variables: intercalar lecturas y escrituras
     // obligaría al navegador a recalcular estilos una vez por tarjeta en cada cuadro del scroll.
@@ -609,6 +672,13 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
       });
       rail.style.setProperty('--r', `${(pitch / (2 * Math.sin(angle / 2))).toFixed(0)}px`);
       for (const [card, t] of tilts) card.style.setProperty('--t', t.toFixed(3));
+      // Punto activo: la tarjeta más cerca del centro visible (al final del riel la última no alcanza a quedar al
+      // inicio, pero sí es la más centrada).
+      let active = 0;
+      tilts.forEach(([, t], i) => {
+        if (Math.abs(t) < Math.abs(tilts[active][1])) active = i;
+      });
+      dots.forEach((dot, i) => dot.toggleAttribute('data-active', i === active));
     };
     let frame = 0;
     const schedule = () => {
@@ -634,6 +704,69 @@ const tiltOf = (i: number) => (TEAM.length > 1 ? ((i - (TEAM.length - 1) / 2) / 
     );
     tilt();
     new ResizeObserver(schedule).observe(rail);
+
+    // Tocar un punto lleva el riel a esa tarjeta: centrada en celular (coverflow), al inicio en lo demás.
+    // offsetLeft es relativo al riel, como en tilt.
+    dots.forEach((dot, i) =>
+      dot.addEventListener('click', () => {
+        const card = cards[i];
+        const left = getComputedStyle(card).scrollSnapAlign.includes('center')
+          ? card.offsetLeft + card.offsetWidth / 2 - rail.clientWidth / 2
+          : card.offsetLeft - (parseFloat(getComputedStyle(rail).scrollPaddingLeft) || 0);
+        rail.scrollTo({ left, behavior: 'smooth' });
+      }),
+    );
+
+    // Empujón: en táctil (sin flechas), la primera vez que el riel queda a la vista avanza un poco y regresa, para
+    // mostrar que se desliza. Se anima scrollLeft cuadro a cuadro y no con scrollBy: con el ajuste obligatorio, un
+    // scroll programado de unos píxeles salta a 0 o a la siguiente tarjeta. Si la persona toca el riel o los puntos
+    // antes o durante el empujón, se cancela ahí mismo.
+    if (!reduce && !matchMedia('(hover: hover) and (pointer: fine)').matches && 'IntersectionObserver' in window) {
+      const NUDGE = 72;
+      const easeOut = (p: number) => 1 - (1 - p) ** 3;
+      const easeInOut = (p: number) => (p < 0.5 ? 4 * p ** 3 : 1 - (-2 * p + 2) ** 3 / 2);
+      const viewport = rail.parentElement!;
+      let done = false;
+      let raf = 0;
+      let wait = 0;
+      const stop = () => {
+        done = true;
+        clearTimeout(wait);
+        cancelAnimationFrame(raf);
+        rail.style.removeProperty('scroll-snap-type');
+      };
+      const run = (from: number, to: number, ms: number, ease: (p: number) => number, then: () => void) => {
+        const start = performance.now();
+        const frame = (now: number) => {
+          if (done) return;
+          const p = Math.min(1, (now - start) / ms);
+          rail.scrollLeft = from + (to - from) * ease(p);
+          if (p < 1) raf = requestAnimationFrame(frame);
+          else then();
+        };
+        raf = requestAnimationFrame(frame);
+      };
+      viewport.addEventListener('pointerdown', stop, { once: true });
+      viewport.addEventListener('wheel', stop, { once: true, passive: true });
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
+          io.disconnect();
+          // Espera a que la entrada escalonada se asiente.
+          // Parte de donde esté el riel: Chrome puede dejarlo unos píxeles corrido porque ajusta a la tarjeta girada.
+          wait = window.setTimeout(() => {
+            const from = rail.scrollLeft;
+            if (done || from > 24 || !section.hasAttribute('data-overflow')) return;
+            rail.style.scrollSnapType = 'none';
+            run(from, from + NUDGE, 450, easeOut, () => {
+              wait = window.setTimeout(() => run(from + NUDGE, from, 500, easeInOut, stop), 120);
+            });
+          }, 600);
+        },
+        { threshold: 0.75 },
+      );
+      io.observe(rail);
+    }
 
     // Con mouse, la tarjeta abierta se inclina hacia el cursor (hasta TILT grados), el brillo lo sigue y el reverso
     // hace paralaje. El seguimiento empieza cuando termina de enderezarse (data-tracking), para no cortar esa transición.
