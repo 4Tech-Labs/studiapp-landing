@@ -19,7 +19,7 @@ export const SITE = {
    * Token de Cloudflare Web Analytics (Analytics & Logs → Web Analytics, configuración manual). Es público: va en el HTML.
    * Vacío = no se carga el beacon y las políticas dicen que no hay analítica. Al llenarlo o vaciarlo, cambia LEGAL.effectiveDate.
    */
-  analyticsToken: '',
+  analyticsToken: '341dbc2d883a46ae84f05225a4fcae12',
   themeColor: '#0040a3',
   ogImage: '/og-4techlabs.jpg', // 1200×630 en public/ (se genera desde la página /og, ver README)
 };
@@ -260,7 +260,7 @@ export const LEGAL = {
    * Fecha de entrada en vigencia (AAAA-MM-DD): el día en que se publican. Se cambia también al publicar una versión nueva.
    * Vacía = las páginas muestran "[fecha por definir]", llevan noindex y no entran al sitemap.
    */
-  effectiveDate: '2026-10-30',
+  effectiveDate: '2026-11-02',
   /** Meses que se conservan los datos de contacto desde la última comunicación. */
   retentionMonths: 24,
 };
