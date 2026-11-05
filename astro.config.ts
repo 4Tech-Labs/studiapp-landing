@@ -53,6 +53,17 @@ export default defineConfig({
   // Solo subset latin: el español cabe completo en U+0000-00FF.
   fonts: [
     {
+      // Solo el titular del hero (var(--font-hero)). Cal Sans, licencia SIL Open Font. Viene en un único peso (400),
+      // que ya se ve grueso: con otro font-weight el navegador inventaría una negrita falsa.
+      provider: fontProviders.google(),
+      name: 'Cal Sans',
+      cssVariable: '--font-hero',
+      weights: ['400'],
+      styles: ['normal'],
+      subsets: ['latin'],
+      fallbacks: ['Arial', 'sans-serif'],
+    },
+    {
       // Titulares y frases de peso (var(--font-display)). Inter Tight, licencia SIL Open Font.
       // Para cambiar de fuente basta con cambiar el bloque correspondiente.
       provider: fontProviders.google(),

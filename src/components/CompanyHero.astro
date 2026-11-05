@@ -168,13 +168,13 @@ const ctaChars = [...ctaText].map((c, n) => ({ c: c === ' ' ? '\u00a0' : c, n: n
   }
   h1 {
     margin: 0;
-    font-family: var(--font-display);
-    /* 500 y no 600: a este tamaño el tamaño ya marca la jerarquía, y las landings de software (Linear: Inter 510,
-       −0,022em; Stripe, Vercel y Figma más livianas) usan pesos medios en el titular principal. */
-    font-weight: 500;
+    /* Cal Sans: fuente de titulares, gruesa y redonda. Solo tiene peso 400, y su espaciado ya viene ajustado para
+       tamaños grandes, así que casi no se aprieta. Interlineado cerrado para que el titular se lea como un bloque. */
+    font-family: var(--font-hero);
+    font-weight: 400;
     font-size: clamp(2.3rem, 5.2vw, 4.6rem);
-    line-height: 1.06;
-    letter-spacing: -0.022em;
+    line-height: 1.02;
+    letter-spacing: -0.005em;
     /* En celular el segundo renglón se parte: balanceado queda «que hace crecer / tu negocio» y no una palabra sola */
     text-wrap: balance;
   }
