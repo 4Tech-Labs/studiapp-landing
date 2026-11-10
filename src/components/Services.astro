@@ -1,23 +1,19 @@
 ---
 import { SERVICES } from '../data/site';
 import { waveLabel, type WavePart } from '../lib/wave-title';
+import ServiceArt from './ServiceArt.astro';
 import WaveTitle from './WaveTitle.astro';
 
 // Lo que la empresa hace para sus clientes (datos en SERVICES). Va antes del catálogo de productos propios.
-// Cada tarjeta tiene su ancla (/#id), que enlaza el footer.
+// Cada tarjeta tiene su ancla (/#id), que enlaza el footer, y una ilustración animada (ServiceArt).
+// Escritorio: cuadrícula de 2 × 2 con el texto a la izquierda y la ilustración a la derecha. Tablet: 2 columnas con la
+// ilustración arriba. Celular: un riel horizontal que se desliza, con puntos, para no alargar la página.
+// Las tarjetas no son enlaces: al pasar el mouse solo se enciende una luz que sigue al cursor, sin levantarlas, para
+// no prometer un clic. La acción de la sección es el botón de abajo.
 const title: WavePart[] = [{ text: 'Desarrollo de software' }, { text: 'a la medida de tu negocio', accent: true, break: true }];
-
-// Iconos de trazo (viewBox 24), por id del servicio.
-const ICONS: Record<string, string> = {
-  'software-a-la-medida': '<polyline points="8 7 3 12 8 17"></polyline><polyline points="16 7 21 12 16 17"></polyline><line x1="14" y1="4" x2="10" y2="20"></line>',
-  'aplicaciones-web': '<rect x="3" y="4" width="18" height="16" rx="3"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="6.5" y1="6.5" x2="6.51" y2="6.5"></line><line x1="9.5" y1="6.5" x2="9.51" y2="6.5"></line>',
-  'aplicaciones-moviles': '<rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect><line x1="11" y1="18" x2="13" y2="18"></line>',
-  'inteligencia-artificial': '<path d="M11 3.5 12.9 9l5.6 1.9-5.6 1.9L11 18.3l-1.9-5.5L3.5 10.9 9.1 9z"></path><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"></path>',
-};
-const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
 ---
 
-<section id="servicios" aria-labelledby="servicios-titulo" class="services" data-screen-label="Servicios">
+<section id="servicios" aria-labelledby="servicios-titulo" class="services" data-screen-label="Servicios" data-services>
   <div class="head">
     <p class="kicker">Servicios</p>
     <h2 id="servicios-titulo" aria-label={waveLabel(title)}>
@@ -26,22 +22,31 @@ const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
     <p class="lead">Entendemos tu proceso, definimos el alcance contigo y entregamos software funcionando en ciclos cortos.</p>
   </div>
 
-  <ul class="grid">
+  <ul class="grid" data-services-rail>
     {
       SERVICES.map((s, i) => (
-        <li class="card" id={s.id}>
-          <div class="card-top">
-            <span class="icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[s.id] ?? FALLBACK_ICON} />
+        <li class="card" id={s.id} style={`--i:${i}`} data-service>
+          <div class="body">
+            <span class="num" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
             </span>
-            <span class="num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div class="text">
+              <h3>{s.title}</h3>
+              <p>{s.text}</p>
+            </div>
           </div>
-          <h3>{s.title}</h3>
-          <p>{s.text}</p>
+          <div class="visual" aria-hidden="true">
+            <ServiceArt id={s.id} />
+          </div>
         </li>
       ))
     }
   </ul>
+
+  {/* Solo en celular: en qué tarjeta del riel vas. Los pone a funcionar el script; sin JavaScript no se muestran. */}
+  <div class="dots" aria-hidden="true">
+    {SERVICES.map(() => <span class="dot" data-services-dot />)}
+  </div>
 
   <div class="cta-row">
     <a href="/#contacto" class="cta">
@@ -52,14 +57,26 @@ const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
 </section>
 
 <style>
-  /* El mismo marco de la sección Productos (Catalog), que va justo después */
+  /* El mismo marco de la sección Productos (Catalog), que va justo después. overflow: clip y no hidden: hidden
+     volvería la sección un contenedor de scroll y la ola del título (WaveTitle) seguiría ese scroll. */
   .services {
+    --pad: clamp(16px, 4vw, 48px);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: clip;
     margin-top: var(--gap);
     border-radius: var(--radius);
-    background: hsl(0 0% 100%);
+    background:
+      radial-gradient(ellipse 70% 38% at 50% 0%, hsl(216 100% 97%) 0%, transparent 70%),
+      hsl(0 0% 100%);
     box-shadow: inset 0 0 0 1px hsl(228 30% 93%);
-    padding: clamp(64px, 8vw, 112px) clamp(16px, 4vw, 48px);
+    padding: clamp(64px, 8vw, 112px) var(--pad);
     scroll-margin-top: 14px;
+  }
+  @supports not (overflow: clip) {
+    .services {
+      overflow: hidden;
+    }
   }
   .head {
     max-width: 760px;
@@ -93,72 +110,168 @@ const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
     color: hsl(232 12% 40%);
     text-wrap: pretty;
   }
+
   .grid {
     list-style: none;
     margin: clamp(40px, 5vw, 64px) auto 0;
     padding: 0;
     max-width: 1240px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--gap);
   }
-  /* Tarjeta en la tinta azul clara de la tarjeta de StudIApp del catálogo */
+
+  /* Tarjeta: texto a la izquierda (número arriba, título y descripción abajo) e ilustración a la derecha */
   .card {
-    display: flex;
-    flex-direction: column;
-    padding: clamp(22px, 2.2vw, 30px);
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    min-height: 272px;
+    padding: 10px;
     border-radius: 28px;
-    background: hsl(210 100% 97.5%);
-    box-shadow: inset 0 0 0 1px hsl(228 30% 40% / 0.06);
+    background: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(216 100% 98.6%) 100%);
+    box-shadow:
+      inset 0 0 0 1px hsl(222 45% 91%),
+      0 1px 2px hsl(222 40% 30% / 0.04),
+      0 22px 40px -30px hsl(222 70% 32% / 0.3);
     /* Al llegar por el ancla desde el footer, la tarjeta queda por debajo de la nav */
     scroll-margin-top: 96px;
-    transition: box-shadow 0.3s ease;
   }
-  /* La tarjeta a la que lleva el enlace queda marcada con el filo de la marca */
+  /* Filo de luz que sigue al cursor (--mx y --my los escribe el script): un degradado recortado al borde de 1,5 px */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: radial-gradient(300px circle at var(--mx, 50%) var(--my, 0%), hsl(216 100% 58%), transparent 70%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  /* Y un resplandor suave bajo el cursor, detrás del contenido */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 0%), hsl(216 100% 70% / 0.13), transparent 65%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  /* La tarjeta a la que lleva el enlace del footer queda marcada con el filo de la marca */
   .card:target {
-    box-shadow: inset 0 0 0 1.5px var(--brand);
-  }
-  .card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--brand);
-    background: hsl(0 0% 100%);
     box-shadow:
-      inset 0 0 0 1px hsl(222 60% 88%),
-      0 8px 16px -10px hsl(222 80% 40% / 0.35);
+      inset 0 0 0 1.5px var(--brand),
+      0 22px 40px -30px hsl(222 70% 32% / 0.3);
+  }
+  /* Alineado arriba con un espacio fijo bajo el número: los títulos de una misma fila quedan a la misma altura */
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(32px, 3.6vw, 52px);
+    padding: clamp(14px, 1.6vw, 24px) clamp(12px, 1.6vw, 24px) clamp(14px, 1.6vw, 22px) clamp(14px, 1.6vw, 24px);
   }
   .num {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 11px;
+    border-radius: 9999px;
     font-family: var(--font-display);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.04em;
-    color: hsl(222 60% 72%);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
+    color: var(--brand);
+    background: hsl(216 100% 95%);
+    box-shadow: inset 0 0 0 1px hsl(216 90% 88%);
   }
   h3 {
-    margin: clamp(28px, 3.4vw, 48px) 0 0;
+    margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(1.25rem, 1.6vw, 1.45rem);
+    font-size: clamp(1.4rem, 1.95vw, 1.7rem);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.015em;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
     color: hsl(226 64% 13%);
     text-wrap: balance;
   }
-  .card p {
+  .text p {
     margin: 12px 0 0;
+    max-width: 36ch;
     font-size: 15.5px;
     line-height: 1.6;
-    color: hsl(226 30% 30%);
+    color: hsl(226 22% 34%);
     text-wrap: pretty;
+  }
+
+  /* Panel de la ilustración: tinta azul con una trama de puntos que se desvanece hacia los bordes */
+  .visual {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 20px;
+    background: radial-gradient(120% 90% at 85% 0%, hsl(214 100% 91%) 0%, hsl(216 100% 96%) 55%, hsl(220 100% 98%) 100%);
+    box-shadow: inset 0 0 0 1px hsl(216 80% 90%);
+  }
+  .visual::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(hsl(222 70% 62% / 0.32) 1px, transparent 1.5px);
+    background-size: 14px 14px;
+    -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 20%, transparent 78%);
+    mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 20%, transparent 78%);
+  }
+  .visual :global(.art) {
+    position: relative;
+    max-width: 280px;
+    transition: scale 0.6s var(--ease-out);
+  }
+  /* La ilustración se anima solo con la tarjeta en pantalla (data-live lo pone el script) */
+  .card[data-live] {
+    --play: running;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .card:hover::before,
+    .card:hover::after {
+      opacity: 1;
+    }
+    .card:hover .visual :global(.art) {
+      scale: 1.04;
+    }
+  }
+
+  /* Entrada escalonada al llegar a la sección (data-reveal-state lo pone el script; sin JavaScript no se ocultan) */
+  .services[data-reveal-state='pending'] .card {
+    opacity: 0;
+    translate: 0 28px;
+  }
+  .services[data-reveal-state='in'] .card {
+    transition:
+      opacity 0.7s var(--ease-out) calc(var(--i) * 90ms),
+      translate 0.9s var(--ease-out) calc(var(--i) * 90ms);
+  }
+
+  .dots {
+    display: none;
   }
   .cta-row {
     margin-top: clamp(32px, 4vw, 48px);
@@ -179,34 +292,192 @@ const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
     font-size: 15px;
     font-weight: 600;
     white-space: nowrap;
+    transition: box-shadow 0.25s ease;
   }
   .cta:hover {
     color: hsl(0 0% 100%);
+    box-shadow:
+      var(--brand-shadow),
+      0 0 0 5px rgb(1 68 160 / 0.12);
   }
   .cta svg {
-    transition: translate 0.2s ease;
+    transition: translate 0.25s var(--ease-out);
   }
   .cta:hover svg {
-    translate: 3px 0;
+    translate: 4px 0;
   }
   .cta:active {
     translate: 0 1px;
   }
 
+  /* Tablet y pantallas angostas: la ilustración pasa arriba del texto */
   @media (max-width: 1099px) {
-    .grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .card {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+    }
+    .visual {
+      order: -1;
+      aspect-ratio: 16 / 9;
+      padding: 10px;
+    }
+    .visual :global(.art) {
+      width: auto;
+      height: 100%;
+      max-width: 100%;
+    }
+    .body {
+      gap: 18px;
+      padding: 20px 14px 16px;
+    }
+    .text p {
+      max-width: none;
     }
   }
+
+  /* Celular: riel horizontal con ajuste a cada tarjeta. Sangra hasta los bordes de la sección para que se asome la
+     tarjeta siguiente; el relleno de arriba y abajo deja espacio a las sombras (un contenedor de scroll las recorta). */
   @media (max-width: 639px) {
     .grid {
-      grid-template-columns: minmax(0, 1fr);
+      /* relative: las tarjetas miden su posición (offsetLeft) desde el riel, que es lo que usan los puntos */
+      position: relative;
+      display: flex;
+      gap: 12px;
+      margin-inline: calc(var(--pad) * -1);
+      padding: 6px var(--pad) 30px;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--pad);
+      scrollbar-width: none;
     }
-    h3 {
-      margin-top: 24px;
+    .grid::-webkit-scrollbar {
+      display: none;
+    }
+    .card {
+      flex: 0 0 min(84%, 330px);
+      scroll-snap-align: center;
+    }
+    .services[data-rail='ready'] .dots {
+      display: flex;
+      justify-content: center;
+      margin-top: -10px;
+    }
+    .dot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+    .dot::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 9999px;
+      background: hsl(222 50% 82%);
+      transition:
+        width 0.3s var(--ease-out),
+        background-color 0.3s ease;
+    }
+    .dot[data-active]::before {
+      width: 18px;
+      background: var(--brand);
+    }
+    .cta-row {
+      margin-top: 20px;
     }
     .cta {
       height: 44px;
     }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .services[data-reveal-state] .card {
+      opacity: 1;
+      translate: none;
+      transition: none;
+    }
+  }
 </style>
+
+<script>
+  const section = document.querySelector<HTMLElement>('[data-services]');
+  const rail = section?.querySelector<HTMLElement>('[data-services-rail]');
+  if (section && rail && 'IntersectionObserver' in window) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cards = [...section.querySelectorAll<HTMLElement>('[data-service]')];
+    const dots = [...section.querySelectorAll<HTMLElement>('[data-services-dot]')];
+
+    // Entrada escalonada: solo si la sección aún no está en pantalla al cargar (si no, las tarjetas parpadearían).
+    if (!reduce && rail.getBoundingClientRect().top > innerHeight * 0.85) {
+      section.dataset.revealState = 'pending';
+      const reveal = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry?.isIntersecting) return;
+          section.dataset.revealState = 'in';
+          reveal.disconnect();
+        },
+        { threshold: 0.12 },
+      );
+      reveal.observe(rail);
+    }
+
+    // Las ilustraciones solo se animan con su tarjeta en pantalla.
+    if (!reduce) {
+      const live = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) entry.target.toggleAttribute('data-live', entry.isIntersecting);
+        },
+        { threshold: 0.2 },
+      );
+      cards.forEach((card) => live.observe(card));
+    }
+
+    // Luz que sigue al cursor: una escritura por cuadro, solo en la tarjeta bajo el puntero.
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      let frame = 0;
+      let last: PointerEvent | null = null;
+      rail.addEventListener(
+        'pointermove',
+        (event) => {
+          last = event;
+          if (frame) return;
+          frame = requestAnimationFrame(() => {
+            frame = 0;
+            const card = (last?.target as Element | null)?.closest<HTMLElement>('[data-service]');
+            if (!card || !last) return;
+            const box = card.getBoundingClientRect();
+            card.style.setProperty('--mx', `${Math.round(last.clientX - box.left)}px`);
+            card.style.setProperty('--my', `${Math.round(last.clientY - box.top)}px`);
+          });
+        },
+        { passive: true },
+      );
+    }
+
+    // Puntos del riel (celular): marcan la tarjeta centrada y, al tocarlos, llevan a la suya.
+    if (dots.length === cards.length) {
+      section.dataset.rail = 'ready';
+      const current = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const dot = dots[cards.indexOf(entry.target as HTMLElement)];
+            dot?.toggleAttribute('data-active', entry.isIntersecting);
+          }
+        },
+        { root: rail, threshold: 0.6 },
+      );
+      cards.forEach((card) => current.observe(card));
+      dots.forEach((dot, i) => {
+        dot.addEventListener('click', () => {
+          const card = cards[i];
+          if (!card) return;
+          rail.scrollTo({ left: card.offsetLeft - (rail.clientWidth - card.offsetWidth) / 2, behavior: reduce ? 'auto' : 'smooth' });
+        });
+      });
+    }
+  }
+</script>
