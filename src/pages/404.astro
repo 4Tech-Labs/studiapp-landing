@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import { SITE } from '../data/site';
 ---
 
-<Base title={`Página no encontrada | ${SITE.name}`} noindex>
+<Base title={`Página no encontrada | ${SITE.name}`} description={`La dirección que abriste no existe o cambió de lugar. Vuelve al inicio de ${SITE.name}.`} noindex>
   <Nav />
   <main class="notfound">
     <h1>Página no encontrada</h1>

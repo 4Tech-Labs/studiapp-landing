@@ -28,6 +28,7 @@ const links = isProduct
       { href: `${PRODUCT.path}#agenda`, label: 'Contacto', cta: true },
     ]
   : [
+      { href: '/#servicios', label: 'Servicios' },
       { href: '/#productos', label: 'Productos' },
       { href: '/#quienes-somos', label: 'Nosotros' },
       { href: '/#equipo', label: 'Equipo' },
@@ -49,7 +50,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * PILL_H) + 16 + 2;
   {
     !isProduct && (
       <a href={home.href} aria-label={home.label} class="brand">
-        <Image src={logo} alt="" height={BRAND_H} densities={[1, 2]} loading="eager" />
+        <Image src={logo} alt={COMPANY.name} height={BRAND_H} densities={[1, 2]} loading="eager" />
       </a>
     )
   }
@@ -65,7 +66,7 @@ const slot = 8 + Math.round((logo.width / logo.height) * PILL_H) + 16 + 2;
             <span class="pill-name">{PRODUCT.name}</span>
           </>
         ) : (
-          <Image src={logo} alt="" height={PILL_H} densities={[1, 2]} loading="eager" />
+          <Image src={logo} alt={COMPANY.name} height={PILL_H} densities={[1, 2]} loading="eager" />
         )
       }
     </a>

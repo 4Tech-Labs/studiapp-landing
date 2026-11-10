@@ -3,6 +3,7 @@ import { SITE, PRODUCT } from '../data/site';
 import EdgeSweep from './EdgeSweep.astro';
 import MagicRings from './MagicRings.astro';
 import WaveTitle from './WaveTitle.astro';
+import { waveLabel } from '../lib/wave-title';
 
 interface Props {
   /** 'product' en la landing de StudIApp; 'company' es el contacto del home de la empresa. */
@@ -50,7 +51,7 @@ const copy = isProduct
   </div>
   <div class="inner">
     <p class="kicker">Reunión de 30 minutos</p>
-    <h2 id={`${id}-titulo`}>
+    <h2 id={`${id}-titulo`} aria-label={waveLabel(copy.title)}>
       <WaveTitle parts={copy.title} theme="dark" />
     </h2>
     <p class="lead">{copy.lead}</p>

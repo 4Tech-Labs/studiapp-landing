@@ -1,4 +1,6 @@
 ---
+import { PRODUCT } from '../data/site';
+
 /**
  * Logo animado (robot Lottie).
  * - Placeholder: imagen estática del primer frame (public/logo.webp), visible desde el primer pintado, sin CLS.
@@ -12,10 +14,12 @@ interface Props {
   class?: string;
 }
 const { width, height, class: className } = Astro.props;
+// El contenedor va con aria-hidden (el nombre lo da el enlace que lo envuelve); el alt es para buscadores.
+const alt = `Logo de ${PRODUCT.name}`;
 ---
 
 <span class:list={['lottie-logo', className]} data-lottie="/lottie/robot.json" aria-hidden="true" style={`width:${width}px;height:${height}px`}>
-  <img src="/logo.webp" width={width} height={height} alt="" decoding="async" />
+  <img src="/logo.webp" width={width} height={height} alt={alt} decoding="async" />
 </span>
 
 <style>

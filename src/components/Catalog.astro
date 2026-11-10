@@ -4,6 +4,9 @@ import Grainient from './Grainient.astro';
 import GradientASCII from './GradientASCII.astro';
 import WaveTitle from './WaveTitle.astro';
 import ComplexipyPreview from './ComplexipyPreview.astro';
+import { waveLabel, type WavePart } from '../lib/wave-title';
+
+const title: WavePart[] = [{ text: 'Productos que' }, { text: 'construimos', accent: true }];
 
 // Catálogo de productos de la empresa (datos en CATALOG). Cada producto es una tarjeta a color que, en escritorio,
 // se queda fija arriba mientras la siguiente se apila encima. Los publicados enlazan a su landing; los que están
@@ -32,8 +35,8 @@ const echoesOf = (i: number) => [...Array.from({ length: Math.min(i, 2) }, (_, k
 <section id="productos" aria-labelledby="productos-titulo" class="catalog" data-screen-label="Productos">
   <div class="head">
     <p class="kicker">Productos</p>
-    <h2 id="productos-titulo">
-      <WaveTitle parts={[{ text: 'Productos que' }, { text: 'construimos', accent: true }]} />
+    <h2 id="productos-titulo" aria-label={waveLabel(title)}>
+      <WaveTitle parts={title} />
     </h2>
     <p class="lead">Además del software a la medida, creamos productos propios que resuelven problemáticas reales de la educación y del desarrollo de software.</p>
   </div>

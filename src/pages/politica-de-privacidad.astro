@@ -13,7 +13,7 @@ const analytics = Boolean(SITE.analyticsToken);
 const providers = whatsapp ? 'cuatro' : 'tres';
 ---
 
-<Legal title="Política de privacidad" description="Resumen de cómo StudIApp trata tus datos personales cuando visitas el sitio o nos escribes, y cómo ejercer tus derechos.">
+<Legal title="Política de privacidad" description={`Resumen de cómo ${COMPANY.name} trata tus datos personales cuando visitas el sitio o nos escribes, y cómo ejercer tus derechos.`}>
   <p slot="intro">
     Esta página resume cómo tratamos tus datos personales cuando visitas este sitio web o nos escribes, y funciona como nuestro aviso de privacidad. Los detalles completos están en la <a href="/tratamiento-de-datos">Política de tratamiento de datos personales</a>. Si hubiera alguna diferencia entre ambos textos, prevalece la política.
   </p>

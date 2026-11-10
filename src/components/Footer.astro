@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import LottieLogo from './LottieLogo.astro';
 import companyLogo from '../assets/4techlabs-logo.png';
-import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY, PRODUCT, CATALOG } from '../data/site';
+import { SITE, SOCIAL, LEGAL_LINKS, FAQ, COMPANY, PRODUCT, CATALOG, SERVICES } from '../data/site';
 
 interface Props {
   /** 'company' en el home y las páginas de la empresa; 'product' en la landing de StudIApp. */
@@ -79,15 +79,24 @@ const social = [
             {FAQ.length > 0 && <a href={`${PRODUCT.path}#preguntas-frecuentes`}>Preguntas frecuentes</a>}
           </nav>
         ) : (
-          <nav aria-labelledby="footer-producto" class="col">
-            <p id="footer-producto" class="kicker">Productos</p>
-            {CATALOG.map((p) => <a href={p.status === 'available' ? p.href : `/#${p.id}`}>{p.name}</a>)}
-            <a href="/#productos">Catálogo</a>
-          </nav>
+          <>
+            <nav aria-labelledby="footer-servicios" class="col">
+              <p id="footer-servicios" class="kicker">Servicios</p>
+              {SERVICES.map((s) => <a href={`/#${s.id}`}>{s.title}</a>)}
+            </nav>
+            <nav aria-labelledby="footer-producto" class="col">
+              <p id="footer-producto" class="kicker">Productos</p>
+              {CATALOG.map((p) => <a href={p.status === 'available' ? p.href : `/#${p.id}`}>{p.name}</a>)}
+              <a href={`${PRODUCT.path}#caracteristicas`}>Características de {PRODUCT.name}</a>
+              {FAQ.length > 0 && <a href={`${PRODUCT.path}#preguntas-frecuentes`}>Preguntas sobre {PRODUCT.name}</a>}
+              <a href="/#productos">Catálogo</a>
+            </nav>
+          </>
         )
       }
       <nav aria-labelledby="footer-empresa" class="col">
         <p id="footer-empresa" class="kicker">Empresa</p>
+        {!isProduct && <a href="/#servicios">Servicios</a>}
         <a href="/#quienes-somos">Quiénes somos</a>
         <a href="/#equipo">Equipo</a>
         <a href="/#contacto">Contacto</a>

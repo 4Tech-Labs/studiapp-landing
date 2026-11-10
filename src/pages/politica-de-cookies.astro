@@ -11,7 +11,7 @@ const mail = `mailto:${SITE.email}`;
 const analytics = Boolean(SITE.analyticsToken);
 ---
 
-<Legal title="Política de cookies" description="El sitio de StudIApp no usa cookies ni herramientas de seguimiento. Aquí explicamos por qué y cuál es la única excepción de seguridad.">
+<Legal title="Política de cookies" description={`El sitio de ${COMPANY.name} no instala cookies en tu navegador. Aquí explicamos por qué y cuál es la única excepción de seguridad.`}>
   <p slot="intro">Aquí explicamos qué son las cookies, por qué este sitio no las usa y cuál es la única excepción.</p>
 
   <LegalSection id="que-son" title="Qué son las cookies">

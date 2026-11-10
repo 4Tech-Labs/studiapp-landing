@@ -2,6 +2,7 @@ import { defineConfig, fontProviders } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import { SITE, LEGAL, LEGAL_LINKS } from './src/data/site';
 import { NOTCH_SCRIPT_HASH } from './src/lib/nav-notch';
+import { BUILD_DATE } from './src/lib/build-date';
 
 export default defineConfig({
   site: SITE.url,
@@ -94,9 +95,12 @@ export default defineConfig({
         if (path === '/og' || path === '/og-studiapp') return false;
         return Boolean(LEGAL.effectiveDate) || !LEGAL_LINKS.some((l) => l.href === path);
       },
-      // URLs públicas sin .html (ver build.format)
+      // URLs públicas sin .html (ver build.format) y fecha de última modificación: las páginas legales cambian en su
+      // fecha de vigencia (medianoche de Colombia); el resto, con el último commit.
       serialize: (item) => {
         item.url = item.url.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+        const isLegal = LEGAL_LINKS.some((l) => l.href === new URL(item.url).pathname);
+        item.lastmod = isLegal && LEGAL.effectiveDate ? new Date(`${LEGAL.effectiveDate}T00:00:00-05:00`).toISOString() : BUILD_DATE;
         return item;
       },
     }),

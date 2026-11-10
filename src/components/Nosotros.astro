@@ -5,6 +5,7 @@ import { SITE, COMPANY, PRODUCT, CATALOG } from '../data/site';
 import GradientWaves from './GradientWaves.astro';
 import ReflectiveCard from './ReflectiveCard.astro';
 import WaveTitle from './WaveTitle.astro';
+import { waveLabel, type WavePart } from '../lib/wave-title';
 
 // Identifica a la empresa dueña del sitio y de los productos del catálogo.
 // Los datos salen de COMPANY, los mismos que usan las páginas legales. La credencial lleva solo lo esencial
@@ -17,6 +18,9 @@ interface Props {
 
 const { variant = 'company' } = Astro.props;
 const isProduct = variant === 'product';
+const title: WavePart[] = isProduct
+  ? [{ text: 'Un producto de' }, { text: COMPANY.name, accent: true, break: true }]
+  : [{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }];
 // El otro producto propio, enlazado a su tarjeta en la sección Productos del home.
 const complexipy = CATALOG.find((p) => p.id === 'complexipy-platform');
 // "Cali, Valle del Cauca, Colombia" → "Cali, Colombia".
@@ -49,12 +53,8 @@ const city = place.length > 1 ? `${place[0]}, ${place[place.length - 1]}` : COMP
   <div class="wrap">
     <div class="copy">
       <p class="kicker">{isProduct ? 'Quién está detrás' : 'Quiénes somos'}</p>
-      <h2 id="nosotros-titulo">
-        <WaveTitle
-          parts={isProduct
-            ? [{ text: 'Un producto de' }, { text: COMPANY.name, accent: true, break: true }]
-            : [{ text: 'Tus ideas,' }, { text: 'hechas realidad', accent: true }]}
-        />
+      <h2 id="nosotros-titulo" aria-label={waveLabel(title)}>
+        <WaveTitle parts={title} />
       </h2>
       <p>
         <strong>{COMPANY.legalName}</strong> es una empresa colombiana de desarrollo de software que construye aplicaciones web y móviles a la medida, automatiza procesos operativos y desarrolla productos propios como{' '}

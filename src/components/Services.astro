@@ -1,0 +1,212 @@
+---
+import { SERVICES } from '../data/site';
+import { waveLabel, type WavePart } from '../lib/wave-title';
+import WaveTitle from './WaveTitle.astro';
+
+// Lo que la empresa hace para sus clientes (datos en SERVICES). Va antes del catálogo de productos propios.
+// Cada tarjeta tiene su ancla (/#id), que enlaza el footer.
+const title: WavePart[] = [{ text: 'Desarrollo de software' }, { text: 'a la medida de tu negocio', accent: true, break: true }];
+
+// Iconos de trazo (viewBox 24), por id del servicio.
+const ICONS: Record<string, string> = {
+  'software-a-la-medida': '<polyline points="8 7 3 12 8 17"></polyline><polyline points="16 7 21 12 16 17"></polyline><line x1="14" y1="4" x2="10" y2="20"></line>',
+  'aplicaciones-web': '<rect x="3" y="4" width="18" height="16" rx="3"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="6.5" y1="6.5" x2="6.51" y2="6.5"></line><line x1="9.5" y1="6.5" x2="9.51" y2="6.5"></line>',
+  'aplicaciones-moviles': '<rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect><line x1="11" y1="18" x2="13" y2="18"></line>',
+  'inteligencia-artificial': '<path d="M11 3.5 12.9 9l5.6 1.9-5.6 1.9L11 18.3l-1.9-5.5L3.5 10.9 9.1 9z"></path><path d="m18.5 15 .8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"></path>',
+};
+const FALLBACK_ICON = '<rect x="4" y="4" width="16" height="16" rx="4"></rect>';
+---
+
+<section id="servicios" aria-labelledby="servicios-titulo" class="services" data-screen-label="Servicios">
+  <div class="head">
+    <p class="kicker">Servicios</p>
+    <h2 id="servicios-titulo" aria-label={waveLabel(title)}>
+      <WaveTitle parts={title} />
+    </h2>
+    <p class="lead">Entendemos tu proceso, definimos el alcance contigo y entregamos software funcionando en ciclos cortos.</p>
+  </div>
+
+  <ul class="grid">
+    {
+      SERVICES.map((s, i) => (
+        <li class="card" id={s.id}>
+          <div class="card-top">
+            <span class="icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={ICONS[s.id] ?? FALLBACK_ICON} />
+            </span>
+            <span class="num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          </div>
+          <h3>{s.title}</h3>
+          <p>{s.text}</p>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="cta-row">
+    <a href="/#contacto" class="cta">
+      Cuéntanos tu proyecto
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+    </a>
+  </div>
+</section>
+
+<style>
+  /* El mismo marco de la sección Productos (Catalog), que va justo después */
+  .services {
+    margin-top: var(--gap);
+    border-radius: var(--radius);
+    background: hsl(0 0% 100%);
+    box-shadow: inset 0 0 0 1px hsl(228 30% 93%);
+    padding: clamp(64px, 8vw, 112px) clamp(16px, 4vw, 48px);
+    scroll-margin-top: 14px;
+  }
+  .head {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .kicker {
+    margin: 0 0 16px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(232 14% 48%);
+  }
+  /* Título de sección: la misma escala en todo el home (32 a 54 px, 600, −0,025em) */
+  h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2rem, 4.4vw, 3.4rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: hsl(232 30% 12%);
+    text-wrap: balance;
+  }
+  .lead {
+    margin: 18px auto 0;
+    max-width: 56ch;
+    font-size: clamp(16px, 1.2vw, 17px);
+    line-height: 1.6;
+    color: hsl(232 12% 40%);
+    text-wrap: pretty;
+  }
+  .grid {
+    list-style: none;
+    margin: clamp(40px, 5vw, 64px) auto 0;
+    padding: 0;
+    max-width: 1240px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--gap);
+  }
+  /* Tarjeta en la tinta azul clara de la tarjeta de StudIApp del catálogo */
+  .card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(22px, 2.2vw, 30px);
+    border-radius: 28px;
+    background: hsl(210 100% 97.5%);
+    box-shadow: inset 0 0 0 1px hsl(228 30% 40% / 0.06);
+    /* Al llegar por el ancla desde el footer, la tarjeta queda por debajo de la nav */
+    scroll-margin-top: 96px;
+    transition: box-shadow 0.3s ease;
+  }
+  /* La tarjeta a la que lleva el enlace queda marcada con el filo de la marca */
+  .card:target {
+    box-shadow: inset 0 0 0 1.5px var(--brand);
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand);
+    background: hsl(0 0% 100%);
+    box-shadow:
+      inset 0 0 0 1px hsl(222 60% 88%),
+      0 8px 16px -10px hsl(222 80% 40% / 0.35);
+  }
+  .num {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: hsl(222 60% 72%);
+  }
+  h3 {
+    margin: clamp(28px, 3.4vw, 48px) 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.6vw, 1.45rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: hsl(226 64% 13%);
+    text-wrap: balance;
+  }
+  .card p {
+    margin: 12px 0 0;
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: hsl(226 30% 30%);
+    text-wrap: pretty;
+  }
+  .cta-row {
+    margin-top: clamp(32px, 4vw, 48px);
+    display: flex;
+    justify-content: center;
+  }
+  /* Botón principal del sitio (azul de marca), como el de Contacto */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 22px;
+    border-radius: 9999px;
+    background: var(--brand-grad);
+    box-shadow: var(--brand-shadow);
+    color: hsl(0 0% 100%);
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .cta:hover {
+    color: hsl(0 0% 100%);
+  }
+  .cta svg {
+    transition: translate 0.2s ease;
+  }
+  .cta:hover svg {
+    translate: 3px 0;
+  }
+  .cta:active {
+    translate: 0 1px;
+  }
+
+  @media (max-width: 1099px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 639px) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    h3 {
+      margin-top: 24px;
+    }
+    .cta {
+      height: 44px;
+    }
+  }
+</style>

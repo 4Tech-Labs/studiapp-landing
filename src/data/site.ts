@@ -92,6 +92,40 @@ export const CATALOG: (AvailableProduct | UpcomingProduct)[] = [
   },
 ];
 
+export interface Service {
+  /** Ancla de la tarjeta en el home (/#id): la enlaza el footer. */
+  id: string;
+  title: string;
+  text: string;
+}
+
+/**
+ * Servicios de la sección Servicios del home, en orden. Con los mismos textos se generan los enlaces del footer y
+ * el catálogo de servicios del JSON-LD. Un servicio nuevo necesita su icono en Services.astro (si no, usa el genérico).
+ */
+export const SERVICES: Service[] = [
+  {
+    id: 'software-a-la-medida',
+    title: 'Software a la medida',
+    text: 'Sistemas hechos para tu operación, que reemplazan hojas de cálculo y procesos manuales y se integran con las herramientas que ya usas.',
+  },
+  {
+    id: 'aplicaciones-web',
+    title: 'Aplicaciones web',
+    text: 'Plataformas, portales y paneles de administración que funcionan en cualquier navegador y crecen con tu negocio.',
+  },
+  {
+    id: 'aplicaciones-moviles',
+    title: 'Aplicaciones móviles',
+    text: 'Apps para iOS y Android, desde el diseño hasta la publicación en las tiendas.',
+  },
+  {
+    id: 'inteligencia-artificial',
+    title: 'Soluciones con inteligencia artificial',
+    text: 'Asistentes, automatización de tareas y análisis de documentos con modelos de IA conectados a tus datos.',
+  },
+];
+
 /** URLs reales de redes. Vacío = el icono no se muestra. */
 export const SOCIAL = {
   instagram: '',
@@ -223,6 +257,8 @@ export const LEGAL_LINKS = [
 /** Empresa responsable del sitio y del tratamiento de datos personales. Se muestra en Quiénes somos, el footer, las páginas legales y el JSON-LD. */
 export const COMPANY = {
   name: '4Tech Labs', // nombre comercial; la razón social es legalName
+  /** Otras formas en que la gente busca la marca. Van al JSON-LD (alternateName) para que Google las asocie al sitio. */
+  alternateNames: ['4Tech', '4TechLabs', '4 Tech Labs'],
   legalName: '4TECH LABS S.A.S.',
   /** NIT con dígito de verificación, como en el certificado de la Cámara de Comercio. Vacío = no se muestra. */
   taxId: '902.004.485-9',
